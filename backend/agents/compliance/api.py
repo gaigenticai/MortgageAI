@@ -142,7 +142,7 @@ logger = structlog.get_logger(__name__)
 
 # Rate limiting
 limiter = Limiter(key_func=get_remote_address)
-router.state.limiter = limiter
+router.limiter = limiter
 
 # Concurrency control
 concurrency_semaphore = asyncio.Semaphore(10)  # Max 10 concurrent requests

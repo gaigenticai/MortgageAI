@@ -127,9 +127,16 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
       - REDIS_URL=redis://redis:6379
+      # OpenCV headless environment variables
+      - DISPLAY=:0
+      - QT_X11_NO_MITSHM=1
+      - OPENCV_LOG_LEVEL=ERROR
+    env_file: .env
     volumes:
       - ./backend/agents:/app/agents
       - ./models:/app/models
+    ports:
+      - "${AGENTS_PORT:-8000}:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -138,6 +145,11 @@ services:
     networks:
       - mortgage-ai-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:

@@ -15,6 +15,7 @@ import hashlib
 from functools import lru_cache
 
 from anthropic import Anthropic
+from openai import OpenAI
 import textstat
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
@@ -200,7 +201,16 @@ class ComplianceAgent:
 
     def __init__(self):
         """Initialize the Compliance Agent with required components."""
-        self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        # Determine which LLM provider to use
+        if settings.ANTHROPIC_API_KEY and settings.ANTHROPIC_API_KEY != 'your_anthropic_api_key_here':
+            self.provider = 'anthropic'
+            self.client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+            self.logger.info("Using Anthropic Claude for LLM operations")
+        else:
+            self.provider = 'openai'
+            self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            self.logger.info("Using OpenAI for LLM operations")
+
         self.text_processor = TextProcessor()
         self.regulation_store = RegulationStore()
         self.advanced_simplifier = AdvancedTextSimplifier()
@@ -648,17 +658,28 @@ Question:"""
         }
 
     async def _call_claude(self, prompt: str) -> str:
-        """Make a call to Claude API with error handling."""
+        """Make a call to LLM API (Claude or OpenAI) with error handling."""
         try:
-            response = self.client.messages.create(
-                model=settings.AI_MODEL,
-                max_tokens=2000,
-                temperature=0.3,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            return response.content[0].text
+            if self.provider == 'anthropic':
+                response = self.client.messages.create(
+                    model=settings.AI_MODEL,
+                    max_tokens=2000,
+                    temperature=0.3,
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                return response.content[0].text
+            else:  # openai
+                response = self.client.chat.completions.create(
+                    model="gpt-4",  # Use GPT-4 as equivalent to Claude
+                    max_tokens=2000,
+                    temperature=0.3,
+                    messages=[
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+                return response.choices[0].message.content
         except Exception as e:
-            self.logger.error(f"Claude API call failed: {str(e)}")
+            self.logger.error(f"LLM API call failed: {str(e)}")
             raise

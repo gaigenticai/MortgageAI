@@ -51,17 +51,26 @@ fastify.register(require('@fastify/static'), {
   prefix: '/uploads/'
 });
 
+// Register HTTP proxy for AI agents
+fastify.register(require('@fastify/http-proxy'), {
+  upstream: process.env.AGENTS_API_URL || 'http://ai-agents:8000',
+  prefix: '/api/compliance',
+  rewritePrefix: '/api/compliance'
+});
+
+fastify.register(require('@fastify/http-proxy'), {
+  upstream: process.env.AGENTS_API_URL || 'http://ai-agents:8000',
+  prefix: '/api/quality-control',
+  rewritePrefix: '/api/quality-control'
+});
+
 // Import routes
 const authRoutes = require('../routes/auth');
-const complianceRoutes = require('./agents/compliance/api');
-const qualityControlRoutes = require('./agents/quality_control/api');
 
 // Register routes
 if (process.env.REQUIRE_AUTH === 'true') {
   fastify.register(authRoutes);
 }
-fastify.register(complianceRoutes);
-fastify.register(qualityControlRoutes);
 
 // Authentication middleware (when REQUIRE_AUTH=true)
 if (process.env.REQUIRE_AUTH === 'true') {

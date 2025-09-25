@@ -46,7 +46,7 @@ class Settings:
     # AI Model Configuration
     ANTHROPIC_API_KEY: str = os.getenv('ANTHROPIC_API_KEY', '')
     OPENAI_API_KEY: str = os.getenv('OPENAI_API_KEY', '')
-    AI_MODEL: str = os.getenv('AI_MODEL', 'claude-3-sonnet-20240229')
+    AI_MODEL: str = os.getenv('AI_MODEL', 'gpt-4')
     EMBEDDING_MODEL: str = os.getenv('EMBEDDING_MODEL', 'text-embedding-3-small')
 
     # OCR and Document Processing
@@ -104,9 +104,13 @@ class Settings:
             True if all required settings are valid
         """
         required_settings = [
-            ('ANTHROPIC_API_KEY', self.ANTHROPIC_API_KEY),
             ('DATABASE_URL', self.DATABASE_URL),
         ]
+
+        if 'claude' in self.AI_MODEL.lower():
+            required_settings.append(('ANTHROPIC_API_KEY', self.ANTHROPIC_API_KEY))
+        else:
+            required_settings.append(('OPENAI_API_KEY', self.OPENAI_API_KEY))
 
         missing = []
         for name, value in required_settings:
