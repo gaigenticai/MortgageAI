@@ -1,0 +1,67 @@
+{
+  "name": "mortgage-ai",
+  "version": "1.0.0",
+  "description": "Agentic AI Solution for Enhancing Mortgage Advice Quality and Application Accuracy",
+  "main": "backend/api/server.js",
+  "scripts": {
+    "start": "node backend/api/server.js",
+    "dev": "nodemon backend/api/server.js",
+    "test": "jest",
+    "test:e2e": "jest --config tests/e2e/jest.config.js",
+    "lint": "eslint .",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "echo 'Backend build complete'",
+    "build:frontend": "cd frontend && npm run build",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "mortgage",
+    "ai",
+    "compliance",
+    "quality-control",
+    "afm",
+    "wft"
+  ],
+  "author": "GaigenticAI",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^4.24.0",
+    "fastify-cors": "^6.1.0",
+    "fastify-helmet": "^11.1.1",
+    "fastify-jwt": "^4.2.0",
+    "fastify-multipart": "^5.3.1",
+    "fastify-rate-limit": "^9.1.0",
+    "fastify-static": "^6.10.2",
+    "pg": "^8.11.3",
+    "redis": "^4.6.10",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "multer": "^1.4.5-lts.1",
+    "tesseract.js": "^5.0.4",
+    "pdf-parse": "^1.1.1",
+    "axios": "^1.6.0",
+    "@anthropic-ai/sdk": "^0.17.1",
+    "openai": "^4.24.7",
+    "langchain": "^0.1.25",
+    "dotenv": "^16.3.1",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
