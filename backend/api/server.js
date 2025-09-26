@@ -69,6 +69,7 @@ const afmComplianceRoutes = require('../routes/afm_compliance');
 const dutchMortgageQCRoutes = require('../routes/dutch_mortgage_qc');
 const applicationsRoutes = require('../routes/applications');
 const dashboardRoutes = require('../routes/dashboard');
+const settingsRoutes = require('../routes/settings');
 
 // Register routes
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -86,6 +87,9 @@ fastify.register(applicationsRoutes, { prefix: '/api' });
 
 // Register dashboard routes
 fastify.register(dashboardRoutes, { prefix: '/api/dashboard' });
+
+// Register settings routes
+fastify.register(settingsRoutes, { prefix: '/api/settings' });
 
 // Authentication middleware (when REQUIRE_AUTH=true)
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -195,6 +199,7 @@ fastify.setNotFoundHandler((request, reply) => {
       '/api/applications/*',
       '/api/lenders',
       '/api/dashboard/*',
+      '/api/settings/*',
       '/health',
       '/api/upload'
     ]

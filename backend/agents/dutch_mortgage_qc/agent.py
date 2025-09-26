@@ -124,9 +124,22 @@ class DutchMortgageQCAgent:
         self.autonomous_actions = []
 
         # Initialize validation rules and AI components
-        asyncio.create_task(self._load_dutch_validation_rules())
-        asyncio.create_task(self._initialize_compliance_graph())
-        asyncio.create_task(self._load_agent_memory())
+        # Note: These will be initialized when first needed to avoid event loop issues
+        self._rules_loaded = False
+        self._graph_initialized = False
+        self._memory_loaded = False
+
+    async def _ensure_initialized(self):
+        """Ensure all components are initialized when first needed."""
+        if not self._rules_loaded:
+            await self._load_dutch_validation_rules()
+            self._rules_loaded = True
+        if not self._graph_initialized:
+            await self._initialize_compliance_graph()
+            self._graph_initialized = True
+        if not self._memory_loaded:
+            await self._load_agent_memory()
+            self._memory_loaded = True
 
     async def analyze_dutch_mortgage_application(self, application_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -138,6 +151,8 @@ class DutchMortgageQCAgent:
         Returns:
             Detailed QC report with first-time-right assessment and lender-specific validation
         """
+        # Ensure all components are initialized
+        await self._ensure_initialized()
 
         application_id = application_data.get('application_id', f"app_{datetime.utcnow().timestamp()}")
         client_data = application_data.get('client_data', {})

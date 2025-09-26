@@ -785,15 +785,15 @@ async function afmComplianceRoutes(fastify, options) {
 
       const result = await client.query(query, [clientId, parseInt(limit)]);
 
-      const history = result.rows.map(row => ({
+      const history = await Promise.all(result.rows.map(async (row) => ({
         id: row.assessment_id,
         client_id: clientId,
         assessment_date: row.created_at,
         score: row.compliance_score,
         status: row.status,
         assessor: `AFM Compliance Agent v${process.env.API_VERSION || '1.0'}`,
-        changes_from_previous: await getAssessmentChanges(assessmentId, clientId)
-      }));
+        changes_from_previous: await getAssessmentChanges(row.assessment_id, clientId)
+      })));
 
       reply.send({
         success: true,
