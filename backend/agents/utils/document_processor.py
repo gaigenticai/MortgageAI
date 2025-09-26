@@ -19,6 +19,7 @@ import pdfplumber
 import tabula
 
 from ..config import settings
+from .ocr_service import OCRService
 
 
 class DocumentProcessor:
@@ -39,6 +40,14 @@ class DocumentProcessor:
         # Configure OCR
         if hasattr(settings, 'TESSERACT_DATA_PATH'):
             pytesseract.pytesseract.tesseract_cmd = settings.TESSERACT_DATA_PATH
+
+        # Initialize OCR service
+        self.ocr_service = None
+        try:
+            self.ocr_service = OCRService()
+            self.logger.info("OCR.space API service initialized")
+        except Exception as e:
+            self.logger.warning(f"OCR.space API not available, falling back to Tesseract: {str(e)}")
 
         # Document type patterns for field extraction
         self.field_patterns = {
@@ -167,8 +176,20 @@ class DocumentProcessor:
             }
 
     async def _process_image(self, image_path: str) -> Dict[str, Any]:
-        """Process image document using OCR."""
+        """Process image document using OCR.space API or fallback to Tesseract."""
         try:
+            # Try OCR.space API first if available
+            if self.ocr_service:
+                try:
+                    result = await self.ocr_service.process_document(image_path, 'auto')
+                    if result['text'].strip():
+                        return result
+                except Exception as e:
+                    self.logger.warning(f"OCR.space API failed, falling back to Tesseract: {str(e)}")
+
+            # Fallback to Tesseract OCR
+            self.logger.info("Using Tesseract OCR as fallback")
+
             # Preprocess image for better OCR
             processed_image = self._preprocess_image(image_path)
 
@@ -189,7 +210,7 @@ class DocumentProcessor:
 
             return {
                 'text': full_text,
-                'method': 'image_ocr',
+                'method': 'image_ocr_tesseract',
                 'pages': 1,
                 'confidence': avg_confidence / 100,  # Convert to 0-1 scale
                 'language': settings.OCR_LANGUAGES
