@@ -534,3 +534,4 @@
 {"level":"info","message":"Cached 4 active AFM regulations","service":"dutch-market-data","timestamp":"2025-09-26T10:39:10.123Z"}
 {"level":"info","message":"AFM regulations initialized successfully","service":"dutch-market-data","timestamp":"2025-09-26T10:39:10.123Z"}
 {"level":"info","message":"📊 AFM Regulations: 4 loaded","service":"dutch-market-data","timestamp":"2025-09-26T10:39:10.149Z"}
+{"level":"info","message":"Cleaned up 0 cache entries","service":"dutch-market-data","timestamp":"2025-09-26T11:00:00.046Z"}

@@ -50,10 +50,10 @@ fastify.register(require('@fastify/static'), {
   prefix: '/uploads/'
 });
 
-// Register HTTP proxy for AI agents
+// Register HTTP proxy for AFM compliance agent
 fastify.register(require('@fastify/http-proxy'), {
   upstream: process.env.AGENTS_API_URL || 'http://ai-agents:8000',
-  prefix: '/api/compliance',
+  prefix: '/api/afm',
   rewritePrefix: '/api/compliance'
 });
 
