@@ -12,6 +12,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./docker/postgres/02-dutch-mortgage-schema.sql:/docker-entrypoint-initdb.d/02-dutch-mortgage-schema.sql
     ports:
       - "${DB_PORT:-5432}:5432"
     networks:
@@ -147,6 +148,133 @@ services:
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Dutch Market Data Service - Handles AFM regulations, BKR, NHG data
+  dutch-market-data:
+    build:
+      context: .
+      dockerfile: docker/dutch-market-data.Dockerfile
+    container_name: mortgage-ai-dutch-data
+    environment:
+      - AFM_REGULATION_FEED_URL=${AFM_REGULATION_FEED_URL}
+      - AFM_API_KEY=${AFM_API_KEY}
+      - BKR_API_URL=${BKR_API_URL}
+      - BKR_API_KEY=${BKR_API_KEY}
+      - NHG_VALIDATION_URL=${NHG_VALIDATION_URL}
+      - NHG_API_KEY=${NHG_API_KEY}
+      - PROPERTY_VALUATION_API_URL=${PROPERTY_VALUATION_API_URL}
+      - PROPERTY_VALUATION_API_KEY=${PROPERTY_VALUATION_API_KEY}
+      - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - DUTCH_DATA_PORT=8001
+    env_file: .env
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./logs:/app/logs
+    ports:
+      - "${DUTCH_DATA_PORT:-8001}:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mortgage-ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Lender Integration Service - Handles Stater, Quion, ING, Rabobank, ABN AMRO
+  lender-integration:
+    build:
+      context: .
+      dockerfile: docker/lender-integration.Dockerfile
+    container_name: mortgage-ai-lender-integration
+    environment:
+      - STATER_API_URL=${STATER_API_URL}
+      - STATER_API_KEY=${STATER_API_KEY}
+      - QUION_API_URL=${QUION_API_URL}
+      - QUION_API_KEY=${QUION_API_KEY}
+      - ING_API_URL=${ING_API_URL}
+      - ING_API_KEY=${ING_API_KEY}
+      - RABOBANK_API_URL=${RABOBANK_API_URL}
+      - RABOBANK_API_KEY=${RABOBANK_API_KEY}
+      - ABN_AMRO_API_URL=${ABN_AMRO_API_URL}
+      - ABN_AMRO_API_KEY=${ABN_AMRO_API_KEY}
+      - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+      - LENDER_PORT=8002
+    env_file: .env
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./logs:/app/logs
+      - ./uploads:/app/uploads:ro
+    ports:
+      - "${LENDER_PORT:-8002}:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      dutch-market-data:
+        condition: service_healthy
+    networks:
+      - mortgage-ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AFM Compliance Monitor - Real-time AFM compliance monitoring and reporting
+  afm-monitor:
+    build:
+      context: .
+      dockerfile: docker/afm-monitor.Dockerfile
+    container_name: mortgage-ai-afm-monitor
+    environment:
+      - AFM_AUDIT_WEBHOOK_URL=${AFM_AUDIT_WEBHOOK_URL}
+      - COMPLIANCE_ALERT_EMAIL=${COMPLIANCE_ALERT_EMAIL}
+      - AFM_REGULATION_FEED_URL=${AFM_REGULATION_FEED_URL}
+      - AFM_API_KEY=${AFM_API_KEY}
+      - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
+      - REDIS_URL=redis://redis:6379
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - NODE_ENV=production
+      - AFM_MONITOR_PORT=8003
+    env_file: .env
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./logs:/app/logs
+      - ./compliance-reports:/app/reports
+      - ./compliance-reports:/app/compliance-reports
+    ports:
+      - "${AFM_MONITOR_PORT:-8003}:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    networks:
+      - mortgage-ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
       interval: 30s
       timeout: 10s
       retries: 3

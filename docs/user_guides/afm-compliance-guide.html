@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFM Compliance Advisor Guide - MortgageAI</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        .endpoint {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .method {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .parameter-table th, .parameter-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px;
+            text-align: left;
+        }
+        .parameter-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .optional {
+            color: #6c757d;
+        }
+        .step {
+            background: #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #6c757d;
+        }
+        .step-number {
+            display: inline-block;
+            background: #6c757d;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 25px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🇳🇱 AFM Compliance Advisor Guide</h1>
+
+        <p>Welcome to the AFM Compliance Advisor user guide. This feature ensures all mortgage advice meets Dutch AFM (Financial Supervision Act) requirements under Wft regulations.</p>
+
+        <h2>🎯 Overview</h2>
+        <p>The AFM Compliance Advisor validates mortgage advice against Dutch regulatory requirements, ensuring compliance with:</p>
+        <ul>
+            <li><strong>Wft Article 86f</strong> - Client suitability assessment</li>
+            <li><strong>BGfo Article 8.1</strong> - Mandatory advisor remuneration disclosures</li>
+            <li><strong>BGfo Article 9.1</strong> - Risk warnings and consumer protection</li>
+            <li><strong>Documentation requirements</strong> - Complete audit trail</li>
+        </ul>
+
+        <h2>📋 Client Intake Process</h2>
+
+        <h3>Step 1: Submit Client Profile</h3>
+        <div class="step">
+            <span class="step-number">1</span>
+            Submit complete client profile data including financial situation, risk tolerance, and mortgage requirements.
+        </div>
+
+        <h4>Endpoint: Client Intake</h4>
+        <div class="endpoint">
+            <span class="method">POST</span> /api/afm-compliance/client-intake
+        </div>
+
+        <h4>Request Body</h4>
+        <div class="code">
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "bsn": "123456789",
+  "date_of_birth": "1985-03-15",
+  "address": {
+    "street": "Kalverstraat",
+    "house_number": "125",
+    "postal_code": "1012PA",
+    "city": "Amsterdam"
+  },
+  "financial_situation": {
+    "gross_annual_income": 75000,
+    "net_monthly_income": 4500,
+    "existing_debts": [
+      {
+        "type": "personal_loan",
+        "monthly_payment": 250,
+        "remaining_amount": 15000
+      }
+    ],
+    "savings": 25000,
+    "investments": 50000
+  },
+  "mortgage_request": {
+    "property_value": 450000,
+    "loan_amount": 360000,
+    "term_years": 30
+  },
+  "risk_tolerance": "medium",
+  "investment_experience": "intermediate",
+  "sustainability_preferences": "medium",
+  "objectives": ["home_purchase", "family_housing"]
+}
+        </div>
+
+        <h4>Response</h4>
+        <div class="success">
+{
+  "success": true,
+  "client_id": "uuid-here",
+  "afm_compliance": {
+    "compliant": true,
+    "score": 85,
+    "missing_requirements": []
+  },
+  "next_steps": [
+    {
+      "action": "generate_advice",
+      "description": "Proceed to AFM-compliant advice generation",
+      "url": "/api/afm-compliance/generate-advice/uuid-here"
+    }
+  ]
+}
+        </div>
+
+        <h2>🤖 Advice Generation</h2>
+
+        <h3>Step 2: Generate AFM-Compliant Advice</h3>
+        <div class="step">
+            <span class="step-number">2</span>
+            Generate mortgage advice that includes all mandatory AFM disclosures and meets regulatory requirements.
+        </div>
+
+        <h4>Endpoint: Generate Advice</h4>
+        <div class="endpoint">
+            <span class="method">POST</span> /api/afm-compliance/generate-advice/{client_id}
+        </div>
+
+        <h4>Request Body</h4>
+        <div class="code">
+{
+  "product_options": [
+    {
+      "id": "fixed_30yr_2.5pct",
+      "name": "30-Year Fixed Rate Mortgage",
+      "lender": "Stater",
+      "interest_rate": 2.5,
+      "type": "fixed_rate",
+      "features": {
+        "nhg_eligible": true,
+        "early_repayment_penalty": 10
+      }
+    }
+  ],
+  "advice_context": {
+    "market_conditions": {
+      "current_rates_low": true,
+      "forecast_rates_stable": false
+    },
+    "client_priorities": ["cost_certainty", "nhg_eligibility"]
+  }
+}
+        </div>
+
+        <h2>✅ Compliance Validation</h2>
+
+        <h3>Step 3: Validate Session Compliance</h3>
+        <div class="step">
+            <span class="step-number">3</span>
+            Validate the complete advice session for AFM compliance and generate audit trail.
+        </div>
+
+        <h4>Endpoint: Validate Session</h4>
+        <div class="endpoint">
+            <span class="method">POST</span> /api/afm-compliance/validate-session/{session_id}
+        </div>
+
+        <h4>Response Example</h4>
+        <div class="success">
+{
+  "success": true,
+  "validation": {
+    "overall_compliance": {
+      "is_afm_compliant": true,
+      "compliance_score": 95,
+      "certification_ready": true
+    }
+  },
+  "session_status": "afm_compliant"
+}
+        </div>
+
+        <h2>📊 Audit Trail</h2>
+
+        <h3>Review Compliance History</h3>
+        <div class="endpoint">
+            <span class="method">GET</span> /api/afm-compliance/audit-trail/{session_id}
+        </div>
+
+        <h3>Check Client Status</h3>
+        <div class="endpoint">
+            <span class="method">GET</span> /api/afm-compliance/client-status/{client_id}
+        </div>
+
+        <h2>⚠️ Error Handling</h2>
+
+        <h3>Common Error Responses</h3>
+        <div class="error">
+<strong>400 Bad Request:</strong> Missing required fields or invalid data format
+        </div>
+
+        <div class="warning">
+<strong>404 Not Found:</strong> Client profile or advice session not found
+        </div>
+
+        <div class="error">
+<strong>500 Internal Server Error:</strong> AFM compliance service unavailable
+        </div>
+
+        <h2>🔒 Data Privacy & Security</h2>
+        <ul>
+            <li>All client data is encrypted in transit and at rest</li>
+            <li>BSN numbers are hashed for audit purposes</li>
+            <li>Compliance validation results are stored securely</li>
+            <li>Access is logged for regulatory audit purposes</li>
+        </ul>
+
+        <h2>📞 Support</h2>
+        <p>For technical support or questions about AFM compliance:</p>
+        <ul>
+            <li>Email: support@mortgageai.nl</li>
+            <li>Phone: +31 (0)20 123 4567</li>
+            <li>Documentation: <a href="/docs/api">API Reference</a></li>
+        </ul>
+
+        <hr>
+        <p><em>Last updated: January 2025 | Version 2.0 | AFM Regulation Version: 2025.1</em></p>
+    </div>
+</body>
+</html>

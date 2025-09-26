@@ -1,173 +1,121 @@
 /**
- * MortgageAI Professional Frontend Application
+ * MortgageAI Dutch Mortgage Advisory Platform
  *
- * Features:
- * - Mortgage application form with validation
- * - Document upload with OCR preview
- * - Real-time compliance checking
- * - Quality control dashboard
- * - Explain-back dialogue system
- * - Professional UI/UX design
+ * Specialized for Dutch AFM-compliant mortgage advice and application processing
+ * Integration with Dutch lenders, BKR, NHG, and AFM compliance
  */
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
+import { ClientProvider } from './contexts/ClientContext';
 
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
-import Dashboard from './pages/Dashboard';
-import ApplicationForm from './pages/ApplicationForm';
-import ComplianceCheck from './pages/ComplianceCheck';
-import QualityControl from './pages/QualityControl';
-import DocumentUpload from './pages/DocumentUpload';
-import ResultsDisplay from './pages/ResultsDisplay';
-import Settings from './pages/Settings';
 
-// Ultra-modern theme configuration inspired by top Dribbble designs
+// Dutch Mortgage Specific Pages
+import DutchMortgageDashboard from './pages/DutchMortgageDashboard';
+import AFMClientIntake from './pages/AFMClientIntake';
+import AFMComplianceAdvisor from './pages/AFMComplianceAdvisor';
+import DutchMortgageApplication from './pages/DutchMortgageApplication';
+import BKRCreditCheck from './pages/BKRCreditCheck';
+import NHGEligibilityCheck from './pages/NHGEligibilityCheck';
+import LenderIntegration from './pages/LenderIntegration';
+import ComplianceAuditTrail from './pages/ComplianceAuditTrail';
+import DutchMarketInsights from './pages/DutchMarketInsights';
+
+// Gaigentic Brand Colors (as specified in previous prompt)
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2', // Professional blue
-      light: '#42a5f5',
-      dark: '#1565c0',
+      main: '#6366F1', // Gaigentic primary indigo
+      light: '#818CF8',
+      dark: '#4338CA',
     },
     secondary: {
-      main: '#dc004e', // Professional red
-      light: '#ff5983',
-      dark: '#9a0036',
+      main: '#EC4899', // Gaigentic secondary pink
+      light: '#F472B6',
+      dark: '#BE185D',
     },
     background: {
-      default: '#ffffff', // Clean white background
-      paper: '#ffffff', // White cards
+      default: '#FAFBFC', // Ultra-light gray background
+      paper: '#FFFFFF', // White surfaces
     },
     text: {
-      primary: '#212121', // Dark text
-      secondary: '#757575', // Gray text
+      primary: '#0F172A', // Dark text
+      secondary: '#64748B', // Gray text
     },
     success: {
-      main: '#4caf50', // Standard green
-      light: '#81c784',
-      dark: '#388e3c',
+      main: '#10B981', // Emerald for AFM compliance
+      light: '#34D399',
+      dark: '#047857',
     },
     warning: {
-      main: '#ff9800', // Standard orange
-      light: '#ffb74d',
-      dark: '#f57c00',
+      main: '#F59E0B', // Amber for warnings
+      light: '#FCD34D',
+      dark: '#D97706',
     },
     error: {
-      main: '#f44336', // Standard red
-      light: '#e57373',
-      dark: '#d32f2f',
-    },
-    info: {
-      main: '#2196f3', // Standard blue
-      light: '#64b5f6',
-      dark: '#1976d2',
+      main: '#EF4444', // Red for errors
+      light: '#F87171',
+      dark: '#DC2626',
     },
   },
   typography: {
-    fontFamily: '"Inter", "Poppins", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", sans-serif',
+    fontFamily: '"Inter", "SF Pro Display", "-apple-system", "BlinkMacSystemFont", "Segoe UI", sans-serif',
     h1: {
-      fontSize: '2.5rem',
-      fontWeight: 600,
-      lineHeight: 1.2,
-      letterSpacing: '0em',
-      color: 'text.primary',
+      fontSize: '2.25rem',
+      fontWeight: 700,
+      letterSpacing: '-0.025em',
+      color: '#0F172A',
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: '1.875rem',
       fontWeight: 600,
-      lineHeight: 1.3,
-      letterSpacing: '0em',
-      color: 'text.primary',
+      letterSpacing: '-0.025em',
+      color: '#0F172A',
     },
     h3: {
       fontSize: '1.5rem',
       fontWeight: 600,
-      lineHeight: 1.4,
-      letterSpacing: '0em',
-      color: 'text.primary',
-    },
-    h4: {
-      fontSize: '1.6rem',
-      fontWeight: 600,
-      lineHeight: 1.4,
-    },
-    h5: {
-      fontSize: '1.3rem',
-      fontWeight: 500,
-      lineHeight: 1.5,
-    },
-    h6: {
-      fontSize: '1.15rem',
-      fontWeight: 500,
-      lineHeight: 1.5,
+      letterSpacing: '-0.025em',
+      color: '#0F172A',
     },
     body1: {
       fontSize: '1rem',
       lineHeight: 1.6,
+      color: '#374151',
     },
     body2: {
       fontSize: '0.875rem',
       lineHeight: 1.5,
+      color: '#6B7280',
     },
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 12,
   },
   components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          background: '#ffffff',
-          '&::-webkit-scrollbar': {
-            width: '8px',
-          },
-          '&::-webkit-scrollbar-track': {
-            background: '#f1f1f1',
-            borderRadius: '4px',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            background: '#c1c1c1',
-            borderRadius: '4px',
-            '&:hover': {
-              background: '#a8a8a8',
-            },
-          },
-        },
-      },
-    },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 12,
           textTransform: 'none',
           fontWeight: 500,
-          fontSize: '0.875rem',
-          padding: '8px 16px',
-          transition: 'all 0.2s ease',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             transform: 'translateY(-1px)',
-            boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
           },
         },
         contained: {
-          background: 'primary.main',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+          background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           '&:hover': {
-            background: 'primary.dark',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-          },
-        },
-        outlined: {
-          borderWidth: '1px',
-          '&:hover': {
-            borderWidth: '1px',
-            background: 'rgba(25, 118, 210, 0.04)',
+            background: 'linear-gradient(135deg, #4338CA 0%, #7C3AED 100%)',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           },
         },
       },
@@ -175,52 +123,14 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          background: 'background.paper',
-          border: '1px solid #e0e0e0',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.2s ease',
+          borderRadius: 16,
+          border: '1px solid #E2E8F0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             transform: 'translateY(-2px)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
           },
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          background: 'background.paper',
-          border: '1px solid #e0e0e0',
-          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          borderRadius: 4,
-          fontWeight: 500,
-          fontSize: '0.8125rem',
-          background: '#f5f5f5',
-          border: '1px solid #e0e0e0',
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            background: '#eeeeee',
-          },
-        },
-      },
-    },
-    MuiLinearProgress: {
-      styleOverrides: {
-        root: {
-          borderRadius: 4,
-          height: 6,
-          background: '#e0e0e0',
-        },
-        bar: {
-          borderRadius: 4,
-          background: 'primary.main',
         },
       },
     },
@@ -228,18 +138,18 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 4,
-            background: 'background.paper',
-            border: '1px solid #e0e0e0',
+            borderRadius: 12,
+            backgroundColor: '#F8FAFC',
+            border: '1px solid #E2E8F0',
             transition: 'all 0.2s ease',
             '&:hover': {
-              background: '#fafafa',
-              border: '1px solid #bdbdbd',
+              backgroundColor: '#F1F5F9',
+              borderColor: '#CBD5E1',
             },
             '&.Mui-focused': {
-              background: 'background.paper',
-              border: '2px solid primary.main',
-              boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.1)',
+              backgroundColor: '#FFFFFF',
+              borderColor: '#6366F1',
+              boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)',
             },
           },
         },
@@ -259,43 +169,43 @@ function App() {
           horizontal: 'right',
         }}
       >
-        <Router>
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            minHeight: '100vh',
-            position: 'relative',
-            overflowX: 'hidden',
-            background: 'background.default'
-          }}>
-            <Header />
-            <Box
-              component="main"
-              sx={{
+        <ClientProvider>
+          <Router>
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '100vh',
+              backgroundColor: 'background.default'
+            }}>
+              <Header />
+
+              <Box component="main" sx={{
                 flexGrow: 1,
                 py: { xs: 2, md: 4 },
                 px: { xs: 1, md: 2 },
-                position: 'relative',
-                zIndex: 1,
-              }}
-            >
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/application" element={<ApplicationForm />} />
-                <Route path="/documents" element={<DocumentUpload />} />
-                <Route path="/compliance" element={<ComplianceCheck />} />
-                <Route path="/quality-control" element={<QualityControl />} />
-                <Route path="/results" element={<ResultsDisplay />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
+              }}>
+                <Routes>
+                  <Route path="/" element={<DutchMortgageDashboard />} />
+                  <Route path="/afm-client-intake" element={<AFMClientIntake />} />
+                  <Route path="/afm-compliance-advisor" element={<AFMComplianceAdvisor />} />
+                  <Route path="/mortgage-application" element={<DutchMortgageApplication />} />
+                  <Route path="/bkr-credit-check" element={<BKRCreditCheck />} />
+                  <Route path="/nhg-eligibility" element={<NHGEligibilityCheck />} />
+                  <Route path="/lender-integration" element={<LenderIntegration />} />
+                  <Route path="/compliance-audit" element={<ComplianceAuditTrail />} />
+                  <Route path="/market-insights" element={<DutchMarketInsights />} />
+                </Routes>
+              </Box>
+
+              <Footer />
             </Box>
-            <Footer />
-          </Box>
-        </Router>
+          </Router>
+        </ClientProvider>
       </SnackbarProvider>
     </ThemeProvider>
   );
 }
 
 export default App;
+
 

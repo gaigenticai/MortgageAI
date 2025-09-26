@@ -18,8 +18,7 @@ require('dotenv').config();
 
 const fastify = require('fastify')({
   logger: {
-    level: process.env.LOG_LEVEL || 'info',
-    file: process.env.LOG_FILE || '/app/logs/mortgage-ai.log'
+    level: process.env.LOG_LEVEL || 'info'
   }
 });
 
@@ -66,11 +65,23 @@ fastify.register(require('@fastify/http-proxy'), {
 
 // Import routes
 const authRoutes = require('../routes/auth');
+const afmComplianceRoutes = require('../routes/afm_compliance');
+const dutchMortgageQCRoutes = require('../routes/dutch_mortgage_qc');
+const applicationsRoutes = require('../routes/applications');
 
 // Register routes
 if (process.env.REQUIRE_AUTH === 'true') {
   fastify.register(authRoutes);
 }
+
+// Register AFM compliance routes
+fastify.register(afmComplianceRoutes, { prefix: '/api/afm' });
+
+// Register Dutch mortgage QC routes
+fastify.register(dutchMortgageQCRoutes, { prefix: '/api' });
+
+// Register applications routes
+fastify.register(applicationsRoutes, { prefix: '/api' });
 
 // Authentication middleware (when REQUIRE_AUTH=true)
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -171,6 +182,10 @@ fastify.setNotFoundHandler((request, reply) => {
     available_endpoints: [
       '/api/compliance/*',
       '/api/quality-control/*',
+      '/api/afm/*',
+      '/api/qc/*',
+      '/api/applications/*',
+      '/api/lenders',
       '/health',
       '/api/upload'
     ]

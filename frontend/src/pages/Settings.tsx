@@ -69,6 +69,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
+import { settingsApi } from '../services/settingsApi';
 
 // Secure encryption utilities
 const encryptData = (data: string, key: string): string => {
@@ -176,11 +177,8 @@ const Settings: React.FC = () => {
     setTestingKeys(prev => ({ ...prev, [provider]: true }));
 
     try {
-      // Simulate API test
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Mock validation - in production, make actual API calls
-      const isValid = apiKeys[provider].key.length > 20;
+      const result = await settingsApi.testAPIConnection(provider, apiKeys[provider].key);
+      const isValid = result.success;
 
       setApiKeys(prev => ({
         ...prev,
@@ -188,14 +186,16 @@ const Settings: React.FC = () => {
           ...prev[provider],
           isValid,
           status: isValid ? 'valid' : 'invalid',
-          lastTested: new Date()
+          lastTested: new Date(),
+          error: result.error,
         }
       }));
 
-      enqueueSnackbar(
-        `API key ${isValid ? 'validated' : 'invalid'} successfully`,
-        { variant: isValid ? 'success' : 'error' }
-      );
+      if (isValid) {
+        enqueueSnackbar(`API connection successful${result.responseTime ? ` (${result.responseTime}ms)` : ''}`, { variant: 'success' });
+      } else {
+        enqueueSnackbar(`API connection failed: ${result.error || 'Unknown error'}`, { variant: 'error' });
+      }
     } catch (error) {
       setApiKeys(prev => ({
         ...prev,
@@ -334,20 +334,37 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <Typography variant="h3" sx={{
-          fontWeight: 700,
-          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          mb: 2
+    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
+      <Box sx={{ mb: 6, textAlign: 'center' }}>
+        <Box sx={{
+          width: 80,
+          height: 80,
+          borderRadius: 4,
+          background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          mx: 'auto',
+          mb: 4,
+          boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
         }}>
+          <SettingsIcon sx={{ color: 'white', fontSize: 40 }} />
+        </Box>
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 3
+          }}
+        >
           System Configuration
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Configure API keys and system settings for optimal AI performance
+        <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 400, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}>
+          Configure API keys and system settings for optimal AI-powered mortgage processing performance
         </Typography>
       </Box>
 

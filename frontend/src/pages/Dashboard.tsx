@@ -182,34 +182,69 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 8, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ mt: 12, textAlign: 'center' }}>
         <Fade in timeout={800}>
           <Box>
             <Box sx={{
-              width: 80,
-              height: 80,
+              width: 96,
+              height: 96,
               borderRadius: 4,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               mx: 'auto',
-              mb: 3,
+              mb: 4,
               animation: 'pulse 2s infinite',
+              boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25)',
               '@keyframes pulse': {
-                '0%, 100%': { transform: 'scale(1)' },
-                '50%': { transform: 'scale(1.1)' }
+                '0%, 100%': { transform: 'scale(1)', opacity: 1 },
+                '50%': { transform: 'scale(1.05)', opacity: 0.8 }
               }
             }}>
-                    <Psychology sx={{ color: 'white', fontSize: 32 }} />
+              <Psychology sx={{ color: 'white', fontSize: 40 }} />
             </Box>
-            <Typography variant="h4" sx={{ mb: 2, fontWeight: 600 }}>
-              Loading Dashboard...
+            <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: 'text.primary' }}>
+              Initializing MortgageAI
             </Typography>
-            <Typography variant="body1" color="text.secondary">
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 4, fontSize: '1.125rem' }}>
               Initializing AI agents and system components
             </Typography>
-            <LinearProgress sx={{ mt: 3, borderRadius: 2, height: 6 }} />
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+              <LinearProgress
+                sx={{
+                  width: 300,
+                  height: 8,
+                  borderRadius: 4,
+                  background: 'rgba(226, 232, 240, 0.8)',
+                  '& .MuiLinearProgress-bar': {
+                    borderRadius: 4,
+                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                  }
+                }}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+              {['Compliance Agent', 'Quality Control Agent', 'Database'].map((service, index) => (
+                <Box key={service} sx={{
+                  px: 3,
+                  py: 1,
+                  borderRadius: 2,
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  animation: `fadeIn 0.6s ease ${index * 0.2}s both`,
+                  '@keyframes fadeIn': {
+                    from: { opacity: 0, transform: 'translateY(10px)' },
+                    to: { opacity: 1, transform: 'translateY(0)' }
+                  }
+                }}>
+                  <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>
+                    {service}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
         </Fade>
       </Container>
@@ -220,146 +255,307 @@ const Dashboard: React.FC = () => {
     <Container maxWidth="lg" sx={{ mt: 6, mb: 6 }}>
       {/* Hero Header */}
       <Slide in direction="down" timeout={600}>
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
           <Box sx={{
-            width: 64,
-            height: 64,
-            borderRadius: 2,
-            background: 'primary.main',
+            width: 80,
+            height: 80,
+            borderRadius: 4,
+            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             mx: 'auto',
-            mb: 3,
-            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+            mb: 4,
+            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              transform: 'scale(1.05) rotate(2deg)',
+            }
           }}>
-            <Psychology sx={{ color: 'white', fontSize: 32 }} />
+            <Psychology sx={{ color: 'white', fontSize: 40 }} />
           </Box>
           <Typography
-            variant="h4"
+            variant="h2"
             component="h1"
             sx={{
-              fontWeight: 600,
+              fontWeight: 700,
               color: 'text.primary',
-              mb: 2,
+              mb: 3,
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
             }}
           >
             MortgageAI Dashboard
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            AI Solution for Mortgage Advice Quality and Application Accuracy
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{
+              mb: 4,
+              fontWeight: 400,
+              maxWidth: 600,
+              mx: 'auto',
+              lineHeight: 1.6
+            }}
+          >
+            Premium AI Solution for Mortgage Advice Quality and Application Accuracy
           </Typography>
-          <Alert severity="success" sx={{ mt: 2 }}>
-            System is operational with both AI agents active.
-          </Alert>
+          <Box sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 2,
+            px: 4,
+            py: 2,
+            borderRadius: 3,
+            background: 'rgba(16, 185, 129, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(16, 185, 129, 0.2)',
+          }}>
+            <Box sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              bgcolor: 'success.main',
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%, 100%': { opacity: 1 },
+                '50%': { opacity: 0.5 },
+              },
+            }} />
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'success.main',
+                fontWeight: 600,
+                fontSize: '0.875rem'
+              }}
+            >
+              All AI agents operational • Real-time processing active
+            </Typography>
+          </Box>
         </Box>
       </Slide>
 
       {/* System Status */}
       <Slide in direction="up" timeout={800}>
-        <Box sx={{ mb: 6 }}>
+        <Box sx={{ mb: 8 }}>
           <Typography
-            variant="h4"
+            variant="h3"
             gutterBottom
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
-              mb: 3,
-              fontWeight: 600
+              gap: 3,
+              mb: 4,
+              fontWeight: 700,
+              color: 'text.primary'
             }}
           >
-            <Security sx={{ color: 'success.main', fontSize: 32 }} />
+            <Box sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+            }}>
+              <Security sx={{ color: 'white', fontSize: 24 }} />
+            </Box>
             System Status
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ textAlign: 'center' }}>
-                <CardContent sx={{ py: 3 }}>
+              <Card sx={{
+                textAlign: 'center',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                }
+              }}>
+                <CardContent sx={{ py: 4 }}>
                   <Box sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    background: 'success.main',
+                    width: 56,
+                    height: 56,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     mx: 'auto',
-                    mb: 2,
+                    mb: 3,
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
                   }}>
-                    <CheckCircle sx={{ color: 'white', fontSize: 24 }} />
+                    <CheckCircle sx={{ color: 'white', fontSize: 28 }} />
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Compliance Agent</Typography>
-                  <Chip
-                    label="Online"
-                    color="success"
-                    size="small"
-                  />
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}>
+                    Compliance Agent
+                  </Typography>
+                  <Box sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    display: 'inline-block',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                  }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'success.main',
+                        fontWeight: 600,
+                        fontSize: '0.8125rem'
+                      }}
+                    >
+                      ONLINE
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ textAlign: 'center' }}>
-                <CardContent sx={{ py: 3 }}>
+              <Card sx={{
+                textAlign: 'center',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                }
+              }}>
+                <CardContent sx={{ py: 4 }}>
                   <Box sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    background: 'primary.main',
+                    width: 56,
+                    height: 56,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     mx: 'auto',
-                    mb: 2,
+                    mb: 3,
+                    boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
                   }}>
-                    <Psychology sx={{ color: 'white', fontSize: 24 }} />
+                    <Psychology sx={{ color: 'white', fontSize: 28 }} />
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>QC Agent</Typography>
-                  <Chip
-                    label="Online"
-                    color="success"
-                    size="small"
-                  />
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}>
+                    Quality Control Agent
+                  </Typography>
+                  <Box sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    display: 'inline-block',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                  }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'success.main',
+                        fontWeight: 600,
+                        fontSize: '0.8125rem'
+                      }}
+                    >
+                      ONLINE
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ textAlign: 'center' }}>
-                <CardContent sx={{ py: 3 }}>
+              <Card sx={{
+                textAlign: 'center',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                }
+              }}>
+                <CardContent sx={{ py: 4 }}>
                   <Box sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    background: 'info.main',
+                    width: 56,
+                    height: 56,
+                    borderRadius: 3,
+                    background: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     mx: 'auto',
-                    mb: 2,
+                    mb: 3,
+                    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)',
                   }}>
-                    <Timeline sx={{ color: 'white', fontSize: 24 }} />
+                    <Timeline sx={{ color: 'white', fontSize: 28 }} />
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>Database</Typography>
-                  <Chip
-                    label="Connected"
-                    color="success"
-                    size="small"
-                  />
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: 'text.primary' }}>
+                    Database
+                  </Typography>
+                  <Box sx={{
+                    px: 3,
+                    py: 1,
+                    borderRadius: 2,
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    display: 'inline-block',
+                    border: '1px solid rgba(16, 185, 129, 0.2)',
+                  }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: 'success.main',
+                        fontWeight: 600,
+                        fontSize: '0.8125rem'
+                      }}
+                    >
+                      CONNECTED
+                    </Typography>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
-              <Card sx={{ textAlign: 'center' }}>
-                <CardContent sx={{ py: 3 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>Last Updated</Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 600, color: 'primary.main', mb: 1 }}>
+              <Card sx={{
+                textAlign: 'center',
+                background: 'rgba(255, 255, 255, 0.9)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                }
+              }}>
+                <CardContent sx={{ py: 4 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: 'text.primary' }}>
+                    Last Updated
+                  </Typography>
+                  <Typography variant="h3" sx={{
+                    fontWeight: 700,
+                    color: 'primary.main',
+                    mb: 2,
+                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}>
                     {systemStatus ? new Date(systemStatus.last_updated).toLocaleTimeString('en-US', {
                       hour: '2-digit',
                       minute: '2-digit'
                     }) : 'N/A'}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Real-time sync
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                    Real-time sync active
                   </Typography>
                 </CardContent>
               </Card>
@@ -370,19 +566,31 @@ const Dashboard: React.FC = () => {
 
       {/* Key Metrics */}
       <Slide in direction="up" timeout={1000}>
-        <Box sx={{ mb: 6 }}>
+        <Box sx={{ mb: 8 }}>
           <Typography
-            variant="h4"
+            variant="h3"
             gutterBottom
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
-              mb: 4,
-              fontWeight: 600
+              gap: 3,
+              mb: 5,
+              fontWeight: 700,
+              color: 'text.primary'
             }}
           >
-            <TrendingUp sx={{ color: 'primary.main', fontSize: 32 }} />
+            <Box sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)',
+            }}>
+              <TrendingUp sx={{ color: 'white', fontSize: 24 }} />
+            </Box>
             Live Performance Metrics
           </Typography>
           <Grid container spacing={3}>

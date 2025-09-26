@@ -45,62 +45,12 @@ import {
   Analytics,
   Gavel,
   NavigateNext,
-  NavigateBefore
+  NavigateBefore,
+  Assessment
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
-
-// Mock QC results - in production this would come from the backend agent
-interface QCResult {
-  application_id: string;
-  completeness_score: number;
-  passed: boolean;
-  field_validation: {
-    results: Array<{
-      field: string;
-      valid: boolean;
-      error?: string;
-      severity: 'low' | 'medium' | 'high' | 'critical';
-    }>;
-    cross_validation_passed: boolean;
-    summary: {
-      total_fields: number;
-      valid_fields: number;
-      invalid_fields: number;
-    };
-  };
-  anomaly_check: {
-    anomalies: Array<{
-      field: string;
-      type: string;
-      description: string;
-      severity: 'low' | 'medium' | 'high' | 'critical';
-    }>;
-    severity_score: number;
-    requires_review: boolean;
-  };
-  document_analysis: Array<{
-    document_type: string;
-    processing_status: 'success' | 'error';
-    extracted_data: Record<string, any>;
-    required_fields: string[];
-    completeness: number;
-  }>;
-  remediation_instructions: Array<{
-    type: string;
-    field?: string;
-    issue: string;
-    severity: 'low' | 'medium' | 'high' | 'critical';
-    instruction: string;
-  }>;
-  analyzed_at: string;
-  processing_summary: {
-    documents_processed: number;
-    fields_validated: number;
-    anomalies_found: number;
-    critical_issues: number;
-  };
-}
+import { qualityControlApi, QCResult } from '../services/qualityControlApi';
 
 const QualityControl: React.FC = () => {
   const navigate = useNavigate();
@@ -109,134 +59,50 @@ const QualityControl: React.FC = () => {
   const [qcResult, setQcResult] = useState<QCResult | null>(null);
 
   useEffect(() => {
-    // Simulate QC analysis
     const analyzeApplication = async () => {
       setAnalyzing(true);
 
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      try {
+        // Get application ID from URL or context
+        const urlParams = new URLSearchParams(window.location.search);
+        const applicationId = urlParams.get('application_id') || 'current_application';
 
-      // Mock QC results
-      const mockResult: QCResult = {
-        application_id: "APP-2025-001",
-        completeness_score: 87.5,
-        passed: true,
-        field_validation: {
-          results: [
-            {
-              field: "applicant_name",
-              valid: true,
-              severity: "low"
-            },
-            {
-              field: "date_of_birth",
-              valid: true,
-              severity: "low"
-            },
-            {
-              field: "annual_income",
-              valid: true,
-              severity: "low"
-            },
-            {
-              field: "mortgage_amount",
-              valid: true,
-              severity: "low"
-            },
-            {
-              field: "property_value",
-              valid: false,
-              error: "Property value appears unusually high for the area",
-              severity: "medium"
-            },
-            {
-              field: "loan_term",
-              valid: true,
-              severity: "low"
-            }
-          ],
-          cross_validation_passed: true,
-          summary: {
-            total_fields: 6,
-            valid_fields: 5,
-            invalid_fields: 1
-          }
-        },
-        anomaly_check: {
-          anomalies: [
-            {
-              field: "loan_to_value_ratio",
-              type: "unusual_ratio",
-              description: "Loan-to-value ratio of 85% is above typical thresholds",
-              severity: "medium"
-            }
-          ],
-          severity_score: 2.5,
-          requires_review: true
-        },
-        document_analysis: [
-          {
-            document_type: "application_form",
-            processing_status: "success",
-            extracted_data: {
-              applicant_name: "John Doe",
-              date_of_birth: "1985-03-15",
-              mortgage_amount: 340000,
-              property_value: 400000
-            },
-            required_fields: ["applicant_name", "date_of_birth", "mortgage_amount", "property_value"],
-            completeness: 100
-          },
-          {
-            document_type: "income_proof",
-            processing_status: "success",
-            extracted_data: {
-              annual_income: 75000,
-              employer_name: "Tech Corp",
-              tax_year: "2024"
-            },
-            required_fields: ["employer_name", "annual_income", "tax_year"],
-            completeness: 100
-          }
-        ],
-        remediation_instructions: [
-          {
-            type: "field_correction",
-            field: "property_value",
-            issue: "Property value validation warning",
-            severity: "medium",
-            instruction: "Please verify the property valuation amount. Consider providing additional documentation if the value seems correct."
-          },
-          {
-            type: "anomaly_resolution",
-            field: "loan_to_value_ratio",
-            issue: "High loan-to-value ratio detected",
-            severity: "medium",
-            instruction: "Consider increasing down payment or exploring lower loan amounts to reduce LTV ratio."
-          }
-        ],
-        analyzed_at: new Date().toISOString(),
-        processing_summary: {
-          documents_processed: 4,
-          fields_validated: 12,
-          anomalies_found: 1,
-          critical_issues: 0
-        }
-      };
-
-      setQcResult(mockResult);
-      setAnalyzing(false);
-
-      if (mockResult.passed) {
-        enqueueSnackbar('Quality control analysis completed successfully!', { variant: 'success' });
-      } else {
-        enqueueSnackbar('Quality control issues found - please review remediation suggestions', { variant: 'warning' });
+        const result = await qualityControlApi.runQualityControl(applicationId);
+        setQcResult(result);
+      } catch (error) {
+        console.error('Failed to run quality control:', error);
+        enqueueSnackbar('Failed to run quality control analysis', { variant: 'error' });
+      } finally {
+        setAnalyzing(false);
       }
     };
 
     analyzeApplication();
   }, [enqueueSnackbar]);
 
+  if (analyzing) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!qcResult) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ textAlign: 'center', py: 8 }}>
+          <Typography variant="h6" color="error">
+            Failed to load quality control results
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  const results: QCResult = qcResult;
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical': return 'error';
@@ -301,14 +167,55 @@ const QualityControl: React.FC = () => {
   if (!qcResult) return null;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Quality Control Results
-        </Typography>
-        <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-          Comprehensive analysis of your mortgage application documents
-        </Typography>
+    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
+      <Paper elevation={0} sx={{
+        p: 6,
+        borderRadius: 4,
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.8)',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
+      }}>
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{
+            width: 80,
+            height: 80,
+            borderRadius: 4,
+            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 4,
+            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
+          }}>
+            <Assessment sx={{ color: 'white', fontSize: 40 }} />
+          </Box>
+          <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
+            align="center"
+            sx={{
+              fontWeight: 700,
+              mb: 3,
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Quality Control Results
+          </Typography>
+          <Typography
+            variant="h6"
+            align="center"
+            color="text.secondary"
+            sx={{ fontWeight: 400, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}
+          >
+            Comprehensive AI-powered analysis of your mortgage application documents
+          </Typography>
+        </Box>
 
         {/* Overall Score */}
         <Box sx={{ mb: 4, textAlign: 'center' }}>

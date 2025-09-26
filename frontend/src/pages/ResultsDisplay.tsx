@@ -51,128 +51,47 @@ import {
   NavigateBefore
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { CircularProgress } from '@mui/material';
+import { resultsApi, FinalResults } from '../services/resultsApi';
 
-// Mock final results combining both agents
-interface FinalResults {
-  application_id: string;
-  overall_status: 'approved' | 'conditional' | 'rejected' | 'pending_review';
-  overall_score: number;
-
-  quality_control: {
-    completeness_score: number;
-    passed: boolean;
-    critical_issues: number;
-    recommendations: string[];
-  };
-
-  compliance: {
-    compliance_score: number;
-    readability_level: string;
-    advice_generated: boolean;
-    understanding_confirmed: boolean;
-  };
-
-  final_advice: {
-    summary: string;
-    key_recommendations: string[];
-    next_steps: string[];
-    risk_assessment: string;
-  };
-
-  processing_timeline: Array<{
-    step: string;
-    status: 'completed' | 'in_progress' | 'pending';
-    timestamp: string | null;
-    details: string;
-  }>;
-
-  generated_at: string;
-}
 
 const ResultsDisplay: React.FC = () => {
   const navigate = useNavigate();
+  const [finalResults, setFinalResults] = useState<FinalResults | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock final results
-  const finalResults: FinalResults = {
-    application_id: "APP-2025-001-FINAL",
-    overall_status: 'approved',
-    overall_score: 92.5,
+  useEffect(() => {
+    loadFinalResults();
+  }, []);
 
-    quality_control: {
-      completeness_score: 87.5,
-      passed: true,
-      critical_issues: 0,
-      recommendations: [
-        "Verify property valuation with additional documentation",
-        "Consider debt-to-income ratio optimization"
-      ]
-    },
+  const loadFinalResults = async () => {
+    try {
+      setLoading(true);
+      // Get application ID from URL or context
+      const urlParams = new URLSearchParams(window.location.search);
+      const applicationId = urlParams.get('application_id') || 'current_application';
 
-    compliance: {
-      compliance_score: 95,
-      readability_level: "B1 (Intermediate)",
-      advice_generated: true,
-      understanding_confirmed: true
-    },
-
-    final_advice: {
-      summary: `Your mortgage application has been successfully processed through our comprehensive AI-powered system. Both quality control and compliance checks have passed with excellent scores. You are well-positioned for mortgage approval with the recommended fixed-rate option.`,
-      key_recommendations: [
-        "Proceed with a 25-year fixed-rate mortgage at current competitive rates",
-        "Maintain emergency fund covering 3-6 months of mortgage payments",
-        "Consider additional property valuation to strengthen application",
-        "Schedule consultation with mortgage advisor within 7 days"
-      ],
-      next_steps: [
-        "Application submitted to lender for underwriting review",
-        "Lender will contact you within 2-3 business days",
-        "Prepare additional documentation if requested",
-        "Monitor application status through lender portal"
-      ],
-      risk_assessment: "Low risk - Strong financial profile with good debt-to-income ratio and stable employment"
-    },
-
-    processing_timeline: [
-      {
-        step: "Application Submission",
-        status: "completed",
-        timestamp: "2025-09-25T10:00:00Z",
-        details: "Mortgage application form completed and validated"
-      },
-      {
-        step: "Document Upload",
-        status: "completed",
-        timestamp: "2025-09-25T10:15:00Z",
-        details: "All required documents uploaded and categorized"
-      },
-      {
-        step: "Quality Control Analysis",
-        status: "completed",
-        timestamp: "2025-09-25T10:20:00Z",
-        details: "AI-powered document validation and anomaly detection completed"
-      },
-      {
-        step: "Compliance Review",
-        status: "completed",
-        timestamp: "2025-09-25T10:25:00Z",
-        details: "AFM-compliant advice generated and understanding confirmed"
-      },
-      {
-        step: "Final Processing",
-        status: "completed",
-        timestamp: "2025-09-25T10:30:00Z",
-        details: "Application prepared for lender submission"
-      },
-      {
-        step: "Lender Review",
-        status: "pending",
-        timestamp: null,
-        details: "Underwriting and final approval process"
-      }
-    ],
-
-    generated_at: new Date().toISOString()
+      const results = await resultsApi.getFinalResults(applicationId);
+      setFinalResults(results);
+    } catch (error) {
+      console.error('Failed to load final results:', error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading || !finalResults) {
+    return (
+      <Container maxWidth="lg">
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  const results: FinalResults = finalResults;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -222,15 +141,52 @@ const ResultsDisplay: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
+      <Paper elevation={0} sx={{
+        p: 6,
+        borderRadius: 4,
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.8)',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
+      }}>
         {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold' }}>
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{
+            width: 80,
+            height: 80,
+            borderRadius: 4,
+            background: finalResults.overall_status === 'approved'
+              ? 'linear-gradient(135deg, #10B981 0%, #34D399 100%)'
+              : finalResults.overall_status === 'conditional'
+              ? 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)'
+              : 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 4,
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
+          }}>
+            <Celebration sx={{ color: 'white', fontSize: 40 }} />
+          </Box>
+          <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
+            sx={{
+              fontWeight: 700,
+              mb: 3,
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
             Application Processing Complete
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-            Application ID: {finalResults.application_id}
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 2, fontSize: '1.125rem' }}>
+            Application ID: <strong>{finalResults.application_id}</strong>
           </Typography>
 
           {/* Overall Status */}

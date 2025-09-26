@@ -245,14 +245,55 @@ This advice is based on current market conditions and your financial profile. We
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', mb: 1 }}>
-          Compliance & Plain-Language Advisor
-        </Typography>
-        <Typography variant="body1" align="center" color="text.secondary" sx={{ mb: 4 }}>
-          Get AFM-compliant mortgage advice in clear, understandable language
-        </Typography>
+    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
+      <Paper elevation={0} sx={{
+        p: 6,
+        borderRadius: 4,
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.8)',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
+      }}>
+        <Box sx={{ textAlign: 'center', mb: 6 }}>
+          <Box sx={{
+            width: 80,
+            height: 80,
+            borderRadius: 4,
+            background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mx: 'auto',
+            mb: 4,
+            boxShadow: '0 8px 24px rgba(236, 72, 153, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
+          }}>
+            <Gavel sx={{ color: 'white', fontSize: 40 }} />
+          </Box>
+          <Typography
+            variant="h2"
+            component="h1"
+            gutterBottom
+            align="center"
+            sx={{
+              fontWeight: 700,
+              mb: 3,
+              background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Compliance & Plain-Language Advisor
+          </Typography>
+          <Typography
+            variant="h6"
+            align="center"
+            color="text.secondary"
+            sx={{ fontWeight: 400, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}
+          >
+            Get AFM-compliant mortgage advice with AI-powered plain-language explanations
+          </Typography>
+        </Box>
 
         {/* User Profile Summary */}
         <Box sx={{ mb: 4 }}>

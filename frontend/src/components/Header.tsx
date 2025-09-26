@@ -74,11 +74,21 @@ const Header: React.FC = () => {
   return (
     <AppBar
       position="static"
-      elevation={1}
+      elevation={0}
       sx={{
-        background: 'background.paper',
-        borderBottom: '1px solid #e0e0e0',
-        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(226, 232, 240, 0.8)',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06)',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: '1px',
+          background: 'linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.2) 50%, transparent 100%)',
+        },
       }}
     >
       <Toolbar sx={{ py: 2 }}>
@@ -89,37 +99,46 @@ const Header: React.FC = () => {
             alignItems: 'center',
             cursor: 'pointer',
             mr: 4,
-            transition: 'transform 0.2s ease',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
-              transform: 'scale(1.05)',
+              transform: 'scale(1.02)',
+              '& .logo-icon': {
+                transform: 'rotate(5deg) scale(1.1)',
+              },
             }
           }}
           onClick={() => navigate('/')}
         >
           <Box
             sx={{
-              width: 40,
-              height: 40,
-              borderRadius: 2,
-              background: 'primary.main',
+              width: 48,
+              height: 48,
+              borderRadius: 3,
+              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              mr: 2,
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              mr: 3,
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25), 0 2px 4px rgba(0, 0, 0, 0.1)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
+            className="logo-icon"
           >
-            <Psychology sx={{ color: 'white', fontSize: 20 }} />
+            <Psychology sx={{ color: 'white', fontSize: 24 }} />
           </Box>
           <Box>
             <Typography
-              variant="h6"
+              variant="h5"
               component="div"
               sx={{
-                fontWeight: 600,
+                fontWeight: 700,
                 color: 'text.primary',
                 lineHeight: 1.2,
-                letterSpacing: '0em',
+                letterSpacing: '-0.025em',
+                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
               }}
             >
               MortgageAI
@@ -128,9 +147,11 @@ const Header: React.FC = () => {
               variant="body2"
               sx={{
                 color: 'text.secondary',
-                fontWeight: 400,
+                fontWeight: 500,
                 lineHeight: 1,
-                letterSpacing: '0em'
+                fontSize: '0.75rem',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
               }}
             >
               AI Solution
@@ -150,19 +171,28 @@ const Header: React.FC = () => {
                   startIcon={<IconComponent />}
                   onClick={() => handleNavigate(item.path)}
                   sx={{
-                    color: active ? 'primary.main' : 'text.secondary',
-                    background: active ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
-                    borderRadius: 2,
-                    px: 2,
-                    py: 1,
+                    color: active ? '#FFFFFF' : 'text.secondary',
+                    background: active
+                      ? `linear-gradient(135deg, ${item.gradient.split('linear-gradient(135deg, ')[1].split(' 0%')[0]} 0%, ${item.gradient.split('%, ')[1].split(' 100%)')[0]} 100%)`
+                      : 'rgba(255, 255, 255, 0.6)',
+                    borderRadius: 3,
+                    px: 3,
+                    py: 1.5,
                     fontWeight: 500,
                     fontSize: '0.875rem',
-                    transition: 'all 0.2s ease',
-                    border: active ? '1px solid rgba(25, 118, 210, 0.2)' : '1px solid transparent',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    border: active
+                      ? 'none'
+                      : '1px solid rgba(226, 232, 240, 0.8)',
+                    backdropFilter: 'blur(10px)',
                     '&:hover': {
-                      transform: 'translateY(-1px)',
-                      background: 'rgba(25, 118, 210, 0.04)',
-                      border: '1px solid rgba(25, 118, 210, 0.3)',
+                      transform: 'translateY(-2px)',
+                      background: active
+                        ? `linear-gradient(135deg, ${item.gradient.split('linear-gradient(135deg, ')[1].split(' 0%')[0]} 0%, ${item.gradient.split('%, ')[1].split(' 100%)')[0]} 100%)`
+                        : 'rgba(255, 255, 255, 0.9)',
+                      boxShadow: active
+                        ? '0 8px 20px rgba(0, 0, 0, 0.15)'
+                        : '0 4px 12px rgba(0, 0, 0, 0.1)',
                     },
                   }}
                 >
@@ -184,9 +214,15 @@ const Header: React.FC = () => {
               onClick={handleMenu}
               sx={{
                 color: 'text.secondary',
-                borderRadius: 2,
+                borderRadius: 3,
+                background: 'rgba(255, 255, 255, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(226, 232, 240, 0.8)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  background: 'rgba(0, 0, 0, 0.04)',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                 }
               }}
             >
@@ -208,11 +244,13 @@ const Header: React.FC = () => {
               onClose={handleClose}
               PaperProps={{
                 sx: {
-                  background: 'background.paper',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 2,
-                  mt: 1,
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(226, 232, 240, 0.8)',
+                  borderRadius: 3,
+                  mt: 2,
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1)',
+                  minWidth: 200,
                 }
               }}
             >
@@ -224,30 +262,37 @@ const Header: React.FC = () => {
                     key={item.path}
                     onClick={() => handleNavigate(item.path)}
                     sx={{
-                      background: active ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                      background: active
+                        ? `rgba(${item.gradient.split('linear-gradient(135deg, ')[1].split(' 0%')[0].replace('#', '').split(',').map(c => parseInt(c, 16))}, 0.1)`
+                        : 'transparent',
                       borderRadius: 2,
                       mx: 1,
                       my: 0.5,
+                      transition: 'all 0.2s ease',
                       '&:hover': {
-                        background: 'rgba(0, 0, 0, 0.04)',
+                        background: 'rgba(226, 232, 240, 0.8)',
+                        transform: 'translateY(-1px)',
                       }
                     }}
                   >
                     <Box
                       sx={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: 1,
-                        background: active ? 'rgba(25, 118, 210, 0.1)' : 'transparent',
+                        width: 32,
+                        height: 32,
+                        borderRadius: 2,
+                        background: active
+                          ? `rgba(${item.gradient.split('linear-gradient(135deg, ')[1].split(' 0%')[0].replace('#', '').split(',').map(c => parseInt(c, 16))}, 0.15)`
+                          : 'rgba(226, 232, 240, 0.6)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         mr: 2,
+                        transition: 'all 0.2s ease',
                       }}
                     >
-                      <IconComponent sx={{ color: active ? 'primary.main' : 'text.secondary', fontSize: 16 }} />
+                      <IconComponent sx={{ color: active ? '#6366F1' : 'text.secondary', fontSize: 18 }} />
                     </Box>
-                    <Typography sx={{ fontWeight: active ? 600 : 400, color: 'text.primary' }}>
+                    <Typography sx={{ fontWeight: active ? 600 : 500, color: 'text.primary' }}>
                       {item.label}
                     </Typography>
                   </MenuItem>
@@ -263,31 +308,45 @@ const Header: React.FC = () => {
             ml: 2,
             display: 'flex',
             alignItems: 'center',
-            gap: 1,
-            px: 2,
-            py: 1,
-            borderRadius: 2,
-            background: 'rgba(76, 175, 80, 0.1)',
-            border: '1px solid rgba(76, 175, 80, 0.2)',
+            gap: 2,
+            px: 3,
+            py: 1.5,
+            borderRadius: 3,
+            background: 'rgba(16, 185, 129, 0.1)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(16, 185, 129, 0.2)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            '&:hover': {
+              background: 'rgba(16, 185, 129, 0.15)',
+              transform: 'translateY(-1px)',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.15)',
+            },
           }}
         >
           <Box
             sx={{
-              width: 8,
-              height: 8,
+              width: 10,
+              height: 10,
               borderRadius: '50%',
               bgcolor: 'success.main',
+              boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.2)',
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%, 100%': { opacity: 1 },
+                '50%': { opacity: 0.5 },
+              },
             }}
           />
           <Typography
             variant="body2"
             sx={{
               color: 'success.main',
-              fontWeight: 500,
-              display: { xs: 'none', sm: 'block' }
+              fontWeight: 600,
+              display: { xs: 'none', sm: 'block' },
+              fontSize: '0.875rem',
             }}
           >
-            Online
+            All Systems Operational
           </Typography>
         </Box>
       </Toolbar>
