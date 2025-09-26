@@ -448,7 +448,7 @@ async function dutchMortgageQCRoutes(fastify, options) {
         application_id: applicationId
       };
 
-      console.log(`Analyzing mortgage application ${applicationId}`);
+      fastify.log.info(`Analyzing mortgage application ${applicationId}`);
 
       // Call QC agent for comprehensive analysis
       const qcResults = await callQCComplianceAgent('/analyze-application', applicationData);
@@ -486,94 +486,96 @@ async function dutchMortgageQCRoutes(fastify, options) {
     }
   });
 
-// BKR credit check integration
-router.post('/bkr-check/:client_id', async (req, res) => {
-  try {
-    const { client_id } = req.params;
-    const { bsn, consent_given } = req.body;
+  // BKR credit check integration
+  fastify.post('/bkr-check/:client_id', async (request, reply) => {
+    try {
+      const { client_id } = request.params;
+      const { bsn, consent_given } = request.body;
 
-    // Validate BKR check request
-    const validationResult = bkrCheckSchema.validate({ bsn, consent_given }, { abortEarly: false });
-    if (validationResult.error) {
-      return res.status(400).json({
-        error: 'Validation failed',
-        details: validationResult.error.details.map(detail => ({
-          field: detail.path.join('.'),
-          message: detail.message
-        }))
-      });
-    }
-
-    if (!consent_given) {
-      return res.status(400).json({
-        error: 'Client consent required for BKR check',
-        code: 'CONSENT_REQUIRED'
-      });
-    }
-
-    console.log(`Performing BKR credit check for client ${client_id}`);
-
-    // Perform BKR credit check
-    const bkrResult = await callBKRService(bsn);
-
-    // Analyze BKR results for mortgage suitability
-    const suitabilityAnalysis = await callQCComplianceAgent('/analyze-bkr-suitability', {
-      bkr_data: bkrResult,
-      client_id: client_id
-    });
-
-    // Store BKR check results
-    await storeBKRCheck({
-      client_id,
-      bkr_reference: bkrResult.reference_number || `BKR_${Date.now()}`,
-      credit_score: bkrResult.credit_score,
-      negative_registrations: bkrResult.negative_registrations || [],
-      suitability_analysis: suitabilityAnalysis,
-      checked_at: new Date().toISOString()
-    });
-
-    res.json({
-      success: true,
-      bkr_results: {
-        credit_score: bkrResult.credit_score,
-        risk_assessment: suitabilityAnalysis.risk_level,
-        approval_likelihood: suitabilityAnalysis.approval_likelihood,
-        negative_factors: bkrResult.negative_registrations.length,
-        recommendations: suitabilityAnalysis.recommendations
-      },
-      mortgage_impact: {
-        affects_eligibility: suitabilityAnalysis.blocks_mortgage,
-        interest_rate_impact: suitabilityAnalysis.rate_impact,
-        required_actions: suitabilityAnalysis.required_actions
-      },
-      metadata: {
-        checked_at: new Date().toISOString(),
-        bkr_reference: bkrResult.reference_number,
-        processing_time: Date.now() - req.startTime
+      // Validate BKR check request
+      const validationResult = bkrCheckSchema.validate({ bsn, consent_given }, { abortEarly: false });
+      if (validationResult.error) {
+        reply.code(400).send({
+          error: 'Validation failed',
+          details: validationResult.error.details.map(detail => ({
+            field: detail.path.join('.'),
+            message: detail.message
+          }))
+        });
+        return;
       }
-    });
 
-  } catch (error) {
-    console.error('BKR check error:', error);
-    res.status(500).json({
-      error: 'BKR credit check failed',
-      message: error.message,
-      timestamp: new Date().toISOString()
-    });
-  }
+      if (!consent_given) {
+        reply.code(400).send({
+          error: 'Client consent required for BKR check',
+          code: 'CONSENT_REQUIRED'
+        });
+        return;
+      }
+
+      fastify.log.info(`Performing BKR credit check for client ${client_id}`);
+
+      // Perform BKR credit check
+      const bkrResult = await callBKRService(bsn);
+
+      // Analyze BKR results for mortgage suitability
+      const suitabilityAnalysis = await callQCComplianceAgent('/analyze-bkr-suitability', {
+        bkr_data: bkrResult,
+        client_id: client_id
+      });
+
+      // Store BKR check results
+      await storeBKRCheck({
+        client_id,
+        bkr_reference: bkrResult.reference_number || `BKR_${Date.now()}`,
+        credit_score: bkrResult.credit_score,
+        negative_registrations: bkrResult.negative_registrations || [],
+        suitability_analysis: suitabilityAnalysis,
+        checked_at: new Date().toISOString()
+      });
+
+      reply.send({
+        success: true,
+        bkr_results: {
+          credit_score: bkrResult.credit_score,
+          risk_assessment: suitabilityAnalysis.risk_level,
+          approval_likelihood: suitabilityAnalysis.approval_likelihood,
+          negative_factors: bkrResult.negative_registrations.length,
+          recommendations: suitabilityAnalysis.recommendations
+        },
+        mortgage_impact: {
+          affects_eligibility: suitabilityAnalysis.blocks_mortgage,
+          interest_rate_impact: suitabilityAnalysis.rate_impact,
+          required_actions: suitabilityAnalysis.required_actions
+        },
+        metadata: {
+          checked_at: new Date().toISOString(),
+          bkr_reference: bkrResult.reference_number,
+          processing_time: Date.now() - request.startTime || 0
+        }
+      });
+
+    } catch (error) {
+      console.error('BKR check error:', error);
+      reply.code(500).send({
+        error: 'BKR credit check failed',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
 });
 
 // NHG eligibility assessment
-router.post('/nhg-eligibility/:application_id', async (req, res) => {
+fastify.post('/nhg-eligibility/:application_id', async (request, reply) => {
   try {
-    const { application_id } = req.params;
+    const { application_id } = request.params;
 
-    console.log(`Assessing NHG eligibility for application ${application_id}`);
+    fastify.log.info(`Assessing NHG eligibility for application ${application_id}`);
 
     // Retrieve application data
     const applicationData = await getMortgageApplication(application_id);
     if (!applicationData) {
-      return res.status(404).json({
+      return reply.code(404).send({
         error: 'Application not found',
         application_id: application_id
       });
@@ -602,7 +604,7 @@ router.post('/nhg-eligibility/:application_id', async (req, res) => {
       net_benefit: netBenefit
     };
 
-    res.json({
+    reply.send({
       success: true,
       nhg_eligibility: nhgEligibility,
       financial_analysis: nhgAnalysis,
@@ -610,13 +612,13 @@ router.post('/nhg-eligibility/:application_id', async (req, res) => {
       metadata: {
         assessed_at: new Date().toISOString(),
         application_id: application_id,
-        processing_time: Date.now() - req.startTime
+        processing_time: Date.now() - request.startTime || 0
       }
     });
 
   } catch (error) {
     console.error('NHG eligibility check error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'NHG eligibility assessment failed',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -625,10 +627,10 @@ router.post('/nhg-eligibility/:application_id', async (req, res) => {
 });
 
 // Submit to lender (Stater, Quion, etc.)
-router.post('/submit-to-lender/:application_id', async (req, res) => {
+fastify.post('/submit-to-lender/:application_id', async (request, reply) => {
   try {
-    const { application_id } = req.params;
-    const { lender_name, additional_documents } = req.body;
+    const { application_id } = request.params;
+    const { lender_name, additional_documents } = request.body;
 
     // Validate lender submission request
     const validationResult = lenderSubmissionSchema.validate(
@@ -636,7 +638,7 @@ router.post('/submit-to-lender/:application_id', async (req, res) => {
       { abortEarly: false }
     );
     if (validationResult.error) {
-      return res.status(400).json({
+      return reply.code(400).send({
         error: 'Validation failed',
         details: validationResult.error.details.map(detail => ({
           field: detail.path.join('.'),
@@ -645,14 +647,14 @@ router.post('/submit-to-lender/:application_id', async (req, res) => {
       });
     }
 
-    console.log(`Submitting application ${application_id} to lender ${lender_name}`);
+    fastify.log.info(`Submitting application ${application_id} to lender ${lender_name}`);
 
     // Retrieve application and QC results
     const applicationData = await getMortgageApplication(application_id);
     const qcResults = await getMortgageQCResults(application_id);
 
     if (!qcResults || !qcResults.qc_data.qc_summary.ready_for_submission) {
-      return res.status(400).json({
+      return reply.code(400).send({
         error: 'Application not ready for submission',
         required_actions: qcResults?.qc_data?.remediation_plan?.filter(r => r.severity === 'critical') || [],
         code: 'NOT_READY_FOR_SUBMISSION'
@@ -678,7 +680,7 @@ router.post('/submit-to-lender/:application_id', async (req, res) => {
       estimated_response_time: lenderResponse.estimated_processing_time || '5-10 business days'
     });
 
-    res.json({
+    reply.send({
       success: true,
       submission_status: 'submitted',
       lender_response: lenderResponse,
@@ -691,13 +693,13 @@ router.post('/submit-to-lender/:application_id', async (req, res) => {
       metadata: {
         submitted_at: new Date().toISOString(),
         application_id: application_id,
-        processing_time: Date.now() - req.startTime
+        processing_time: Date.now() - request.startTime || 0
       }
     });
 
   } catch (error) {
     console.error('Lender submission error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Lender submission failed',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -706,16 +708,16 @@ router.post('/submit-to-lender/:application_id', async (req, res) => {
 });
 
 // Check application status with lender
-router.get('/check-status/:application_id', async (req, res) => {
+fastify.get('/check-status/:application_id', async (request, reply) => {
   try {
-    const { application_id } = req.params;
+    const { application_id } = request.params;
 
     console.log(`Checking lender status for application ${application_id}`);
 
     // Retrieve application
     const applicationData = await getMortgageApplication(application_id);
     if (!applicationData || !applicationData.lender_reference) {
-      return res.status(400).json({
+      return reply.code(400).send({
         error: 'Application not yet submitted to lender',
         application_id: application_id,
         code: 'NOT_SUBMITTED'
@@ -745,7 +747,7 @@ router.get('/check-status/:application_id', async (req, res) => {
         Math.floor((Date.now() - new Date(applicationData.submitted_at).getTime()) / (1000 * 60 * 60 * 24)) : 0
     };
 
-    res.json({
+    reply.send({
       success: true,
       application_status: lenderStatus,
       processing_progress: processingProgress,
@@ -753,13 +755,13 @@ router.get('/check-status/:application_id', async (req, res) => {
         checked_at: new Date().toISOString(),
         application_id: application_id,
         lender_name: applicationData.lender_name,
-        processing_time: Date.now() - req.startTime
+        processing_time: Date.now() - request.startTime || 0
       }
     });
 
   } catch (error) {
     console.error('Status check error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Status check failed',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -768,7 +770,7 @@ router.get('/check-status/:application_id', async (req, res) => {
 });
 
 // Get supported lenders
-router.get('/supported-lenders', async (req, res) => {
+fastify.get('/supported-lenders', async (request, reply) => {
   try {
     const lenders = Object.keys(LENDER_APIS).map(lenderKey => ({
       name: lenderKey,
@@ -778,7 +780,7 @@ router.get('/supported-lenders', async (req, res) => {
       status_endpoint: LENDER_APIS[lenderKey].status_endpoint
     }));
 
-    res.json({
+    reply.send({
       success: true,
       lenders: lenders,
       metadata: {
@@ -789,7 +791,7 @@ router.get('/supported-lenders', async (req, res) => {
 
   } catch (error) {
     console.error('Supported lenders retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to retrieve supported lenders',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -798,9 +800,9 @@ router.get('/supported-lenders', async (req, res) => {
 });
 
 // Get QC results for application (matching frontend expectation)
-router.get('/qc/result/:applicationId', async (req, res) => {
+fastify.get('/qc/result/:applicationId', async (request, reply) => {
   try {
-    const { applicationId } = req.params;
+    const { applicationId } = request.params;
 
     console.log(`Retrieving QC results for application ${applicationId}`);
 
@@ -808,14 +810,14 @@ router.get('/qc/result/:applicationId', async (req, res) => {
     const qcResults = await getMortgageQCResults(applicationId);
 
     if (!qcResults) {
-      return res.status(404).json({
+      return reply.code(404).send({
         error: 'QC results not found',
         application_id: applicationId,
         message: 'Run QC analysis first'
       });
     }
 
-    res.json({
+    reply.send({
       success: true,
       qc_result: {
         application_id: applicationId,
@@ -827,13 +829,13 @@ router.get('/qc/result/:applicationId', async (req, res) => {
       },
       metadata: {
         retrieved_at: new Date().toISOString(),
-        processing_time: Date.now() - req.startTime
+        processing_time: Date.now() - request.startTime || 0
       }
     });
 
   } catch (error) {
     console.error('QC results retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'QC results retrieval failed',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -842,7 +844,7 @@ router.get('/qc/result/:applicationId', async (req, res) => {
 });
 
 // Get supported lenders (matching frontend expectation)
-router.get('/lenders', async (req, res) => {
+fastify.get('/lenders', async (request, reply) => {
   try {
     const lenders = Object.keys(LENDER_APIS).map(lenderKey => ({
       id: lenderKey,
@@ -853,7 +855,7 @@ router.get('/lenders', async (req, res) => {
       processing_time_days: lenderKey === 'stater' ? '3-5' : lenderKey === 'quion' ? '2-4' : '5-10'
     }));
 
-    res.json({
+    reply.send({
       success: true,
       lenders: lenders,
       metadata: {
@@ -864,7 +866,7 @@ router.get('/lenders', async (req, res) => {
 
   } catch (error) {
     console.error('Supported lenders retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to retrieve supported lenders',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -873,12 +875,12 @@ router.get('/lenders', async (req, res) => {
 });
 
 // BKR Credit Check endpoints
-router.post('/bkr-check', async (req, res) => {
+fastify.post('/bkr-check', async (request, reply) => {
   try {
-    const { client_id, bsn, purpose, include_payment_history, include_inquiries, consent_given, consent_timestamp } = req.body;
+    const { client_id, bsn, purpose, include_payment_history, include_inquiries, consent_given, consent_timestamp } = request.body;
 
     if (!consent_given) {
-      return res.status(400).json({
+      return reply.code(400).send({
         error: 'Client consent required for BKR check',
         code: 'CONSENT_REQUIRED'
       });
@@ -926,7 +928,7 @@ router.post('/bkr-check', async (req, res) => {
         ['completed', requestId]
       );
 
-      res.json({
+      reply.send({
         success: true,
         request_id: requestId,
         status: 'completed',
@@ -940,7 +942,7 @@ router.post('/bkr-check', async (req, res) => {
 
   } catch (error) {
     console.error('BKR credit check request error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'BKR credit check failed',
       message: error.message,
       timestamp: new Date().toISOString()
@@ -949,9 +951,9 @@ router.post('/bkr-check', async (req, res) => {
 });
 
 // Get credit check status
-router.get('/bkr-check/:requestId/status', async (req, res) => {
+fastify.get('/bkr-check/:requestId/status', async (request, reply) => {
   try {
-    const { requestId } = req.params;
+    const { requestId } = request.params;
     const client = await getDbConnection();
 
     try {
@@ -961,7 +963,7 @@ router.get('/bkr-check/:requestId/status', async (req, res) => {
       );
 
       if (result.rows.length === 0) {
-        return res.status(404).json({
+        return reply.code(404).send({
           error: 'Credit check request not found'
         });
       }
@@ -979,7 +981,7 @@ router.get('/bkr-check/:requestId/status', async (req, res) => {
         }
       }
 
-      res.json({
+      reply.send({
         request_id: requestId,
         status: request.status,
         estimated_completion_time: request.status === 'pending' ?
@@ -994,7 +996,7 @@ router.get('/bkr-check/:requestId/status', async (req, res) => {
 
   } catch (error) {
     console.error('Credit check status error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to get credit check status',
       message: error.message
     });
@@ -1002,9 +1004,9 @@ router.get('/bkr-check/:requestId/status', async (req, res) => {
 });
 
 // Get credit report by ID
-router.get('/bkr-report/:reportId', async (req, res) => {
+fastify.get('/bkr-report/:reportId', async (request, reply) => {
   try {
-    const { reportId } = req.params;
+    const { reportId } = request.params;
     const client = await getDbConnection();
 
     try {
@@ -1014,14 +1016,14 @@ router.get('/bkr-report/:reportId', async (req, res) => {
       );
 
       if (result.rows.length === 0) {
-        return res.status(404).json({
+        return reply.code(404).send({
           error: 'Credit report not found'
         });
       }
 
       const report = result.rows[0];
 
-      res.json({
+      reply.send({
         id: report.report_id,
         bsn: report.bsn,
         credit_score: report.credit_score,
@@ -1043,7 +1045,7 @@ router.get('/bkr-report/:reportId', async (req, res) => {
 
   } catch (error) {
     console.error('Credit report retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to get credit report',
       message: error.message
     });
@@ -1051,9 +1053,9 @@ router.get('/bkr-report/:reportId', async (req, res) => {
 });
 
 // Get credit report by client ID
-router.get('/bkr-client/:clientId/credit-report', async (req, res) => {
+fastify.get('/bkr-client/:clientId/credit-report', async (request, reply) => {
   try {
-    const { clientId } = req.params;
+    const { clientId } = request.params;
     const client = await getDbConnection();
 
     try {
@@ -1066,14 +1068,14 @@ router.get('/bkr-client/:clientId/credit-report', async (req, res) => {
       `, [clientId]);
 
       if (result.rows.length === 0) {
-        return res.status(404).json({
+        return reply.code(404).send({
           error: 'No credit report found for client'
         });
       }
 
       const report = result.rows[0];
 
-      res.json({
+      reply.send({
         id: report.report_id,
         bsn: report.bsn,
         credit_score: report.credit_score,
@@ -1095,7 +1097,7 @@ router.get('/bkr-client/:clientId/credit-report', async (req, res) => {
 
   } catch (error) {
     console.error('Client credit report retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to get client credit report',
       message: error.message
     });
@@ -1103,9 +1105,9 @@ router.get('/bkr-client/:clientId/credit-report', async (req, res) => {
 });
 
 // Refresh credit report
-router.post('/bkr-report/:reportId/refresh', async (req, res) => {
+fastify.post('/bkr-report/:reportId/refresh', async (request, reply) => {
   try {
-    const { reportId } = req.params;
+    const { reportId } = request.params;
     const client = await getDbConnection();
 
     try {
@@ -1116,7 +1118,7 @@ router.post('/bkr-report/:reportId/refresh', async (req, res) => {
       );
 
       if (existingResult.rows.length === 0) {
-        return res.status(404).json({
+        return reply.code(404).send({
           error: 'Credit report not found'
         });
       }
@@ -1146,7 +1148,7 @@ router.post('/bkr-report/:reportId/refresh', async (req, res) => {
         reportId
       ]);
 
-      res.json({
+      reply.send({
         success: true,
         request_id: uuidv4(),
         status: 'completed',
@@ -1160,7 +1162,7 @@ router.post('/bkr-report/:reportId/refresh', async (req, res) => {
 
   } catch (error) {
     console.error('Credit report refresh error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to refresh credit report',
       message: error.message
     });
@@ -1168,10 +1170,10 @@ router.post('/bkr-report/:reportId/refresh', async (req, res) => {
 });
 
 // Get credit score history for client
-router.get('/bkr-client/:clientId/score-history', async (req, res) => {
+fastify.get('/bkr-client/:clientId/score-history', async (request, reply) => {
   try {
-    const { clientId } = req.params;
-    const { months = 24 } = req.query;
+    const { clientId } = request.params;
+    const { months = 24 } = request.query;
     const client = await getDbConnection();
 
     try {
@@ -1197,7 +1199,7 @@ router.get('/bkr-client/:clientId/score-history', async (req, res) => {
         history[i].change = history[i].score - history[i + 1].score;
       }
 
-      res.json({
+      reply.send({
         success: true,
         history: history
       });
@@ -1208,7 +1210,7 @@ router.get('/bkr-client/:clientId/score-history', async (req, res) => {
 
   } catch (error) {
     console.error('Credit score history error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to get credit score history',
       message: error.message
     });
@@ -1216,9 +1218,9 @@ router.get('/bkr-client/:clientId/score-history', async (req, res) => {
 });
 
 // NHG Eligibility endpoints
-router.get('/nhg/client/:clientId/eligibility', async (req, res) => {
+fastify.get('/nhg/client/:clientId/eligibility', async (request, reply) => {
   try {
-    const { clientId } = req.params;
+    const { clientId } = request.params;
     const client = await getDbConnection();
 
     try {
@@ -1231,14 +1233,14 @@ router.get('/nhg/client/:clientId/eligibility', async (req, res) => {
       `, [clientId]);
 
       if (result.rows.length === 0) {
-        return res.status(404).json({
+        return reply.code(404).send({
           error: 'No NHG eligibility assessment found for client'
         });
       }
 
       const assessment = result.rows[0];
 
-      res.json({
+      reply.send({
         id: assessment.assessment_id,
         client_id: assessment.client_id,
         assessment_date: assessment.created_at,
@@ -1257,7 +1259,7 @@ router.get('/nhg/client/:clientId/eligibility', async (req, res) => {
 
   } catch (error) {
     console.error('NHG eligibility retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to get NHG eligibility assessment',
       message: error.message
     });
@@ -1265,7 +1267,7 @@ router.get('/nhg/client/:clientId/eligibility', async (req, res) => {
 });
 
 // Market Insights endpoints
-router.get('/market/insights', async (req, res) => {
+fastify.get('/market/insights', async (request, reply) => {
   try {
     const client = await getDbConnection();
 
@@ -1326,7 +1328,7 @@ router.get('/market/insights', async (req, res) => {
         risk_factors: ['Interest rate volatility', 'Economic uncertainty']
       };
 
-      res.json({
+      reply.send({
         success: true,
         indicators: indicators,
         lender_rates: lender_rates,
@@ -1340,7 +1342,7 @@ router.get('/market/insights', async (req, res) => {
 
   } catch (error) {
     console.error('Market insights retrieval error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to get market insights',
       message: error.message
     });
@@ -1348,11 +1350,11 @@ router.get('/market/insights', async (req, res) => {
 });
 
 // Refresh market data
-router.post('/market/refresh', async (req, res) => {
+fastify.post('/market/refresh', async (request, reply) => {
   try {
     // This would typically call external market data APIs
     // For now, return mock updated data
-    res.json({
+    reply.send({
       success: true,
       message: 'Market data refreshed',
       last_updated: new Date().toISOString()
@@ -1360,7 +1362,7 @@ router.post('/market/refresh', async (req, res) => {
 
   } catch (error) {
     console.error('Market data refresh error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'Failed to refresh market data',
       message: error.message
     });
@@ -1368,14 +1370,14 @@ router.post('/market/refresh', async (req, res) => {
 });
 
 // BSN validation endpoint
-router.post('/validation/bsn', async (req, res) => {
+fastify.post('/validation/bsn', async (request, reply) => {
   try {
-    const { bsn } = req.body;
+    const { bsn } = request.body;
 
     // Basic BSN validation (Dutch Social Security Number format)
     const bsnRegex = /^\d{9}$/;
     if (!bsnRegex.test(bsn)) {
-      return res.json({
+      return reply.send({
         is_valid: false,
         message: 'BSN must be exactly 9 digits'
       });
@@ -1391,18 +1393,20 @@ router.post('/validation/bsn', async (req, res) => {
 
     const isValid = sum % 11 === 0;
 
-    res.json({
+    reply.send({
       is_valid: isValid,
       message: isValid ? 'Valid BSN' : 'Invalid BSN checksum'
     });
 
   } catch (error) {
     console.error('BSN validation error:', error);
-    res.status(500).json({
+    reply.code(500).send({
       error: 'BSN validation failed',
       message: error.message
     });
   }
 });
 
-module.exports = router;
+}
+
+module.exports = dutchMortgageQCRoutes;

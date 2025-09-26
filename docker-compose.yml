@@ -83,7 +83,7 @@ services:
       dockerfile: docker/frontend.Dockerfile
     container_name: mortgage-ai-frontend
     environment:
-      - REACT_APP_API_URL=http://localhost:3000/api
+      - REACT_APP_API_BASE_URL=http://localhost:3000
       - REACT_APP_REQUIRE_AUTH=${REQUIRE_AUTH:-false}
     ports:
       - "${FRONTEND_PORT:-3001}:3000"
@@ -169,6 +169,11 @@ services:
       - PROPERTY_VALUATION_API_KEY=${PROPERTY_VALUATION_API_KEY}
       - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
       - REDIS_URL=redis://redis:6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=mortgage_db
+      - DB_USER=mortgage_user
+      - DB_PASSWORD=mortgage_pass
       - NODE_ENV=production
       - DUTCH_DATA_PORT=8001
     env_file: .env
@@ -248,6 +253,11 @@ services:
       - AFM_API_KEY=${AFM_API_KEY}
       - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
       - REDIS_URL=redis://redis:6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=mortgage_db
+      - DB_USER=mortgage_user
+      - DB_PASSWORD=mortgage_pass
       - SMTP_HOST=${SMTP_HOST}
       - SMTP_PORT=${SMTP_PORT}
       - SMTP_USER=${SMTP_USER}

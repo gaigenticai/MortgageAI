@@ -29,7 +29,7 @@ const AFM_WEBHOOK_URL = process.env.AFM_AUDIT_WEBHOOK_URL;
 const COMPLIANCE_EMAIL = process.env.COMPLIANCE_ALERT_EMAIL;
 
 // Email configuration
-const emailTransporter = nodemailer.createTransporter({
+const emailTransporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: process.env.SMTP_PORT || 587,
   secure: false,
@@ -70,10 +70,16 @@ app.use(express.urlencoded({ extended: true }));
 // Database connection
 async function connectDatabase() {
   try {
-    dbClient = new Client({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
+    const dbConfig = {
+      host: process.env.DB_HOST || 'postgres',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'mortgage_db',
+      user: process.env.DB_USER || 'mortgage_user',
+      password: process.env.DB_PASSWORD || 'mortgage_pass',
+      ssl: false
+    };
+
+    dbClient = new Client(dbConfig);
     await dbClient.connect();
     logger.info('Connected to PostgreSQL database');
   } catch (error) {
@@ -820,4 +826,28 @@ async function startServer() {
   }
 }
 
-startServer();
+// Export service class for use by other modules
+class AFMMonitorService {
+  constructor() {
+    this.complianceMonitor = complianceMonitor;
+  }
+
+  async startMonitoring() {
+    return await this.complianceMonitor.startMonitoring();
+  }
+
+  async checkCompliance(sessionId) {
+    return await this.complianceMonitor.checkCompliance(sessionId);
+  }
+
+  async getActiveAlerts() {
+    return await this.complianceMonitor.getActiveAlerts();
+  }
+}
+
+module.exports = {
+  AFMMonitorService
+};
+
+// Export service class for use by other modules - do not start server here
+// The server is started by afm-monitor-server.js

@@ -749,4 +749,25 @@ async function startServer() {
   }
 }
 
-startServer();
+// Export service class for use by other modules
+class LenderIntegrationService {
+  constructor() {
+    this.lenderManager = lenderManager;
+  }
+
+  async submitApplication(lenderCode, applicationData) {
+    return await this.lenderManager.submitApplication(lenderCode, applicationData);
+  }
+
+  async getApplicationStatus(lenderCode, applicationId) {
+    return await this.lenderManager.getApplicationStatus(lenderCode, applicationId);
+  }
+
+  async getSupportedLenders() {
+    return await this.lenderManager.getSupportedLenders();
+  }
+}
+
+module.exports = {
+  LenderIntegrationService
+};

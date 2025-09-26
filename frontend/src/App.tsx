@@ -26,6 +26,13 @@ import LenderIntegration from './pages/LenderIntegration';
 import ComplianceAuditTrail from './pages/ComplianceAuditTrail';
 import DutchMarketInsights from './pages/DutchMarketInsights';
 
+// Additional Pages for Navigation
+import ApplicationForm from './pages/ApplicationForm';
+import DocumentUpload from './pages/DocumentUpload';
+import ComplianceCheck from './pages/ComplianceCheck';
+import QualityControl from './pages/QualityControl';
+import Settings from './pages/Settings';
+
 // Gaigentic Brand Colors (as specified in previous prompt)
 const theme = createTheme({
   palette: {
@@ -186,6 +193,15 @@ function App() {
               }}>
                 <Routes>
                   <Route path="/" element={<DutchMortgageDashboard />} />
+                  
+                  {/* Main Navigation Routes */}
+                  <Route path="/application" element={<ApplicationForm />} />
+                  <Route path="/documents" element={<DocumentUpload />} />
+                  <Route path="/compliance" element={<ComplianceCheck />} />
+                  <Route path="/quality-control" element={<QualityControl />} />
+                  <Route path="/settings" element={<Settings />} />
+                  
+                  {/* Dutch Mortgage Specific Routes */}
                   <Route path="/afm-client-intake" element={<AFMClientIntake />} />
                   <Route path="/afm-compliance-advisor" element={<AFMComplianceAdvisor />} />
                   <Route path="/mortgage-application" element={<DutchMortgageApplication />} />

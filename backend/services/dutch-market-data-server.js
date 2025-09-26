@@ -20,10 +20,13 @@ const helmet = require('helmet');
 const compression = require('compression');
 
 // Import service modules
-const AFMRegulationService = require('./dutch-market-data.js').AFMRegulationService;
-const BKRCreditService = require('./dutch-market-data.js').BKRCreditService;
-const NHGValidationService = require('./dutch-market-data.js').NHGValidationService;
-const PropertyValuationService = require('./dutch-market-data.js').PropertyValuationService;
+const { 
+  AFMRegulationService, 
+  BKRCreditService, 
+  NHGValidationService, 
+  PropertyValuationService,
+  initializeServices
+} = require('./dutch-market-data.js');
 
 // Initialize logger
 const logger = winston.createLogger({
@@ -161,13 +164,7 @@ app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Endpoint not found' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  logger.info(`Dutch Market Data Service running on port ${PORT}`, {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development'
-  });
-});
+// Server will be started by the startServer() function below
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
@@ -179,5 +176,28 @@ process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
+
+// Start the server
+async function startServer() {
+  try {
+    // Initialize all services
+    await initializeServices();
+    
+    // Start HTTP server
+    app.listen(PORT, () => {
+      logger.info(`🚀 Dutch Market Data Service running on port ${PORT}`, {
+        environment: process.env.NODE_ENV || 'production',
+        port: PORT,
+        service: 'dutch-market-data'
+      });
+    });
+  } catch (error) {
+    logger.error('Failed to start Dutch Market Data service:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 module.exports = app;

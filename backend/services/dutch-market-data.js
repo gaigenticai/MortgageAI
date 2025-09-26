@@ -57,10 +57,16 @@ app.use(express.urlencoded({ extended: true }));
 // Database connection
 async function connectDatabase() {
   try {
-    dbClient = new Client({
-      connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-    });
+    const dbConfig = {
+      host: process.env.DB_HOST || 'postgres',
+      port: process.env.DB_PORT || 5432,
+      database: process.env.DB_NAME || 'mortgage_db',
+      user: process.env.DB_USER || 'mortgage_user',
+      password: process.env.DB_PASSWORD || 'mortgage_pass',
+      ssl: false
+    };
+
+    dbClient = new Client(dbConfig);
     await dbClient.connect();
     logger.info('Connected to PostgreSQL database');
   } catch (error) {
@@ -131,6 +137,13 @@ class AFMRegulationManager {
 
   async fetchAFMRegulations() {
     try {
+      // Check if AFM_REGULATION_FEED_URL is configured
+      if (!process.env.AFM_REGULATION_FEED_URL || process.env.AFM_REGULATION_FEED_URL.trim() === '') {
+        logger.info('AFM_REGULATION_FEED_URL not configured, using default regulations for development');
+        await this.loadDefaultRegulations();
+        return;
+      }
+
       const response = await axios.get(process.env.AFM_REGULATION_FEED_URL, {
         headers: {
           'Authorization': `Bearer ${AFM_API_KEY}`,
@@ -175,6 +188,70 @@ class AFMRegulationManager {
 
     } catch (error) {
       logger.error('Failed to fetch AFM regulations:', error);
+      throw error;
+    }
+  }
+
+  async loadDefaultRegulations() {
+    try {
+      // Load default AFM regulations for development
+      const defaultRegulations = [
+        {
+          regulation_code: 'Wft_86f',
+          title: 'Suitability Assessment (Wft Article 86f)',
+          content: 'Financial service providers must assess the suitability of investment services and products for their clients.',
+          category: 'suitability',
+          effective_date: '2021-01-01'
+        },
+        {
+          regulation_code: 'Wft_86c',
+          title: 'Product Information Disclosure (Wft Article 86c)',
+          content: 'Adequate product information must be provided to clients in a comprehensible form.',
+          category: 'disclosure',
+          effective_date: '2021-01-01'
+        },
+        {
+          regulation_code: 'BGfo_8_1',
+          title: 'Remuneration Disclosure (BGfo Article 8.1)',
+          content: 'All remuneration and incentives must be disclosed to clients.',
+          category: 'remuneration',
+          effective_date: '2021-01-01'
+        },
+        {
+          regulation_code: 'BGfo_9_1',
+          title: 'Risk Warnings (BGfo Article 9.1)',
+          content: 'Appropriate risk warnings must be provided for all financial products.',
+          category: 'risk_warnings',
+          effective_date: '2021-01-01'
+        }
+      ];
+
+      for (const regulation of defaultRegulations) {
+        await dbClient.query(`
+          INSERT INTO afm_regulations (regulation_code, title, content, category, effective_date, is_active)
+          VALUES ($1, $2, $3, $4, $5, true)
+          ON CONFLICT (regulation_code) DO UPDATE SET
+            title = EXCLUDED.title,
+            content = EXCLUDED.content,
+            category = EXCLUDED.category,
+            last_updated = NOW()
+        `, [
+          regulation.regulation_code,
+          regulation.title,
+          regulation.content,
+          regulation.category,
+          regulation.effective_date
+        ]);
+      }
+
+      this.lastUpdate = new Date();
+      logger.info(`Loaded ${defaultRegulations.length} default AFM regulations for development`);
+
+      // Cache active regulations
+      await this.cacheActiveRegulations();
+
+    } catch (error) {
+      logger.error('Failed to load default AFM regulations:', error);
       throw error;
     }
   }
@@ -921,8 +998,8 @@ process.on('SIGINT', async () => {
   process.exit(0);
 });
 
-// Start server
-async function startServer() {
+// Initialization functions for use by server
+async function initializeServices() {
   try {
     // Initialize connections
     await connectDatabase();
@@ -934,17 +1011,34 @@ async function startServer() {
     // Start scheduled tasks
     await initializeScheduledTasks();
 
-    // Start HTTP server
-    app.listen(PORT, () => {
-      logger.info(`🚀 Dutch Market Data Service running on port ${PORT}`);
-      logger.info(`📊 AFM Regulations: ${afmManager.regulationCache.size} loaded`);
-      logger.info(`🔍 Health check: http://localhost:${PORT}/health`);
-    });
-
+    logger.info(`📊 AFM Regulations: ${afmManager.regulationCache.size} loaded`);
+    return true;
   } catch (error) {
-    logger.error('Failed to start Dutch Market Data service:', error);
-    process.exit(1);
+    logger.error('Failed to initialize Dutch Market Data services:', error);
+    throw error;
   }
 }
 
-startServer();
+// Export service classes for use by other modules
+class AFMRegulationService {
+  constructor() {
+    this.afmManager = afmManager;
+  }
+
+  async checkRegulationCompliance(text, context) {
+    return await this.afmManager.checkRegulationCompliance(text, context);
+  }
+
+  async getRegulationByCode(code) {
+    return await this.afmManager.getRegulationByCode(code);
+  }
+}
+
+// Export service classes and initialization function for use by other modules
+module.exports = {
+  AFMRegulationService,
+  BKRCreditService,
+  NHGValidationService,
+  PropertyValuationService,
+  initializeServices
+};

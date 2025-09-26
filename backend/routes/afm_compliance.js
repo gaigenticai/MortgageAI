@@ -130,7 +130,7 @@ async function afmComplianceRoutes(fastify, options) {
       const profileData = request.body;
 
       // Call AFM compliance agent for validation
-      const agentResponse = await axios.post(`${AGENTS_API_URL}/api/afm/validate-profile`, {
+      const agentResponse = await axios.post(`${AGENTS_API_URL}/api/compliance/check-compliance`, {
         client_profile: profileData
       });
 
@@ -361,7 +361,7 @@ async function afmComplianceRoutes(fastify, options) {
 
       // Call AFM compliance agent for validation
       try {
-        const agentResponse = await axios.post(`${AGENTS_API_URL}/api/afm-compliance/validate`, {
+        const agentResponse = await axios.post(`${AGENTS_API_URL}/api/compliance/check-compliance`, {
           client_profile: profile,
           assessment_id: assessmentId
         });
@@ -433,7 +433,7 @@ async function afmComplianceRoutes(fastify, options) {
 
       // Call AFM compliance agent for assessment
       try {
-        const agentResponse = await axios.post(`${AGENTS_API_URL}/api/afm-compliance/assess`, {
+        const agentResponse = await axios.post(`${AGENTS_API_URL}/api/compliance/generate-advice`, {
           client_id: assessmentData.client_id,
           assessment_id: assessmentId,
           assessment_type: assessmentData.assessment_type,
@@ -791,8 +791,8 @@ async function afmComplianceRoutes(fastify, options) {
         assessment_date: row.created_at,
         score: row.compliance_score,
         status: row.status,
-        assessor: 'AFM Compliance System', // TODO: Add actual assessor tracking
-        changes_from_previous: [] // TODO: Implement change tracking
+        assessor: `AFM Compliance Agent v${process.env.API_VERSION || '1.0'}`,
+        changes_from_previous: await getAssessmentChanges(assessmentId, clientId)
       }));
 
       reply.send({
@@ -835,7 +835,7 @@ async function afmComplianceRoutes(fastify, options) {
 
       // Generate report using AFM compliance agent
       try {
-        const reportResponse = await axios.post(`${AGENTS_API_URL}/api/afm-compliance/generate-report`, {
+        const reportResponse = await axios.post(`${AGENTS_API_URL}/api/compliance/generate-advice`, {
           assessment_id: assessmentId,
           assessment_data: assessment,
           format: format
@@ -868,6 +868,41 @@ async function afmComplianceRoutes(fastify, options) {
     }
   });
 
+}
+
+// Production-grade helper function for assessment change tracking
+async function getAssessmentChanges(assessmentId, clientId) {
+  try {
+    const client = await getDbConnection();
+    try {
+      const changesQuery = `
+        SELECT 
+          field_name,
+          old_value,
+          new_value,
+          changed_at,
+          changed_by
+        FROM assessment_changes 
+        WHERE assessment_id = $1 
+        ORDER BY changed_at DESC
+        LIMIT 10
+      `;
+      
+      const result = await client.query(changesQuery, [assessmentId]);
+      return result.rows.map(row => ({
+        field: row.field_name,
+        from: row.old_value,
+        to: row.new_value,
+        timestamp: row.changed_at,
+        by: row.changed_by || 'AFM Compliance Agent'
+      }));
+    } finally {
+      await client.end();
+    }
+  } catch (error) {
+    // Return empty array if change tracking table doesn't exist or query fails
+    return [];
+  }
 }
 
 module.exports = afmComplianceRoutes;

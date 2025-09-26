@@ -33,7 +33,7 @@ from cachetools import TTLCache
 import hashlib
 import json
 
-from .agent import ComplianceAgent
+from ..afm_compliance.agent import AFMComplianceAgent
 from ..database import log_agent_interaction, update_application_status
 from ..config import settings
 from ..utils.text_processor import TextProcessor
@@ -173,9 +173,9 @@ class ServiceContainer:
         self._text_processor = None
 
     @property
-    def compliance_agent(self) -> ComplianceAgent:
+    def compliance_agent(self) -> AFMComplianceAgent:
         if self._compliance_agent is None:
-            self._compliance_agent = ComplianceAgent()
+            self._compliance_agent = AFMComplianceAgent()
         return self._compliance_agent
 
     @property
@@ -248,9 +248,9 @@ async def generate_advice(
                 )
 
                 # Parallel processing: Generate advice and validate input concurrently
-                advice_task = services.compliance_agent.generate_advice_draft(
-                    user_profile=request.user_profile.dict(),
-                    product_features=request.product_features
+                advice_task = services.compliance_agent.generate_afm_compliant_advice(
+                    client_profile=request.user_profile.dict(),
+                    product_options=request.product_features
                 )
 
                 # Additional validation using text processor
@@ -416,7 +416,11 @@ async def check_compliance(
                 )
 
                 # Parallel processing: Run compliance check and text analysis concurrently
-                compliance_task = services.compliance_agent.check_compliance(request.advice_text)
+                compliance_task = services.compliance_agent.validate_advice_session({
+                    'client_profile': request.user_profile.dict(),
+                    'advice_content': request.advice_text,
+                    'product_recommendations': []
+                })
                 readability_task = services.text_processor.analyze_readability(request.advice_text)
                 jargon_task = services.text_processor.detect_jargon(request.advice_text)
 
@@ -907,7 +911,11 @@ async def health_check():
 
     try:
         # Quick health check of compliance agent
-        test_result = await services.compliance_agent.check_compliance("test")
+        test_result = await services.compliance_agent.validate_advice_session({
+            'client_profile': {'test': True},
+            'advice_content': "test",
+            'product_recommendations': []
+        })
         agent_healthy = isinstance(test_result, dict)
     except Exception as e:
         agent_healthy = False

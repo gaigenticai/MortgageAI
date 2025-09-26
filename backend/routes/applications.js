@@ -183,7 +183,7 @@ router.post('/applications', async (req, res) => {
     }
 
     const applicationData = req.body;
-    console.log(`Creating mortgage application ${applicationData.application_number}`);
+    fastify.log.info(`Creating mortgage application ${applicationData.application_number}`);
 
     const application = await createApplication(applicationData);
 
@@ -211,7 +211,7 @@ router.get('/applications/:applicationId', async (req, res) => {
   try {
     const { applicationId } = req.params;
 
-    console.log(`Retrieving application ${applicationId}`);
+    fastify.log.info(`Retrieving application ${applicationId}`);
 
     const application = await getApplication(applicationId);
     if (!application) {
@@ -245,7 +245,7 @@ router.get('/applications/client/:clientId', async (req, res) => {
   try {
     const { clientId } = req.params;
 
-    console.log(`Retrieving applications for client ${clientId}`);
+    fastify.log.info(`Retrieving applications for client ${clientId}`);
 
     const applications = await getApplicationsByClient(clientId);
 
@@ -275,7 +275,7 @@ router.put('/applications/:applicationId', async (req, res) => {
     const { applicationId } = req.params;
     const updates = req.body;
 
-    console.log(`Updating application ${applicationId}`);
+    fastify.log.info(`Updating application ${applicationId}`);
 
     const application = await updateApplication(applicationId, updates);
     if (!application) {

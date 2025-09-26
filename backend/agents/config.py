@@ -52,6 +52,7 @@ class Settings:
     # OCR and Document Processing
     TESSERACT_DATA_PATH: str = os.getenv('TESSERACT_DATA_PATH', '/usr/share/tesseract-ocr/5/tessdata')
     OCR_LANGUAGES: str = os.getenv('OCR_LANGUAGES', 'eng+nld')
+    OCR_API_KEY: str = os.getenv('OCR_API_KEY', '')
 
     # Authentication (when REQUIRE_AUTH=true)
     JWT_SECRET: str = os.getenv('JWT_SECRET', 'your_jwt_secret_here')
@@ -62,11 +63,38 @@ class Settings:
     CREDIT_CHECK_API_URL: str = os.getenv('CREDIT_CHECK_API_URL', 'https://api.credit-check-service.com')
     KYC_API_URL: str = os.getenv('KYC_API_URL', 'https://api.kyc-service.com')
     LENDER_API_URL: str = os.getenv('LENDER_API_URL', 'https://api.lender-service.com')
+    
+    # AFM Configuration
     AFM_API_URL: str = os.getenv('AFM_API_URL', 'https://api.afm.nl')
     AFM_API_KEY: str = os.getenv('AFM_API_KEY', '')
     AFM_CACHE_TTL: int = int(os.getenv('AFM_CACHE_TTL', '3600'))  # 1 hour in seconds
     AFM_RATE_LIMIT_MAX: int = int(os.getenv('AFM_RATE_LIMIT_MAX', '100'))
     AFM_RATE_LIMIT_WINDOW: int = int(os.getenv('AFM_RATE_LIMIT_WINDOW', '3600'))  # 1 hour in seconds
+    
+    # BKR Configuration
+    BKR_API_URL: str = os.getenv('BKR_API_URL', 'https://api.bkr.nl/v2')
+    BKR_API_KEY: str = os.getenv('BKR_API_KEY', '')
+    
+    # NHG Configuration
+    NHG_VALIDATION_URL: str = os.getenv('NHG_VALIDATION_URL', 'https://api.nhg.nl/validation')
+    NHG_API_URL: str = os.getenv('NHG_API_URL', 'https://api.nhg.nl/v1')
+    NHG_API_KEY: str = os.getenv('NHG_API_KEY', '')
+    
+    # Property Valuation Configuration
+    PROPERTY_VALUATION_API_URL: str = os.getenv('PROPERTY_VALUATION_API_URL', 'https://api.woz.nl')
+    PROPERTY_VALUATION_API_KEY: str = os.getenv('PROPERTY_VALUATION_API_KEY', '')
+    
+    # Dutch Lender APIs
+    STATER_API_URL: str = os.getenv('STATER_API_URL', 'https://api.stater.nl')
+    STATER_API_KEY: str = os.getenv('STATER_API_KEY', '')
+    QUION_API_URL: str = os.getenv('QUION_API_URL', 'https://api.quion.nl')
+    QUION_API_KEY: str = os.getenv('QUION_API_KEY', '')
+    ING_API_URL: str = os.getenv('ING_API_URL', 'https://api.ing.nl')
+    ING_API_KEY: str = os.getenv('ING_API_KEY', '')
+    RABOBANK_API_URL: str = os.getenv('RABOBANK_API_URL', 'https://api.rabobank.nl')
+    RABOBANK_API_KEY: str = os.getenv('RABOBANK_API_KEY', '')
+    ABN_AMRO_API_URL: str = os.getenv('ABN_AMRO_API_URL', 'https://api.abnamro.nl')
+    ABN_AMRO_API_KEY: str = os.getenv('ABN_AMRO_API_KEY', '')
 
     # File Upload Configuration
     UPLOAD_PATH: str = os.getenv('UPLOAD_PATH', '/app/uploads')
