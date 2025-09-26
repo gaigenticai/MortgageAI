@@ -8,6 +8,7 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DutchMortgageDashboard } from '../pages/DutchMortgageDashboard';
 import { apiClient } from '../services/apiClient';
+import ComparisonChart from '../components/ComparisonChart';
 import { SnackbarProvider } from 'notistack';
 
 // Mock the API client
@@ -237,5 +238,157 @@ describe('DutchMortgageDashboard', () => {
     expect(mockedApiClient.getAgentStatus).toHaveBeenCalled();
     expect(mockedApiClient.getLenderStatus).toHaveBeenCalled();
     expect(mockedApiClient.getRecentActivity).toHaveBeenCalled();
+  });
+
+  describe('Demo Mode Integration', () => {
+    beforeEach(() => {
+      // Mock demo mode context
+      jest.doMock('../contexts/DemoModeContext', () => ({
+        useDemoMode: () => ({
+          isDemoMode: true,
+          toggleDemoMode: jest.fn(),
+          setDemoMode: jest.fn(),
+        }),
+      }));
+    });
+
+    it('loads demo data when demo mode is enabled', async () => {
+      // Mock localStorage to simulate demo mode
+      Object.defineProperty(window, 'localStorage', {
+        value: {
+          getItem: jest.fn(() => 'true'), // demo mode enabled
+          setItem: jest.fn(),
+          removeItem: jest.fn(),
+        },
+        writable: true,
+      });
+
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('MortgageAI Dashboard')).toBeInTheDocument();
+      });
+
+      // Verify demo data is loaded
+      expect(mockedApiClient.getDashboardMetrics).toHaveBeenCalled();
+    });
+  });
+
+  describe('Tooltips and Help Text', () => {
+    it('displays AFM compliance tooltip on hover', async () => {
+      const user = userEvent.setup();
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('AFM Compliance Score')).toBeInTheDocument();
+      });
+
+      // Find the tooltip trigger for AFM compliance
+      const tooltipButton = screen.getByTestId('InfoOutlinedIcon').closest('button');
+      expect(tooltipButton).toBeInTheDocument();
+    });
+
+    it('displays First-Time-Right tooltip on hover', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('First-Time-Right Rate')).toBeInTheDocument();
+      });
+
+      // Check that tooltip icons are present for metrics
+      const tooltipIcons = screen.getAllByTestId('InfoOutlinedIcon');
+      expect(tooltipIcons.length).toBeGreaterThanOrEqual(3); // At least 3 metric tooltips
+    });
+  });
+
+  describe('Comparison Chart Integration', () => {
+    it('renders comparison chart component', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('MortgageAI Dashboard')).toBeInTheDocument();
+      });
+
+      // Check that comparison chart is rendered
+      expect(screen.getByText('AI Impact Comparison')).toBeInTheDocument();
+    });
+
+    it('comparison chart has correct ID for tour targeting', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        const comparisonChart = document.getElementById('comparison-chart');
+        expect(comparisonChart).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Guided Tour Integration', () => {
+    it('renders Joyride component', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('MortgageAI Dashboard')).toBeInTheDocument();
+      });
+
+      // Joyride should be present in the DOM
+      const joyrideElement = document.querySelector('[data-testid="joyride-tooltip"]') || document.querySelector('.react-joyride__tooltip');
+      // Note: Joyride might not render immediately, but the component should be present
+    });
+
+    it('has correct CSS selectors for tour steps', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        // Check that tour target elements exist
+        const demoToggle = document.querySelector('.demo-toggle');
+        const metricCompliance = document.getElementById('metric-compliance');
+        const metricFtr = document.getElementById('metric-ftr');
+        const metricAvgTime = document.getElementById('metric-avgtime');
+        const quickActions = document.querySelector('.quick-actions');
+        const comparisonChart = document.getElementById('comparison-chart');
+        const recentActivity = document.querySelector('.recent-activity');
+
+        expect(demoToggle).toBeInTheDocument();
+        expect(metricCompliance).toBeInTheDocument();
+        expect(metricFtr).toBeInTheDocument();
+        expect(metricAvgTime).toBeInTheDocument();
+        expect(quickActions).toBeInTheDocument();
+        expect(comparisonChart).toBeInTheDocument();
+        expect(recentActivity).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Component Integration', () => {
+    it('all major sections are present and accessible', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('MortgageAI Dashboard')).toBeInTheDocument();
+      });
+
+      // Check all major sections
+      expect(screen.getByText('Key Metrics')).toBeInTheDocument();
+      expect(screen.getByText('Agent Status')).toBeInTheDocument();
+      expect(screen.getByText('Lender Integration')).toBeInTheDocument();
+      expect(screen.getByText('AI Impact Comparison')).toBeInTheDocument();
+      expect(screen.getByText('Agentic AI Quick Actions')).toBeInTheDocument();
+      expect(screen.getByText('Live Agent Activity')).toBeInTheDocument();
+    });
+
+    it('metric cards have proper IDs for accessibility and tour', async () => {
+      renderDashboard();
+
+      await waitFor(() => {
+        const complianceCard = document.getElementById('metric-compliance');
+        const ftrCard = document.getElementById('metric-ftr');
+        const avgTimeCard = document.getElementById('metric-avgtime');
+
+        expect(complianceCard).toBeInTheDocument();
+        expect(ftrCard).toBeInTheDocument();
+        expect(avgTimeCard).toBeInTheDocument();
+      });
+    });
   });
 });

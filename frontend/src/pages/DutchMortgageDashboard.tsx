@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container, Grid, Card, CardContent, Typography, Button, Box, Chip, 
-  LinearProgress, Alert, Avatar, List, ListItem, ListItemText, 
-  ListItemIcon, Divider, CircularProgress, Paper
+  Container, Grid, Card, CardContent, Typography, Button, Box, Chip,
+  LinearProgress, Alert, Avatar, List, ListItem, ListItemText,
+  ListItemIcon, Divider, CircularProgress, Paper, Tooltip, IconButton
 } from '@mui/material';
-import { 
-  Gavel, AccountBalance, Assessment, Security, TrendingUp, 
-  CheckCircle, Warning, Person, Business, Schedule, Verified 
+import {
+  Gavel, AccountBalance, Assessment, Security, TrendingUp,
+  CheckCircle, Warning, Person, Business, Schedule, Verified,
+  InfoOutlined
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
+import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 import { apiClient } from '../services/apiClient';
+import ComparisonChart from '../components/ComparisonChart';
 
 interface DashboardMetrics {
   afm_compliance_score: number;
@@ -56,12 +59,125 @@ const DutchMortgageDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Guided tour state
+  const [runTour, setRunTour] = useState(false);
+
+  // Define tour steps for guided walkthrough
+  const tourSteps: Step[] = [
+    {
+      target: '.demo-toggle',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>Welcome to MortgageAI!</Typography>
+          <Typography variant="body2">
+            Toggle "Demo Mode" to explore the platform with sample data - perfect for seeing our AI capabilities without requiring authentication.
+          </Typography>
+        </Box>
+      ),
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '#metric-compliance',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>AFM Compliance Score</Typography>
+          <Typography variant="body2">
+            Real-time tracking of how well our AI agents comply with Dutch Financial Markets Authority (AFM) regulations.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '#metric-ftr',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>First-Time-Right Rate</Typography>
+          <Typography variant="body2">
+            The percentage of mortgage applications that pass quality control on the first submission, eliminating costly rework.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '#metric-avgtime',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>Average Processing Time</Typography>
+          <Typography variant="body2">
+            How quickly our AI agents complete mortgage processing tasks - from minutes instead of days.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '.quick-actions',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>Quick Actions</Typography>
+          <Typography variant="body2">
+            Start a new client intake, run compliance checks, or process applications with our AI-powered workflow.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '#comparison-chart',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>AI Impact Comparison</Typography>
+          <Typography variant="body2">
+            See the dramatic improvement in mortgage processing metrics before and after implementing MortgageAI.
+          </Typography>
+        </Box>
+      ),
+      placement: 'top',
+    },
+    {
+      target: '.recent-activity',
+      content: (
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>Live Agent Activity</Typography>
+          <Typography variant="body2">
+            Real-time feed of all AI agent activities across the platform - from compliance checks to lender integrations.
+          </Typography>
+        </Box>
+      ),
+      placement: 'left',
+    },
+  ];
+
+  // Handle tour completion
+  const handleTourCallback = (data: CallBackProps) => {
+    const { status } = data;
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      setRunTour(false);
+      localStorage.setItem('mortgageai_tour_completed', 'true');
+    }
+  };
+
   useEffect(() => {
     loadDashboardData();
     // Set up real-time updates
     const interval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, []);
+
+  // Trigger guided tour on first visit
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('mortgageai_tour_completed');
+    if (!tourCompleted && !loading) {
+      // Small delay to ensure DOM is ready
+      const timer = setTimeout(() => {
+        setRunTour(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
 
   const loadDashboardData = async (showRefreshIndicator = false) => {
     try {
@@ -243,7 +359,22 @@ const DutchMortgageDashboard: React.FC = () => {
   }
 
   return (
-    <Container maxWidth="xl">
+    <>
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        callback={handleTourCallback}
+        continuous={true}
+        showProgress={true}
+        showSkipButton={true}
+        styles={{
+          options: {
+            primaryColor: '#6366F1',
+            zIndex: 10000,
+          },
+        }}
+      />
+      <Container maxWidth="xl">
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
           <Box>
@@ -340,7 +471,7 @@ const DutchMortgageDashboard: React.FC = () => {
       {/* Key Performance Metrics */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card id="metric-compliance">
             <CardContent sx={{ textAlign: 'center' }}>
               <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
                 <Verified />
@@ -348,14 +479,27 @@ const DutchMortgageDashboard: React.FC = () => {
               <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
                 {dashboardMetrics?.afm_compliance_score}%
               </Typography>
-              <Typography variant="body2" color="text.secondary">AFM Compliance Score</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                  AFM Compliance Score
+                </Typography>
+                <Tooltip
+                  title="Average percentage of advice sessions meeting AFM rules."
+                  placement="top"
+                  enterDelay={300}
+                >
+                  <IconButton size="small" sx={{ p: 0.5 }}>
+                    <InfoOutlined fontSize="small" color="action" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <Typography variant="caption" color="success.main">Agent-Validated</Typography>
             </CardContent>
           </Card>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card id="metric-ftr">
             <CardContent sx={{ textAlign: 'center' }}>
               <Avatar sx={{ bgcolor: 'info.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
                 <TrendingUp />
@@ -363,14 +507,27 @@ const DutchMortgageDashboard: React.FC = () => {
               <Typography variant="h3" sx={{ fontWeight: 700, color: 'info.main', mb: 1 }}>
                 {dashboardMetrics?.first_time_right_rate}%
               </Typography>
-              <Typography variant="body2" color="text.secondary">First-Time-Right Rate</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                  First-Time-Right Rate
+                </Typography>
+                <Tooltip
+                  title="% of applications that passed QC on first submission."
+                  placement="top"
+                  enterDelay={300}
+                >
+                  <IconButton size="small" sx={{ p: 0.5 }}>
+                    <InfoOutlined fontSize="small" color="action" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <Typography variant="caption" color="info.main">QC Agent Optimized</Typography>
             </CardContent>
           </Card>
         </Grid>
         
         <Grid item xs={12} sm={6} md={3}>
-          <Card>
+          <Card id="metric-avgtime">
             <CardContent sx={{ textAlign: 'center' }}>
               <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
                 <Schedule />
@@ -378,7 +535,20 @@ const DutchMortgageDashboard: React.FC = () => {
               <Typography variant="h3" sx={{ fontWeight: 700, color: 'warning.main', mb: 1 }}>
                 {dashboardMetrics?.avg_processing_time_minutes}m
               </Typography>
-              <Typography variant="body2" color="text.secondary">Avg Processing Time</Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                  Avg Processing Time
+                </Typography>
+                <Tooltip
+                  title="Average minutes for AI agents to complete tasks."
+                  placement="top"
+                  enterDelay={300}
+                >
+                  <IconButton size="small" sx={{ p: 0.5 }}>
+                    <InfoOutlined fontSize="small" color="action" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <Typography variant="caption" color="warning.main">AI-Accelerated</Typography>
             </CardContent>
           </Card>
@@ -400,8 +570,15 @@ const DutchMortgageDashboard: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* Quick Actions - Demonstrate Agentic Capabilities */}
+      {/* AI Impact Comparison Chart */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12}>
+          <ComparisonChart id="comparison-chart" />
+        </Grid>
+      </Grid>
+
+      {/* Quick Actions - Demonstrate Agentic Capabilities */}
+      <Grid container spacing={3} sx={{ mb: 4 }} className="quick-actions">
         <Grid item xs={12}>
           <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
             Agentic AI Quick Actions
@@ -510,7 +687,7 @@ const DutchMortgageDashboard: React.FC = () => {
       </Grid>
 
       {/* Live Agent Activity Feed */}
-      <Grid container spacing={3}>
+      <Grid container spacing={3} className="recent-activity">
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
@@ -625,7 +802,8 @@ const DutchMortgageDashboard: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
-    </Container>
+      </Container>
+    </>
   );
 };
 

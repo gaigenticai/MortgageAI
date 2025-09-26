@@ -10,6 +10,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { ClientProvider } from './contexts/ClientContext';
+import { DemoModeProvider } from './contexts/DemoModeContext';
 
 // Components
 import Header from './components/Header';
@@ -176,7 +177,8 @@ function App() {
           horizontal: 'right',
         }}
       >
-        <ClientProvider>
+        <DemoModeProvider>
+          <ClientProvider>
           <Router>
             <Box sx={{
               display: 'flex',
@@ -216,7 +218,8 @@ function App() {
               <Footer />
             </Box>
           </Router>
-        </ClientProvider>
+          </ClientProvider>
+        </DemoModeProvider>
       </SnackbarProvider>
     </ThemeProvider>
   );

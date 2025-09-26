@@ -36,15 +36,19 @@ import {
   Psychology,
   Security,
   TrendingUp,
-  Settings
-} from '@mui/icons-material';
+  Settings,
+  Switch,
+  FormControlLabel
+} from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useDemoMode } from '../contexts/DemoModeContext';
 
 const Header: React.FC = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  const { isDemoMode, toggleDemoMode } = useDemoMode();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
@@ -348,6 +352,39 @@ const Header: React.FC = () => {
           >
             All Systems Operational
           </Typography>
+
+          {/* Demo Mode Toggle */}
+          <FormControlLabel
+            className="demo-toggle"
+            control={
+              <Switch
+                checked={isDemoMode}
+                onChange={toggleDemoMode}
+                color="primary"
+                size="small"
+              />
+            }
+            label={
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                  color: isDemoMode ? 'primary.main' : 'text.secondary',
+                  fontSize: '0.875rem',
+                  display: { xs: 'none', md: 'block' }
+                }}
+              >
+                Demo Mode
+              </Typography>
+            }
+            sx={{
+              ml: 2,
+              mr: { xs: 1, md: 0 },
+              '& .MuiFormControlLabel-label': {
+                fontSize: '0.875rem',
+              }
+            }}
+          />
         </Box>
       </Toolbar>
     </AppBar>

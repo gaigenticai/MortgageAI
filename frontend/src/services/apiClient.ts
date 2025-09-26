@@ -14,6 +14,100 @@ export class MortgageAIApiClient {
       },
     });
 
+    // Add demo mode interceptor
+    this.client.interceptors.request.use((config) => {
+      const isDemoMode = this.isDemoMode();
+      if (isDemoMode) {
+        // Intercept and return demo data instead of making real API calls
+        return this.handleDemoRequest(config);
+      }
+      return config;
+    });
+  }
+
+  /**
+   * Check if demo mode is enabled
+   */
+  private isDemoMode(): boolean {
+    try {
+      const demoMode = localStorage.getItem('mortgageai_demo_mode');
+      return demoMode ? JSON.parse(demoMode) : false;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Handle demo mode requests by returning local JSON fixtures
+   */
+  private async handleDemoRequest(config: any): Promise<any> {
+    const url = config.url;
+
+    try {
+      if (url.includes('/api/dashboard/metrics')) {
+        const demoData = await import('../demo-data/dashboardMetrics.json');
+        return {
+          data: demoData.default,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config
+        };
+      }
+
+      if (url.includes('/api/dashboard/agent-status')) {
+        const demoData = await import('../demo-data/recentActivity.json');
+        return {
+          data: { agents: demoData.default.activities.slice(0, 3).map((activity: any, index: number) => ({
+            agent_type: index === 0 ? 'afm_compliance' : index === 1 ? 'dutch_mortgage_qc' : 'afm_compliance',
+            status: 'online',
+            processed_today: Math.floor(Math.random() * 20) + 10,
+            success_rate: 95 + Math.random() * 5,
+            last_activity: new Date().toISOString()
+          })) },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config
+        };
+      }
+
+      if (url.includes('/api/dashboard/lender-status')) {
+        return {
+          data: {
+            lenders: [
+              { lender_name: 'Stater', status: 'online', api_response_time_ms: 245, success_rate: 97.1, last_sync: new Date().toISOString() },
+              { lender_name: 'Quion', status: 'online', api_response_time_ms: 189, success_rate: 98.3, last_sync: new Date().toISOString() },
+              { lender_name: 'ING', status: 'online', api_response_time_ms: 156, success_rate: 96.8, last_sync: new Date().toISOString() }
+            ]
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config
+        };
+      }
+
+      if (url.includes('/api/dashboard/recent-activity')) {
+        const demoData = await import('../demo-data/recentActivity.json');
+        return {
+          data: demoData.default,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config
+        };
+      }
+
+      // For other endpoints, proceed with normal API call
+      return config;
+    } catch (error) {
+      console.error('Demo mode error:', error);
+      // Fall back to normal API call on error
+      return config;
+    }
+  }
+
     // Request interceptor for authentication
     this.client.interceptors.request.use((config) => {
       const token = localStorage.getItem('auth_token');

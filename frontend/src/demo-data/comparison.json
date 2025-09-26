@@ -1,0 +1,24 @@
+{
+  "beforeAI": {
+    "compliance_score": 67.3,
+    "first_time_right_rate": 58.9
+  },
+  "afterAI": {
+    "compliance_score": 94.2,
+    "first_time_right_rate": 87.5
+  },
+  "metrics": [
+    {
+      "name": "Compliance Score",
+      "before": 67.3,
+      "after": 94.2,
+      "improvement": 26.9
+    },
+    {
+      "name": "First-Time-Right Rate",
+      "before": 58.9,
+      "after": 87.5,
+      "improvement": 28.6
+    }
+  ]
+}
