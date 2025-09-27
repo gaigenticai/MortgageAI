@@ -6888,3 +6888,510 @@ INSERT INTO nlp_classification_rules (
     gen_random_uuid(), 'Employment Instability Indicator', 'risk_indicator', 'employment_instability',
     '\\b(werkloos|ontslagen|tijdelijk contract|zzp)\\b', 'regex', 'nl', 'system'
 ) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- MORTGAGE ADVICE GENERATOR SCHEMA
+-- =============================================
+
+-- Personalized mortgage advice table
+CREATE TABLE IF NOT EXISTS mortgage_advice_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    advice_id UUID NOT NULL UNIQUE,
+    customer_id VARCHAR(255) NOT NULL,
+    advice_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    customer_profile JSONB NOT NULL,
+    suitability_assessment JSONB,
+    product_recommendations JSONB DEFAULT '[]',
+    advice_recommendations JSONB DEFAULT '[]',
+    risk_assessment JSONB,
+    compliance_validations JSONB DEFAULT '[]',
+    cost_benefit_analysis JSONB,
+    alternative_scenarios JSONB DEFAULT '[]',
+    required_disclosures JSONB DEFAULT '[]',
+    next_steps JSONB DEFAULT '[]',
+    review_date TIMESTAMP WITH TIME ZONE,
+    advice_complexity VARCHAR(50),
+    language VARCHAR(20) DEFAULT 'dutch',
+    approval_status VARCHAR(50) DEFAULT 'draft',
+    advisor_id VARCHAR(255),
+    advisor_notes TEXT,
+    processing_time_ms INTEGER,
+    confidence_score DECIMAL(5,4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Suitability assessment results table
+CREATE TABLE IF NOT EXISTS suitability_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    customer_id VARCHAR(255) NOT NULL,
+    product_id VARCHAR(255) NOT NULL,
+    financial_situation_score DECIMAL(5,4),
+    customer_objectives_score DECIMAL(5,4),
+    knowledge_experience_score DECIMAL(5,4),
+    overall_suitability_score DECIMAL(5,4),
+    suitability_classification VARCHAR(50),
+    assessment_details JSONB NOT NULL,
+    rule_evaluations JSONB DEFAULT '[]',
+    required_actions JSONB DEFAULT '[]',
+    compliance_flags JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    assessor_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice recommendations table
+CREATE TABLE IF NOT EXISTS advice_recommendations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    recommendation_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    advice_type VARCHAR(100) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    summary TEXT,
+    detailed_explanation TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    benefits JSONB DEFAULT '[]',
+    risks JSONB DEFAULT '[]',
+    cost_implications JSONB DEFAULT '{}',
+    implementation_steps JSONB DEFAULT '[]',
+    timeline VARCHAR(200),
+    priority INTEGER DEFAULT 1,
+    confidence_score DECIMAL(5,4),
+    regulatory_basis JSONB DEFAULT '[]',
+    supporting_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Mortgage product catalog table
+CREATE TABLE IF NOT EXISTS mortgage_products_catalog (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID NOT NULL UNIQUE,
+    product_name VARCHAR(300) NOT NULL,
+    lender VARCHAR(200) NOT NULL,
+    product_type VARCHAR(100) NOT NULL,
+    interest_rate DECIMAL(6,4) NOT NULL,
+    interest_type VARCHAR(50) NOT NULL,
+    interest_period INTEGER,
+    max_ltv DECIMAL(5,2) NOT NULL,
+    max_loan_amount DECIMAL(15,2) NOT NULL,
+    min_loan_amount DECIMAL(15,2) NOT NULL,
+    fees JSONB DEFAULT '{}',
+    features JSONB DEFAULT '[]',
+    restrictions JSONB DEFAULT '[]',
+    suitability_criteria JSONB DEFAULT '{}',
+    nhg_eligible BOOLEAN DEFAULT false,
+    sustainability_features JSONB DEFAULT '[]',
+    product_description TEXT,
+    terms_and_conditions TEXT,
+    effective_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance validation results table
+CREATE TABLE IF NOT EXISTS advice_compliance_validations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    validation_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    compliance_requirement VARCHAR(100) NOT NULL,
+    is_compliant BOOLEAN NOT NULL,
+    validation_details TEXT,
+    required_disclosures JSONB DEFAULT '[]',
+    documentation_requirements JSONB DEFAULT '[]',
+    remediation_actions JSONB DEFAULT '[]',
+    compliance_score DECIMAL(5,4),
+    validation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    validator_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer knowledge assessment table
+CREATE TABLE IF NOT EXISTS customer_knowledge_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    customer_id VARCHAR(255) NOT NULL,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    financial_knowledge_score DECIMAL(5,4),
+    mortgage_knowledge_score DECIMAL(5,4),
+    risk_understanding_score DECIMAL(5,4),
+    product_complexity_tolerance VARCHAR(50),
+    assessment_method VARCHAR(100),
+    assessment_questions JSONB,
+    assessment_responses JSONB,
+    knowledge_gaps JSONB DEFAULT '[]',
+    recommended_education JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice formatting and delivery table
+CREATE TABLE IF NOT EXISTS advice_formatting (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    format_type VARCHAR(50) NOT NULL,
+    formatted_content TEXT NOT NULL,
+    file_path VARCHAR(1000),
+    file_size BIGINT,
+    generation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    delivery_status VARCHAR(50) DEFAULT 'generated',
+    delivery_timestamp TIMESTAMP WITH TIME ZONE,
+    delivery_method VARCHAR(100),
+    recipient_confirmation BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cost-benefit analysis table
+CREATE TABLE IF NOT EXISTS advice_cost_benefit_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    product_id VARCHAR(255) NOT NULL,
+    loan_amount DECIMAL(15,2) NOT NULL,
+    loan_term_years INTEGER NOT NULL,
+    monthly_payment DECIMAL(10,2) NOT NULL,
+    total_interest_cost DECIMAL(15,2),
+    total_loan_cost DECIMAL(15,2),
+    upfront_costs JSONB DEFAULT '{}',
+    ongoing_costs JSONB DEFAULT '{}',
+    tax_implications JSONB DEFAULT '{}',
+    nhg_cost_benefit JSONB,
+    alternative_scenarios JSONB DEFAULT '[]',
+    break_even_analysis JSONB,
+    sensitivity_analysis JSONB,
+    recommendation VARCHAR(500),
+    analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice audit trail table
+CREATE TABLE IF NOT EXISTS advice_audit_trail (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    audit_action VARCHAR(100) NOT NULL,
+    performed_by VARCHAR(255),
+    action_details JSONB,
+    previous_values JSONB,
+    new_values JSONB,
+    reason TEXT,
+    compliance_impact VARCHAR(100),
+    audit_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Regulatory disclosure tracking table
+CREATE TABLE IF NOT EXISTS regulatory_disclosures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    disclosure_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    disclosure_type VARCHAR(100) NOT NULL,
+    regulation VARCHAR(100) NOT NULL,
+    disclosure_content TEXT NOT NULL,
+    is_mandatory BOOLEAN DEFAULT true,
+    customer_acknowledgment BOOLEAN DEFAULT false,
+    acknowledgment_timestamp TIMESTAMP WITH TIME ZONE,
+    acknowledgment_method VARCHAR(100),
+    disclosure_language VARCHAR(20),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice performance metrics table
+CREATE TABLE IF NOT EXISTS advice_performance_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_date DATE NOT NULL,
+    advice_type VARCHAR(100),
+    language VARCHAR(20),
+    total_advice_generated INTEGER DEFAULT 0,
+    avg_generation_time_ms INTEGER,
+    avg_confidence_score DECIMAL(5,4),
+    compliance_rate DECIMAL(5,4),
+    customer_satisfaction_score DECIMAL(3,2),
+    advice_acceptance_rate DECIMAL(5,4),
+    suitability_assessment_rate DECIMAL(5,4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(metric_date, advice_type, language)
+);
+
+-- Advice templates and rules table
+CREATE TABLE IF NOT EXISTS advice_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id UUID NOT NULL UNIQUE,
+    template_name VARCHAR(300) NOT NULL,
+    advice_type VARCHAR(100) NOT NULL,
+    language VARCHAR(20) NOT NULL,
+    complexity_level VARCHAR(50) NOT NULL,
+    template_content TEXT NOT NULL,
+    template_variables JSONB DEFAULT '[]',
+    regulatory_requirements JSONB DEFAULT '[]',
+    usage_guidelines TEXT,
+    is_active BOOLEAN DEFAULT true,
+    version VARCHAR(50) DEFAULT '1.0',
+    created_by VARCHAR(255),
+    approved_by VARCHAR(255),
+    approval_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer feedback on advice table
+CREATE TABLE IF NOT EXISTS advice_customer_feedback (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feedback_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    customer_id VARCHAR(255) NOT NULL,
+    satisfaction_score INTEGER CHECK (satisfaction_score >= 1 AND satisfaction_score <= 5),
+    clarity_score INTEGER CHECK (clarity_score >= 1 AND clarity_score <= 5),
+    usefulness_score INTEGER CHECK (usefulness_score >= 1 AND usefulness_score <= 5),
+    completeness_score INTEGER CHECK (completeness_score >= 1 AND completeness_score <= 5),
+    feedback_comments TEXT,
+    improvement_suggestions TEXT,
+    would_recommend BOOLEAN,
+    advice_followed BOOLEAN,
+    follow_up_needed BOOLEAN DEFAULT false,
+    feedback_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_customer_id ON mortgage_advice_sessions(customer_id);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_advice_timestamp ON mortgage_advice_sessions(advice_timestamp);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_approval_status ON mortgage_advice_sessions(approval_status);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_advisor_id ON mortgage_advice_sessions(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_language ON mortgage_advice_sessions(language);
+
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_advice_id ON suitability_assessments(advice_id);
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_customer_id ON suitability_assessments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_product_id ON suitability_assessments(product_id);
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_suitability_score ON suitability_assessments(overall_suitability_score);
+
+CREATE INDEX IF NOT EXISTS idx_advice_recommendations_advice_id ON advice_recommendations(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_recommendations_advice_type ON advice_recommendations(advice_type);
+CREATE INDEX IF NOT EXISTS idx_advice_recommendations_priority ON advice_recommendations(priority);
+
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_lender ON mortgage_products_catalog(lender);
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_product_type ON mortgage_products_catalog(product_type);
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_interest_rate ON mortgage_products_catalog(interest_rate);
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_is_active ON mortgage_products_catalog(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_advice_compliance_validations_advice_id ON advice_compliance_validations(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_compliance_validations_requirement ON advice_compliance_validations(compliance_requirement);
+CREATE INDEX IF NOT EXISTS idx_advice_compliance_validations_is_compliant ON advice_compliance_validations(is_compliant);
+
+CREATE INDEX IF NOT EXISTS idx_customer_knowledge_assessments_customer_id ON customer_knowledge_assessments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_knowledge_assessments_advice_id ON customer_knowledge_assessments(advice_id);
+
+CREATE INDEX IF NOT EXISTS idx_advice_formatting_advice_id ON advice_formatting(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_formatting_format_type ON advice_formatting(format_type);
+CREATE INDEX IF NOT EXISTS idx_advice_formatting_delivery_status ON advice_formatting(delivery_status);
+
+CREATE INDEX IF NOT EXISTS idx_advice_cost_benefit_analysis_advice_id ON advice_cost_benefit_analysis(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_cost_benefit_analysis_product_id ON advice_cost_benefit_analysis(product_id);
+
+CREATE INDEX IF NOT EXISTS idx_advice_audit_trail_advice_id ON advice_audit_trail(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_audit_trail_audit_timestamp ON advice_audit_trail(audit_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_regulatory_disclosures_advice_id ON regulatory_disclosures(advice_id);
+CREATE INDEX IF NOT EXISTS idx_regulatory_disclosures_regulation ON regulatory_disclosures(regulation);
+CREATE INDEX IF NOT EXISTS idx_regulatory_disclosures_acknowledgment ON regulatory_disclosures(customer_acknowledgment);
+
+CREATE INDEX IF NOT EXISTS idx_advice_performance_metrics_metric_date ON advice_performance_metrics(metric_date);
+CREATE INDEX IF NOT EXISTS idx_advice_performance_metrics_advice_type ON advice_performance_metrics(advice_type);
+
+CREATE INDEX IF NOT EXISTS idx_advice_templates_advice_type ON advice_templates(advice_type);
+CREATE INDEX IF NOT EXISTS idx_advice_templates_language ON advice_templates(language);
+CREATE INDEX IF NOT EXISTS idx_advice_templates_is_active ON advice_templates(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_advice_customer_feedback_advice_id ON advice_customer_feedback(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_customer_feedback_satisfaction_score ON advice_customer_feedback(satisfaction_score);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_mortgage_advice_sessions_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER mortgage_advice_sessions_update_timestamp
+    BEFORE UPDATE ON mortgage_advice_sessions
+    FOR EACH ROW EXECUTE FUNCTION update_mortgage_advice_sessions_timestamp();
+
+CREATE OR REPLACE FUNCTION update_mortgage_products_catalog_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER mortgage_products_catalog_update_timestamp
+    BEFORE UPDATE ON mortgage_products_catalog
+    FOR EACH ROW EXECUTE FUNCTION update_mortgage_products_catalog_timestamp();
+
+CREATE OR REPLACE FUNCTION update_advice_templates_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER advice_templates_update_timestamp
+    BEFORE UPDATE ON advice_templates
+    FOR EACH ROW EXECUTE FUNCTION update_advice_templates_timestamp();
+
+-- Function to calculate daily advice metrics
+CREATE OR REPLACE FUNCTION calculate_advice_performance_metrics()
+RETURNS VOID AS $$
+DECLARE
+    metric_date DATE := CURRENT_DATE;
+    advice_type_record RECORD;
+BEGIN
+    -- Calculate metrics for each advice type and language combination
+    FOR advice_type_record IN 
+        SELECT DISTINCT 
+            (SELECT jsonb_array_elements_text(advice_recommendations) FROM mortgage_advice_sessions WHERE id = mas.id LIMIT 1) as advice_type,
+            mas.language
+        FROM mortgage_advice_sessions mas
+        WHERE DATE(mas.advice_timestamp) = metric_date
+    LOOP
+        INSERT INTO advice_performance_metrics (
+            metric_date, advice_type, language, total_advice_generated,
+            avg_generation_time_ms, avg_confidence_score, compliance_rate
+        )
+        SELECT 
+            metric_date,
+            advice_type_record.advice_type,
+            advice_type_record.language,
+            COUNT(*) as total_advice_generated,
+            AVG(processing_time_ms)::INTEGER as avg_generation_time_ms,
+            AVG(confidence_score) as avg_confidence_score,
+            (COUNT(CASE WHEN jsonb_array_length(compliance_validations) > 0 THEN 1 END)::DECIMAL / COUNT(*)) as compliance_rate
+        FROM mortgage_advice_sessions
+        WHERE DATE(advice_timestamp) = metric_date
+        AND language = advice_type_record.language
+        ON CONFLICT (metric_date, advice_type, language) DO UPDATE SET
+            total_advice_generated = EXCLUDED.total_advice_generated,
+            avg_generation_time_ms = EXCLUDED.avg_generation_time_ms,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            compliance_rate = EXCLUDED.compliance_rate;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate advice alerts
+CREATE OR REPLACE FUNCTION generate_advice_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    advice_record RECORD;
+BEGIN
+    -- Check for non-compliant advice
+    FOR advice_record IN 
+        SELECT mas.advice_id, mas.customer_id, acv.compliance_requirement
+        FROM mortgage_advice_sessions mas
+        JOIN advice_compliance_validations acv ON mas.advice_id = acv.advice_id
+        WHERE acv.is_compliant = false
+        AND mas.advice_timestamp > NOW() - INTERVAL '24 hours'
+        AND mas.approval_status = 'draft'
+    LOOP
+        -- Generate compliance alert (would integrate with alert system)
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common advice queries
+CREATE OR REPLACE VIEW advice_dashboard_summary AS
+SELECT 
+    DATE(mas.advice_timestamp) as advice_date,
+    mas.language,
+    mas.advice_complexity,
+    COUNT(*) as total_advice,
+    AVG(mas.confidence_score) as avg_confidence,
+    AVG(mas.processing_time_ms) as avg_processing_time,
+    COUNT(CASE WHEN mas.approval_status = 'approved' THEN 1 END) as approved_advice,
+    AVG(sa.overall_suitability_score) as avg_suitability_score
+FROM mortgage_advice_sessions mas
+LEFT JOIN suitability_assessments sa ON mas.advice_id = sa.advice_id
+WHERE mas.advice_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(mas.advice_timestamp), mas.language, mas.advice_complexity
+ORDER BY advice_date DESC;
+
+CREATE OR REPLACE VIEW customer_advice_history AS
+SELECT 
+    mas.customer_id,
+    mas.advice_id,
+    mas.advice_timestamp,
+    mas.approval_status,
+    mas.confidence_score,
+    COUNT(ar.recommendation_id) as recommendation_count,
+    AVG(sa.overall_suitability_score) as avg_suitability,
+    bool_and(acv.is_compliant) as fully_compliant
+FROM mortgage_advice_sessions mas
+LEFT JOIN advice_recommendations ar ON mas.advice_id = ar.advice_id
+LEFT JOIN suitability_assessments sa ON mas.advice_id = sa.advice_id
+LEFT JOIN advice_compliance_validations acv ON mas.advice_id = acv.advice_id
+GROUP BY mas.customer_id, mas.advice_id, mas.advice_timestamp, mas.approval_status, mas.confidence_score
+ORDER BY mas.advice_timestamp DESC;
+
+-- Insert default mortgage products
+INSERT INTO mortgage_products_catalog (
+    product_id, product_name, lender, product_type, interest_rate, interest_type,
+    interest_period, max_ltv, max_loan_amount, min_loan_amount, fees, features,
+    nhg_eligible, product_description, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'ING Fixed 10 Years', 'ING Bank', 'fixed_rate', 3.20, 'fixed',
+    10, 100.00, 1000000.00, 50000.00, 
+    '{"origination_fee": 1500, "appraisal_fee": 400, "notary_fee": 800}',
+    '["NHG eligible", "Flexible repayment", "Interest-only option", "Sustainability bonus"]',
+    true, 'Fixed interest rate mortgage with 10-year rate guarantee', 'system'
+),
+(
+    gen_random_uuid(), 'Rabobank Sustainable 20 Years', 'Rabobank', 'fixed_rate', 3.15, 'fixed',
+    20, 100.00, 1000000.00, 75000.00,
+    '{"origination_fee": 1200, "appraisal_fee": 350, "sustainability_assessment": 200}',
+    '["Sustainability discount", "Energy improvement loan", "NHG eligible", "Green mortgage"]',
+    true, 'Sustainable mortgage with energy efficiency benefits', 'system'
+),
+(
+    gen_random_uuid(), 'ABN AMRO Variable Plus', 'ABN AMRO', 'variable_rate', 2.95, 'variable',
+    0, 90.00, 800000.00, 100000.00,
+    '{"origination_fee": 1800, "appraisal_fee": 450, "rate_cap_fee": 300}',
+    '["Rate cap option", "Flexible payments", "Offset account", "Online management"]',
+    false, 'Variable rate mortgage with rate cap protection option', 'system'
+) ON CONFLICT DO NOTHING;
+
+-- Insert default advice templates
+INSERT INTO advice_templates (
+    template_id, template_name, advice_type, language, complexity_level,
+    template_content, template_variables, regulatory_requirements, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Product Recommendation Template - Dutch', 'product_recommendation', 'nl', 'intermediate',
+    'Gebaseerd op uw financiële situatie adviseren wij het volgende hypotheekproduct: {{product_name}} van {{lender}} met een rente van {{interest_rate}}%.',
+    '["product_name", "lender", "interest_rate", "monthly_payment", "total_cost"]',
+    '["wft_article_86f", "afm_disclosure"]',
+    'system'
+),
+(
+    gen_random_uuid(), 'Risk Disclosure Template - Dutch', 'risk_analysis', 'nl', 'simple',
+    'Belangrijke risico''s: Rentewijzigingen kunnen uw maandlasten beïnvloeden. Woningwaarde kan fluctueren.',
+    '["risk_factors", "mitigation_strategies", "impact_scenarios"]',
+    '["wft_article_86f", "afm_disclosure", "bgfo_article_8_1"]',
+    'system'
+),
+(
+    gen_random_uuid(), 'Affordability Assessment Template - Dutch', 'affordability_assessment', 'nl', 'intermediate',
+    'Betaalbaarheidsanalyse: Op basis van uw inkomen van €{{monthly_income}} en uitgaven van €{{monthly_expenses}} kunt u een hypotheek van maximaal €{{max_mortgage}} aan.',
+    '["monthly_income", "monthly_expenses", "max_mortgage", "affordability_ratio"]',
+    '["wft_article_86f"]',
+    'system'
+) ON CONFLICT DO NOTHING;
