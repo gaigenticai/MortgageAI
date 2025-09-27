@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Field Validation Engine - User Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 40px -20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .nav h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        .nav a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 1.8em;
+        }
+
+        .section h3 {
+            color: #495057;
+            margin: 25px 0 15px 0;
+            font-size: 1.3em;
+        }
+
+        .section h4 {
+            color: #6c757d;
+            margin: 20px 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .feature-card h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+
+        .code-block.json {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #667eea;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .validation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .validation-table th,
+        .validation-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .validation-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .validation-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #6c757d;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        .badge.success { background: #28a745; }
+        .badge.warning { background: #ffc107; color: #333; }
+        .badge.error { background: #dc3545; }
+        .badge.info { background: #17a2b8; }
+
+        .accordion {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+
+        .accordion-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .accordion.active .accordion-content {
+            display: block;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding: 30px;
+            background: #343a40;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header {
+                padding: 30px 20px;
+                margin: -15px -15px 30px -15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Advanced Field Validation Engine</h1>
+            <p>Comprehensive User Guide for Real-time Field Validation, Error Correction & AFM Compliance</p>
+        </div>
+
+        <div class="nav">
+            <h3>📋 Quick Navigation</h3>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#validation">Validation Types</a></li>
+                <li><a href="#rules">Rule Management</a></li>
+                <li><a href="#bulk-validation">Bulk Validation</a></li>
+                <li><a href="#afm-compliance">AFM Compliance</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <div class="section" id="overview">
+            <h2>📖 System Overview</h2>
+            <p>The Advanced Field Validation Engine is a comprehensive validation system designed specifically for Dutch mortgage advisory platforms. It provides real-time field validation, intelligent error correction suggestions, and automated AFM (Autoriteit Financiële Markten) compliance checking.</p>
+            
+            <div class="highlight success">
+                <strong>🎯 Primary Objectives:</strong>
+                <ul>
+                    <li>Ensure data quality and consistency across all mortgage applications</li>
+                    <li>Provide real-time feedback to prevent data entry errors</li>
+                    <li>Maintain compliance with Dutch financial regulations (AFM)</li>
+                    <li>Offer intelligent suggestions for data correction and improvement</li>
+                </ul>
+            </div>
+
+            <h3>🏗️ System Architecture</h3>
+            <p>The validation engine is built on a modular architecture supporting:</p>
+            <ul>
+                <li><strong>Real-time Validation:</strong> Instant field-level validation as users type</li>
+                <li><strong>Batch Processing:</strong> Validation of large datasets and bulk operations</li>
+                <li><strong>Rule Engine:</strong> Configurable validation rules with conditional logic</li>
+                <li><strong>Correction Engine:</strong> AI-powered suggestions for data corrections</li>
+                <li><strong>Compliance Engine:</strong> Automated checking against AFM regulations</li>
+                <li><strong>Analytics Engine:</strong> Performance monitoring and quality metrics</li>
+            </ul>
+        </div>
+
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>⚡ Real-time Validation</h4>
+                    <p>Instant validation feedback as users enter data, preventing errors at the source.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🧠 Smart Corrections</h4>
+                    <p>AI-powered suggestions for fixing common data entry mistakes and typos.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚖️ AFM Compliance</h4>
+                    <p>Automated compliance checking against Dutch financial regulations.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 Bulk Processing</h4>
+                    <p>Validate large datasets efficiently with comprehensive reporting.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔧 Configurable Rules</h4>
+                    <p>Create and manage custom validation rules with conditional logic.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📈 Performance Analytics</h4>
+                    <p>Track validation success rates, performance metrics, and quality trends.</p>
+                </div>
+            </div>
+
+            <h3>🎯 Supported Field Types</h3>
+            <div class="validation-table">
+                <table class="validation-table">
+                    <thead>
+                        <tr>
+                            <th>Field Type</th>
+                            <th>Description</th>
+                            <th>Validation Features</th>
+                            <th>Dutch Specific</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge info">BSN</span></td>
+                            <td>Burgerservicenummer</td>
+                            <td>Checksum validation, format checking</td>
+                            <td>✅ Full support</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">IBAN</span></td>
+                            <td>International Bank Account</td>
+                            <td>MOD-97 checksum, NL prefix validation</td>
+                            <td>✅ Dutch banks</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Postcode</span></td>
+                            <td>Dutch postal codes</td>
+                            <td>Format validation, existence check</td>
+                            <td>✅ NL format</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Phone</span></td>
+                            <td>Phone numbers</td>
+                            <td>Format validation, country code</td>
+                            <td>✅ +31 support</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Email</span></td>
+                            <td>Email addresses</td>
+                            <td>Format, domain validation</td>
+                            <td>🌍 Universal</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Currency</span></td>
+                            <td>Monetary values</td>
+                            <td>Format, range validation</td>
+                            <td>✅ Euro format</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+            
+            <h3>📋 Prerequisites</h3>
+            <div class="highlight info">
+                <ul>
+                    <li>Access to MortgageAI platform with field validation permissions</li>
+                    <li>Basic understanding of mortgage application data structures</li>
+                    <li>Knowledge of AFM compliance requirements (recommended)</li>
+                </ul>
+            </div>
+
+            <h3>🔧 Initial Setup</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Access the Validation Interface</strong>
+                    <p>Navigate to the Advanced Field Validation section in your MortgageAI dashboard. The interface provides tabs for different validation functions.</p>
+                </li>
+                
+                <li>
+                    <strong>Review System Health</strong>
+                    <p>Check the Settings tab to ensure all validation engines are online and functioning properly.</p>
+                </li>
+                
+                <li>
+                    <strong>Configure Basic Settings</strong>
+                    <p>Enable or disable features like AFM compliance checking, suggestion generation, and real-time validation based on your needs.</p>
+                </li>
+                
+                <li>
+                    <strong>Test Single Field Validation</strong>
+                    <p>Use the quick validation panel to test individual fields and familiarize yourself with the system responses.</p>
+                </li>
+            </ol>
+
+            <h3>🧪 First Validation Test</h3>
+            <p>Let's perform a simple validation test to understand how the system works:</p>
+            
+            <div class="code-block">
+Field Path: email
+Field Value: test@invalid
+Field Type: email
+✅ AFM Compliance: enabled
+✅ Generate Suggestions: enabled
+            </div>
+            
+            <div class="highlight warning">
+                <strong>Expected Result:</strong> The system will identify this as an invalid email format and suggest corrections like "test@invalid.com" or "test@example.com".
+            </div>
+        </div>
+
+        <div class="section" id="validation">
+            <h2>🔍 Validation Types & Processes</h2>
+            
+            <h3>⚡ Real-time Single Field Validation</h3>
+            <p>Real-time validation provides immediate feedback as users enter data. This is the most commonly used validation method.</p>
+            
+            <h4>📝 How to Use:</h4>
+            <ol class="step-list">
+                <li>
+                    <strong>Enter Field Details</strong>
+                    <p>Specify the field path (e.g., "personal_info.email"), the value to validate, and select the appropriate field type.</p>
+                </li>
+                
+                <li>
+                    <strong>Configure Options</strong>
+                    <p>Enable AFM compliance checking and suggestion generation as needed.</p>
+                </li>
+                
+                <li>
+                    <strong>Execute Validation</strong>
+                    <p>Click the "Validate" button to process the field and receive instant results.</p>
+                </li>
+            </ol>
+
+            <h4>📊 Understanding Results:</h4>
+            <div class="validation-table">
+                <table class="validation-table">
+                    <thead>
+                        <tr>
+                            <th>Result Component</th>
+                            <th>Description</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge success">Valid</span></td>
+                            <td>Field passes all validation rules</td>
+                            <td>None - continue processing</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge error">Error</span></td>
+                            <td>Field fails critical validation rules</td>
+                            <td>Must be corrected before proceeding</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge warning">Warning</span></td>
+                            <td>Field has potential issues</td>
+                            <td>Review recommended, correction optional</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Info</span></td>
+                            <td>Informational message or suggestion</td>
+                            <td>No action required</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>📦 Bulk Data Validation</h3>
+            <p>For processing large datasets or complete application forms, use bulk validation:</p>
+            
+            <div class="code-block json">
+{
+  "personal_info": {
+    "name": "Jan de Vries",
+    "email": "jan@example.com",
+    "bsn": "123456782",
+    "phone": "+31612345678"
+  },
+  "financial_info": {
+    "monthly_income": 4500,
+    "mortgage_amount": 350000,
+    "loan_to_value": 0.85
+  },
+  "property_info": {
+    "address": "Keizersgracht 123",
+    "postcode": "1015 CJ",
+    "property_value": 400000
+  }
+}
+            </div>
+
+            <h4>⚙️ Bulk Validation Options:</h4>
+            <ul>
+                <li><strong>AFM Compliance Check:</strong> Validates against financial regulations</li>
+                <li><strong>Generate Suggestions:</strong> Provides correction recommendations</li>
+                <li><strong>Include Field Scores:</strong> Adds confidence scores for each field</li>
+            </ul>
+        </div>
+
+        <div class="section" id="rules">
+            <h2>📏 Validation Rule Management</h2>
+            
+            <h3>🔧 Understanding Validation Rules</h3>
+            <p>Validation rules define how fields should be validated. Each rule contains:</p>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Rule Components</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <ul>
+                        <li><strong>Rule Name:</strong> Human-readable identifier</li>
+                        <li><strong>Field Path:</strong> Target field (supports dot notation)</li>
+                        <li><strong>Field Type:</strong> Data type being validated</li>
+                        <li><strong>Rule Type:</strong> Validation method (required, format, range, etc.)</li>
+                        <li><strong>Parameters:</strong> Configuration specific to the rule type</li>
+                        <li><strong>Severity:</strong> Impact level (info, warning, error, critical)</li>
+                        <li><strong>Priority:</strong> Execution order (1-5)</li>
+                        <li><strong>AFM Article:</strong> Related compliance regulation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>➕ Creating New Validation Rules</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Access Rule Management</strong>
+                    <p>Go to the "Validation Rules" tab and click "Create Rule".</p>
+                </li>
+                
+                <li>
+                    <strong>Define Basic Properties</strong>
+                    <p>Enter the rule name, field path, and select appropriate field and rule types.</p>
+                </li>
+                
+                <li>
+                    <strong>Configure Validation Logic</strong>
+                    <p>Set parameters, error messages, and suggestion templates.</p>
+                </li>
+                
+                <li>
+                    <strong>Set Compliance Requirements</strong>
+                    <p>If applicable, specify the AFM article and compliance category.</p>
+                </li>
+                
+                <li>
+                    <strong>Test and Activate</strong>
+                    <p>Test the rule with sample data before activating it for production use.</p>
+                </li>
+            </ol>
+
+            <h3>📋 Rule Types and Examples</h3>
+            <div class="validation-table">
+                <table class="validation-table">
+                    <thead>
+                        <tr>
+                            <th>Rule Type</th>
+                            <th>Purpose</th>
+                            <th>Example Use Case</th>
+                            <th>Parameters</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge info">Required</span></td>
+                            <td>Ensure field is not empty</td>
+                            <td>BSN number must be provided</td>
+                            <td>None</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Format</span></td>
+                            <td>Check data format/pattern</td>
+                            <td>Email must contain @ symbol</td>
+                            <td>regex, format_type</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Range</span></td>
+                            <td>Validate numeric ranges</td>
+                            <td>Income must be > €1000</td>
+                            <td>min_value, max_value</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Length</span></td>
+                            <td>Check text length limits</td>
+                            <td>Phone number length validation</td>
+                            <td>min_length, max_length</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Pattern</span></td>
+                            <td>Complex regex validation</td>
+                            <td>Dutch postcode format</td>
+                            <td>pattern, flags</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">AFM Compliance</span></td>
+                            <td>Regulatory compliance</td>
+                            <td>Income documentation check</td>
+                            <td>article, requirement</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="bulk-validation">
+            <h2>📊 Bulk Validation & Data Processing</h2>
+            
+            <h3>📁 Data Input Formats</h3>
+            <p>The bulk validation system accepts data in JSON format. Structure your data hierarchically to match your application forms:</p>
+            
+            <div class="code-block json">
+{
+  "application_id": "APP-2024-001",
+  "client": {
+    "personal": {
+      "first_name": "Jan",
+      "last_name": "de Vries",
+      "date_of_birth": "1985-03-15",
+      "bsn": "123456782",
+      "email": "jan.devries@email.com",
+      "phone": "0612345678"
+    },
+    "address": {
+      "street": "Keizersgracht",
+      "house_number": "123",
+      "house_number_addition": "A",
+      "postcode": "1015CJ",
+      "city": "Amsterdam"
+    }
+  },
+  "financial": {
+    "employment": {
+      "employer": "Tech Company BV",
+      "employment_type": "permanent",
+      "monthly_gross_income": 4500,
+      "years_employed": 3
+    },
+    "assets": {
+      "savings": 25000,
+      "investments": 10000,
+      "other_assets": 5000
+    }
+  },
+  "mortgage": {
+    "requested_amount": 350000,
+    "loan_term_years": 30,
+    "property_value": 400000,
+    "down_payment": 50000
+  }
+}
+            </div>
+
+            <h3>🔄 Processing Workflow</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Data Upload</strong>
+                    <p>Paste your JSON data into the bulk validation text area or upload a file.</p>
+                </li>
+                
+                <li>
+                    <strong>Configuration</strong>
+                    <p>Enable desired validation options (AFM compliance, suggestions, scoring).</p>
+                </li>
+                
+                <li>
+                    <strong>Validation Processing</strong>
+                    <p>The system processes all fields according to configured rules and generates comprehensive results.</p>
+                </li>
+                
+                <li>
+                    <strong>Results Analysis</strong>
+                    <p>Review the validation report, including field-level scores, error summaries, and suggested corrections.</p>
+                </li>
+                
+                <li>
+                    <strong>Data Correction</strong>
+                    <p>Apply suggested corrections or make manual adjustments based on the validation feedback.</p>
+                </li>
+            </ol>
+
+            <h3>📈 Result Interpretation</h3>
+            <div class="highlight info">
+                <h4>Validation Scores:</h4>
+                <ul>
+                    <li><strong>Overall Score:</strong> General data quality percentage (0-100%)</li>
+                    <li><strong>Compliance Score:</strong> AFM regulation adherence percentage</li>
+                    <li><strong>Field Scores:</strong> Individual field quality ratings</li>
+                    <li><strong>Processing Time:</strong> Performance metric for optimization</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="afm-compliance">
+            <h2>⚖️ AFM Compliance Validation</h2>
+            
+            <h3>📜 Regulatory Framework</h3>
+            <p>The AFM (Autoriteit Financiële Markten) compliance module validates mortgage applications against Dutch financial regulations:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🏛️ Wft (Wet op het financieel toezicht)</h4>
+                    <p>Financial supervision law compliance, including customer due diligence and suitability assessments.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📋 BGFO (Besluit Gedragstoezicht financiële ondernemingen)</h4>
+                    <p>Behavioral supervision requirements for financial institutions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔒 AVG/GDPR Compliance</h4>
+                    <p>Data protection and privacy regulations for personal financial information.</p>
+                </div>
+            </div>
+
+            <h3>🔍 Key Compliance Checks</h3>
+            <div class="validation-table">
+                <table class="validation-table">
+                    <thead>
+                        <tr>
+                            <th>Regulation</th>
+                            <th>Article</th>
+                            <th>Check Description</th>
+                            <th>Required Fields</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Wft</td>
+                            <td>86f</td>
+                            <td>Customer suitability assessment</td>
+                            <td>Income, assets, employment</td>
+                        </tr>
+                        <tr>
+                            <td>Wft</td>
+                            <td>86c</td>
+                            <td>Product appropriateness check</td>
+                            <td>Risk profile, investment experience</td>
+                        </tr>
+                        <tr>
+                            <td>BGFO</td>
+                            <td>8.1</td>
+                            <td>Information disclosure requirements</td>
+                            <td>Terms, conditions, costs</td>
+                        </tr>
+                        <tr>
+                            <td>AVG</td>
+                            <td>32</td>
+                            <td>Data security and processing</td>
+                            <td>Consent, data minimization</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>🚨 Compliance Violations</h3>
+            <p>When compliance issues are detected, the system provides:</p>
+            <ul>
+                <li><strong>Violation Description:</strong> Clear explanation of the compliance issue</li>
+                <li><strong>Severity Assessment:</strong> Impact level (minor, moderate, major, critical)</li>
+                <li><strong>Remediation Steps:</strong> Required actions to achieve compliance</li>
+                <li><strong>Documentation Requirements:</strong> Additional evidence or forms needed</li>
+            </ul>
+
+            <div class="highlight warning">
+                <strong>⚠️ Important:</strong> Critical compliance violations must be resolved before mortgage applications can proceed. The system will prevent progression until all major and critical issues are addressed.
+            </div>
+        </div>
+
+        <div class="section" id="api-reference">
+            <h2>🔌 API Reference</h2>
+            
+            <h3>🌐 Base Endpoints</h3>
+            <div class="code-block">
+Base URL: {API_HOST}/api/field-validation/
+Authentication: Bearer token required
+Content-Type: application/json
+            </div>
+
+            <h3>📡 Available Endpoints</h3>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>POST /validate/field</strong> - Single Field Validation</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Request Body:</h4>
+                    <div class="code-block json">
+{
+  "field_path": "email",
+  "value": "user@example.com",
+  "field_type": "email",
+  "context": {},
+  "check_afm_compliance": true,
+  "generate_suggestions": true
+}
+                    </div>
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "is_valid": true,
+  "field_path": "email",
+  "field_score": 95.5,
+  "messages": [],
+  "suggestions": [],
+  "processing_time": 0.025,
+  "metadata": {}
+}
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>POST /validate/data</strong> - Bulk Data Validation</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Request Body:</h4>
+                    <div class="code-block json">
+{
+  "data": {
+    "personal_info": {
+      "name": "Jan de Vries",
+      "email": "jan@example.com"
+    }
+  },
+  "validation_config": {
+    "context": {
+      "check_afm_compliance": true,
+      "generate_suggestions": true
+    }
+  }
+}
+                    </div>
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "is_valid": true,
+  "total_fields": 10,
+  "validated_fields": 10,
+  "errors": 0,
+  "warnings": 2,
+  "overall_score": 88.5,
+  "compliance_score": 92.0,
+  "messages": [...],
+  "field_scores": {...}
+}
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>GET /rules</strong> - List Validation Rules</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Query Parameters:</h4>
+                    <ul>
+                        <li><code>active_only</code> - Filter for active rules only</li>
+                        <li><code>field_type</code> - Filter by field type</li>
+                        <li><code>severity</code> - Filter by severity level</li>
+                    </ul>
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "rules": [
+    {
+      "rule_id": "email_format_001",
+      "rule_name": "Email Format Validation",
+      "field_path": "email",
+      "field_type": "email",
+      "rule_type": "format",
+      "is_active": true,
+      "severity": "error",
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ]
+}
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>GET /statistics</strong> - Validation Statistics</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "validation_stats": {
+    "total_validations": 15420,
+    "successful_validations": 14651,
+    "failed_validations": 769,
+    "average_processing_time": 0.045
+  },
+  "engine_info": {
+    "total_rules": 47,
+    "active_rules": 42,
+    "supported_field_types": ["email", "phone", "bsn", "iban"],
+    "afm_compliance_enabled": true
+  },
+  "performance_metrics": {
+    "success_rate": 0.95,
+    "avg_field_validation_time": 0.032
+  }
+}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="best-practices">
+            <h2>💡 Best Practices</h2>
+            
+            <h3>🎯 Validation Strategy</h3>
+            <ul>
+                <li><strong>Progressive Validation:</strong> Start with basic format checks, then move to complex business rules</li>
+                <li><strong>User Experience:</strong> Provide real-time feedback without overwhelming users</li>
+                <li><strong>Error Messaging:</strong> Use clear, actionable error messages in Dutch and English</li>
+                <li><strong>Suggestion Quality:</strong> Test correction suggestions with real user data</li>
+            </ul>
+
+            <h3>📏 Rule Configuration</h3>
+            <div class="highlight success">
+                <h4>✅ Do:</h4>
+                <ul>
+                    <li>Use descriptive rule names and clear error messages</li>
+                    <li>Set appropriate priority levels for rule execution order</li>
+                    <li>Test rules thoroughly before activating in production</li>
+                    <li>Document AFM compliance requirements clearly</li>
+                    <li>Regular review and update rules based on regulatory changes</li>
+                </ul>
+            </div>
+
+            <div class="highlight warning">
+                <h4>❌ Don't:</h4>
+                <ul>
+                    <li>Create overlapping rules that might conflict</li>
+                    <li>Use overly strict validation that frustrates users</li>
+                    <li>Ignore performance impact of complex regex patterns</li>
+                    <li>Bypass compliance checks for expedited processing</li>
+                    <li>Delete rules without understanding their dependencies</li>
+                </ul>
+            </div>
+
+            <h3>🔄 Performance Optimization</h3>
+            <ol>
+                <li><strong>Rule Ordering:</strong> Place high-priority, fast rules first</li>
+                <li><strong>Caching:</strong> Enable result caching for frequently validated fields</li>
+                <li><strong>Batch Processing:</strong> Use bulk validation for large datasets</li>
+                <li><strong>Monitoring:</strong> Track processing times and optimize slow rules</li>
+            </ol>
+
+            <h3>📊 Quality Assurance</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🧪 Testing Protocol</h4>
+                    <p>Test all validation rules with diverse datasets including edge cases, invalid inputs, and boundary values.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📈 Metrics Monitoring</h4>
+                    <p>Track validation success rates, false positive rates, and user satisfaction with correction suggestions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔄 Continuous Improvement</h4>
+                    <p>Regular review validation accuracy and update rules based on user feedback and changing requirements.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="troubleshooting">
+            <h2>🛠️ Troubleshooting</h2>
+            
+            <h3>🚫 Common Issues</h3>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Validation Takes Too Long</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Possible Causes:</h4>
+                    <ul>
+                        <li>Complex regex patterns in validation rules</li>
+                        <li>Too many rules executing for single field</li>
+                        <li>Network latency for external API calls</li>
+                        <li>Large dataset in bulk validation</li>
+                    </ul>
+                    <h4>Solutions:</h4>
+                    <ul>
+                        <li>Optimize regex patterns for performance</li>
+                        <li>Review rule priorities and dependencies</li>
+                        <li>Enable caching for frequently used validations</li>
+                        <li>Use batch processing for large datasets</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>False Positive Errors</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Symptoms:</h4>
+                    <ul>
+                        <li>Valid data marked as invalid</li>
+                        <li>Correct formats rejected</li>
+                        <li>AFM compliance false alarms</li>
+                    </ul>
+                    <h4>Solutions:</h4>
+                    <ul>
+                        <li>Review and adjust rule parameters</li>
+                        <li>Check for conflicting validation rules</li>
+                        <li>Update rule conditions for edge cases</li>
+                        <li>Calibrate confidence thresholds</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Suggestions Not Helpful</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Improvements:</h4>
+                    <ul>
+                        <li>Review suggestion templates and algorithms</li>
+                        <li>Collect user feedback on correction quality</li>
+                        <li>Update correction confidence thresholds</li>
+                        <li>Enhance pattern recognition for common errors</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>📞 Support Resources</h3>
+            <div class="highlight info">
+                <h4>Getting Help:</h4>
+                <ul>
+                    <li><strong>System Health Check:</strong> Use the built-in health monitor in Settings tab</li>
+                    <li><strong>Log Analysis:</strong> Review validation logs for detailed error information</li>
+                    <li><strong>Performance Metrics:</strong> Monitor success rates and processing times</li>
+                    <li><strong>Documentation:</strong> Refer to API documentation for integration issues</li>
+                </ul>
+            </div>
+
+            <h3>🔧 Diagnostic Tools</h3>
+            <ul>
+                <li><strong>Rule Testing:</strong> Test individual rules with sample data</li>
+                <li><strong>Performance Profiling:</strong> Analyze slow validation operations</li>
+                <li><strong>Compliance Verification:</strong> Verify AFM regulation interpretations</li>
+                <li><strong>Data Quality Reports:</strong> Generate comprehensive validation reports</li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <h3>🎓 Advanced Field Validation Engine</h3>
+            <p><strong>MortgageAI Platform</strong> | Professional Mortgage Advisory Solutions</p>
+            <p>This user guide covers the comprehensive field validation system designed for Dutch mortgage advisory platforms.</p>
+            <p><em>Last updated: January 2024 | Version 1.0.0</em></p>
+        </div>
+    </div>
+
+    <script>
+        function toggleAccordion(header) {
+            const accordion = header.parentElement;
+            const isActive = accordion.classList.contains('active');
+            
+            // Close all accordions
+            document.querySelectorAll('.accordion').forEach(acc => {
+                acc.classList.remove('active');
+                acc.querySelector('.accordion-header span:last-child').textContent = '▼';
+            });
+            
+            // Open clicked accordion if it wasn't active
+            if (!isActive) {
+                accordion.classList.add('active');
+                header.querySelector('span:last-child').textContent = '▲';
+            }
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add loading animation to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                this.style.opacity = '0.7';
+                setTimeout(() => {
+                    this.style.opacity = '1';
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

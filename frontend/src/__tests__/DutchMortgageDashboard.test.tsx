@@ -6,7 +6,7 @@
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DutchMortgageDashboard } from '../pages/DutchMortgageDashboard';
+import DutchMortgageDashboard from '../pages/DutchMortgageDashboard';
 import { apiClient } from '../services/apiClient';
 import ComparisonChart from '../components/ComparisonChart';
 import { SnackbarProvider } from 'notistack';

@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anomaly Detection Interface - User Guide | MortgageAI</title>
+    <style>
+        :root {
+            --primary-color: #2196f3;
+            --secondary-color: #ff9800;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --warning-color: #ff9800;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --bg-light: #f5f5f5;
+            --border-color: #ddd;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.5em;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .header .icon {
+            font-size: 2.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.2em;
+        }
+
+        .content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+        }
+
+        .nav {
+            background: var(--bg-light);
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav li {
+            padding: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            padding-left: 10px;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section h3 {
+            color: var(--secondary-color);
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .section h4 {
+            color: var(--text-primary);
+            margin: 1rem 0 0.5rem 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .feature-card {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .severity-demo {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+
+        .severity-chip {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .severity-low { background-color: var(--success-color); }
+        .severity-medium { background-color: var(--primary-color); }
+        .severity-high { background-color: var(--secondary-color); }
+        .severity-critical { background-color: var(--error-color); }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1.5rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #6272a4;
+        }
+
+        .code-block .string {
+            color: #f1fa8c;
+        }
+
+        .code-block .number {
+            color: #bd93f9;
+        }
+
+        .code-block .keyword {
+            color: #ff79c6;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .success-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+            padding: 0;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: var(--primary-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .workflow-diagram {
+            background: var(--bg-light);
+            padding: 2rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .workflow-step {
+            display: inline-block;
+            background: white;
+            padding: 1rem;
+            margin: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 120px;
+        }
+
+        .workflow-arrow {
+            display: inline-block;
+            margin: 0 1rem;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        .table tr:hover {
+            background: var(--bg-light);
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .button:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .button.secondary {
+            background: var(--secondary-color);
+        }
+
+        .button.secondary:hover {
+            background: #e65100;
+        }
+
+        .button.success {
+            background: var(--success-color);
+        }
+
+        .button.success:hover {
+            background: #388e3c;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+                flex-direction: column;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav ul {
+                grid-template-columns: 1fr;
+            }
+            
+            .severity-demo {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a8edea 0%, #fed6e3 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--primary-color), #64b5f6);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-card p {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>
+                <span class="icon">🛡️</span>
+                Anomaly Detection Interface
+            </h1>
+            <p>Advanced real-time pattern recognition, alert management, and investigation tools for mortgage application processing</p>
+        </header>
+
+        <div class="content">
+            <nav class="nav">
+                <h3>Quick Navigation</h3>
+                <ul>
+                    <li><a href="#overview">System Overview</a></li>
+                    <li><a href="#getting-started">Getting Started</a></li>
+                    <li><a href="#detection-methods">Detection Methods</a></li>
+                    <li><a href="#alert-management">Alert Management</a></li>
+                    <li><a href="#investigation-tools">Investigation Tools</a></li>
+                    <li><a href="#analytics-dashboard">Analytics Dashboard</a></li>
+                    <li><a href="#api-reference">API Reference</a></li>
+                    <li><a href="#troubleshooting">Troubleshooting</a></li>
+                </ul>
+            </nav>
+
+            <section id="overview" class="section">
+                <h2>🔍 System Overview</h2>
+                <p>The Anomaly Detection Interface provides comprehensive real-time monitoring and analysis capabilities for detecting unusual patterns in mortgage application data. Our advanced system combines multiple detection methods to ensure maximum accuracy and minimal false positives.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🎯 Multi-Method Detection</h4>
+                        <p>Combines statistical analysis, machine learning models, and rule-based detection for comprehensive coverage.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚡ Real-Time Processing</h4>
+                        <p>Process and analyze data streams in real-time with sub-second response times.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔔 Smart Alerting</h4>
+                        <p>Configurable alert rules with intelligent suppression and escalation mechanisms.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔬 Investigation Tools</h4>
+                        <p>Comprehensive investigation workflows with collaborative features and pattern analysis.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📊 Advanced Analytics</h4>
+                        <p>Performance metrics, trend analysis, and detailed reporting capabilities.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🛡️ AFM Compliance</h4>
+                        <p>Built-in compliance monitoring and regulatory reporting for Dutch financial regulations.</p>
+                    </div>
+                </div>
+
+                <div class="workflow-diagram">
+                    <h3>Detection Workflow</h3>
+                    <div class="workflow-step">Data Input</div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step">Multi-Method Analysis</div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step">Anomaly Scoring</div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step">Alert Generation</div>
+                    <span class="workflow-arrow">→</span>
+                    <div class="workflow-step">Investigation</div>
+                </div>
+            </section>
+
+            <section id="getting-started" class="section">
+                <h2>🚀 Getting Started</h2>
+                
+                <h3>Accessing the Interface</h3>
+                <p>The Anomaly Detection Interface is accessible through the main MortgageAI dashboard. Navigate to <strong>Security → Anomaly Detection</strong> to access the full interface.</p>
+
+                <div class="info-box">
+                    <strong>💡 Pro Tip:</strong> Ensure your user role has the necessary permissions for anomaly detection features. Contact your administrator if you don't see the Anomaly Detection menu.
+                </div>
+
+                <h3>First-Time Setup</h3>
+                <ol class="step-list">
+                    <li>
+                        <strong>Configure Detection Methods</strong>
+                        <p>Select which detection methods to enable: Statistical, ML-based, Rule-based, or Hybrid (recommended).</p>
+                    </li>
+                    <li>
+                        <strong>Set Severity Thresholds</strong>
+                        <p>Configure what constitutes low, medium, high, and critical severity anomalies.</p>
+                        <div class="severity-demo">
+                            <span class="severity-chip severity-low">LOW</span>
+                            <span class="severity-chip severity-medium">MEDIUM</span>
+                            <span class="severity-chip severity-high">HIGH</span>
+                            <span class="severity-chip severity-critical">CRITICAL</span>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Create Alert Rules</strong>
+                        <p>Define custom rules for automatic anomaly detection and notification.</p>
+                    </li>
+                    <li>
+                        <strong>Test the System</strong>
+                        <p>Run a health check and test detection with sample data to ensure everything is working correctly.</p>
+                    </li>
+                </ol>
+
+                <h3>Basic Detection Workflow</h3>
+                <div class="code-block">
+<span class="comment">// Sample input data for anomaly detection</span>
+{
+  <span class="string">"application_amounts"</span>: [<span class="number">150000, 200000, 180000, 950000</span>],
+  <span class="string">"debt_to_income_ratios"</span>: [<span class="number">0.25, 0.30, 0.28, 0.85</span>],
+  <span class="string">"processing_times"</span>: [<span class="number">2.5, 3.1, 2.8, 15.2</span>],
+  <span class="string">"risk_scores"</span>: [<span class="number">0.15, 0.22, 0.18, 0.89</span>]
+}
+                </div>
+
+                <div class="success-box">
+                    <strong>✅ Quick Start:</strong> Use the sample data above to test your first anomaly detection. The system will automatically identify the outlier values (950000, 0.85, 15.2, 0.89) and classify them based on your configured thresholds.
+                </div>
+            </section>
+
+            <section id="detection-methods" class="section">
+                <h2>🎯 Detection Methods</h2>
+                
+                <h3>Statistical Detection</h3>
+                <p>Uses statistical methods to identify outliers and unusual patterns in numerical data.</p>
+                
+                <h4>Available Statistical Methods:</h4>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Best For</th>
+                            <th>Threshold Parameter</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Z-Score</td>
+                            <td>Normally distributed data</td>
+                            <td>3.0 (standard deviations)</td>
+                            <td>Identifies values beyond 3 standard deviations from mean</td>
+                        </tr>
+                        <tr>
+                            <td>Modified Z-Score</td>
+                            <td>Data with outliers</td>
+                            <td>3.5 (modified deviations)</td>
+                            <td>More robust version using median absolute deviation</td>
+                        </tr>
+                        <tr>
+                            <td>IQR Method</td>
+                            <td>Skewed distributions</td>
+                            <td>1.5 (IQR multiplier)</td>
+                            <td>Identifies values beyond 1.5 × IQR from quartiles</td>
+                        </tr>
+                        <tr>
+                            <td>Grubbs Test</td>
+                            <td>Single extreme outliers</td>
+                            <td>0.05 (significance level)</td>
+                            <td>Statistical test for single outlier detection</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Machine Learning Detection</h3>
+                <p>Employs advanced ML algorithms to detect complex patterns and multi-dimensional anomalies.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🌲 Isolation Forest</h4>
+                        <p>Isolates anomalies by randomly selecting features and split values. Excellent for high-dimensional data.</p>
+                        <strong>Configuration:</strong> contamination=0.1 (10% expected outliers)
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎯 One-Class SVM</h4>
+                        <p>Learns the boundary of normal data points. Great for novelty detection.</p>
+                        <strong>Configuration:</strong> nu=0.05 (5% expected outliers)
+                    </div>
+                    <div class="feature-card">
+                        <h4>📍 Local Outlier Factor</h4>
+                        <p>Measures local density deviation. Perfect for detecting local anomalies.</p>
+                        <strong>Configuration:</strong> neighbors=20 (consider 20 nearest neighbors)
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔮 Autoencoder</h4>
+                        <p>Neural network approach for complex pattern recognition. Best for large datasets.</p>
+                        <strong>Configuration:</strong> threshold=0.95 (reconstruction threshold)
+                    </div>
+                </div>
+
+                <h3>Rule-Based Detection</h3>
+                <p>Custom business rules tailored to mortgage application domain knowledge.</p>
+
+                <div class="code-block">
+<span class="comment">// Example business rule configuration</span>
+{
+  <span class="string">"rule_name"</span>: <span class="string">"High Debt-to-Income Ratio"</span>,
+  <span class="string">"rule_type"</span>: <span class="string">"threshold"</span>,
+  <span class="string">"conditions"</span>: {
+    <span class="string">"field"</span>: <span class="string">"debt_to_income_ratio"</span>,
+    <span class="string">"operator"</span>: <span class="string">"gt"</span>,
+    <span class="string">"threshold"</span>: <span class="number">0.6</span>
+  },
+  <span class="string">"severity_mapping"</span>: {
+    <span class="string">"0.6-0.7"</span>: <span class="string">"medium"</span>,
+    <span class="string">"0.7-0.8"</span>: <span class="string">"high"</span>,
+    <span class="string">"0.8+"</span>: <span class="string">"critical"</span>
+  }
+}
+                </div>
+
+                <h3>Hybrid Detection</h3>
+                <p>Combines multiple methods for maximum accuracy and coverage. This is the <span class="highlight">recommended approach</span> for production environments.</p>
+
+                <div class="warning-box">
+                    <strong>⚠️ Performance Consideration:</strong> Hybrid detection provides the best results but requires more computational resources. Monitor system performance and adjust batch sizes if needed.
+                </div>
+            </section>
+
+            <section id="alert-management" class="section">
+                <h2>🔔 Alert Management</h2>
+                
+                <h3>Creating Alert Rules</h3>
+                <p>Alert rules define when and how the system should notify users about detected anomalies.</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Navigate to Alert Rules Tab</strong>
+                        <p>Click on the "Alert Rules" tab in the main interface to access rule management.</p>
+                    </li>
+                    <li>
+                        <strong>Click "Create Rule"</strong>
+                        <p>Use the "Create Rule" button to open the rule configuration dialog.</p>
+                    </li>
+                    <li>
+                        <strong>Configure Rule Properties</strong>
+                        <p>Set rule name, type, category, and conditions according to your requirements.</p>
+                    </li>
+                    <li>
+                        <strong>Set Notification Channels</strong>
+                        <p>Choose how alerts should be delivered: in-app, email, SMS, webhook, or Slack.</p>
+                    </li>
+                </ol>
+
+                <h3>Alert Rule Types</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Rule Type</th>
+                            <th>Use Case</th>
+                            <th>Configuration</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Threshold</td>
+                            <td>Simple value comparisons</td>
+                            <td>Field, operator, value</td>
+                            <td>Amount > €500,000</td>
+                        </tr>
+                        <tr>
+                            <td>Statistical</td>
+                            <td>Statistical anomalies</td>
+                            <td>Method, significance level</td>
+                            <td>Z-score > 3.0</td>
+                        </tr>
+                        <tr>
+                            <td>Pattern</td>
+                            <td>Sequence or trend detection</td>
+                            <td>Pattern definition, window</td>
+                            <td>3 consecutive high-risk apps</td>
+                        </tr>
+                        <tr>
+                            <td>Composite</td>
+                            <td>Multiple condition combinations</td>
+                            <td>Boolean logic, sub-conditions</td>
+                            <td>High amount AND low income</td>
+                        </tr>
+                        <tr>
+                            <td>ML-Based</td>
+                            <td>Complex pattern recognition</td>
+                            <td>Model selection, threshold</td>
+                            <td>Isolation forest score > 0.8</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Notification Channels</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📱 In-App Notifications</h4>
+                        <p>Real-time notifications within the MortgageAI interface. Always enabled and immediate.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📧 Email Alerts</h4>
+                        <p>Detailed email notifications with anomaly summaries and recommended actions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📱 SMS Alerts</h4>
+                        <p>Critical alerts via SMS for urgent issues requiring immediate attention.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔗 Webhook Integration</h4>
+                        <p>HTTP callbacks to external systems for automated workflow integration.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💬 Slack Integration</h4>
+                        <p>Team notifications via Slack channels for collaborative incident response.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔄 Custom Integrations</h4>
+                        <p>API-based integrations with SIEM systems and other security tools.</p>
+                    </div>
+                </div>
+
+                <h3>Alert Suppression and Escalation</h3>
+                <p>Prevent alert fatigue and ensure critical issues receive appropriate attention.</p>
+
+                <div class="info-box">
+                    <strong>Alert Suppression:</strong> Similar alerts within a defined time window (default: 5 minutes) are suppressed to prevent spam.
+                    <br><br>
+                    <strong>Alert Escalation:</strong> Unacknowledged critical alerts are automatically escalated to higher severity levels and additional notification channels.
+                </div>
+            </section>
+
+            <section id="investigation-tools" class="section">
+                <h2>🔬 Investigation Tools</h2>
+                
+                <h3>Starting an Investigation</h3>
+                <p>Investigation sessions provide structured workflows for analyzing and resolving anomalies.</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Select Anomalies</strong>
+                        <p>From the Detected Anomalies tab, select one or more related anomalies to investigate.</p>
+                    </li>
+                    <li>
+                        <strong>Click "Start Investigation"</strong>
+                        <p>This creates a new investigation session with the selected anomalies.</p>
+                    </li>
+                    <li>
+                        <strong>Define Initial Hypothesis</strong>
+                        <p>Document your initial theories about the root cause of the anomalies.</p>
+                    </li>
+                    <li>
+                        <strong>Collect Evidence</strong>
+                        <p>Gather relevant data, logs, and context information to support or refute hypotheses.</p>
+                    </li>
+                    <li>
+                        <strong>Analyze Patterns</strong>
+                        <p>Use built-in pattern analysis tools to identify trends and correlations.</p>
+                    </li>
+                    <li>
+                        <strong>Document Findings</strong>
+                        <p>Record investigation results, root causes, and recommended actions.</p>
+                    </li>
+                </ol>
+
+                <h3>Investigation Features</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🎯 Hypothesis Management</h4>
+                        <p>Track multiple theories and their validation status throughout the investigation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📊 Evidence Collection</h4>
+                        <p>Structured evidence gathering with automatic metadata capture and version control.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔍 Pattern Analysis</h4>
+                        <p>Advanced statistical and temporal pattern analysis with interactive visualizations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>👥 Collaborative Tools</h4>
+                        <p>Multi-user investigations with real-time collaboration and comment threads.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📝 Documentation</h4>
+                        <p>Comprehensive investigation reports with timeline, findings, and recommendations.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔄 Workflow Integration</h4>
+                        <p>Integration with incident management and ticketing systems for streamlined processes.</p>
+                    </div>
+                </div>
+
+                <h3>Pattern Analysis Types</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Analysis Type</th>
+                            <th>Purpose</th>
+                            <th>Output</th>
+                            <th>Best Used For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Temporal</td>
+                            <td>Time-based pattern detection</td>
+                            <td>Time series charts, seasonality</td>
+                            <td>Identifying recurring anomalies</td>
+                        </tr>
+                        <tr>
+                            <td>Correlation</td>
+                            <td>Variable relationship analysis</td>
+                            <td>Correlation matrix, scatter plots</td>
+                            <td>Finding related factors</td>
+                        </tr>
+                        <tr>
+                            <td>Clustering</td>
+                            <td>Group similar anomalies</td>
+                            <td>Cluster visualization, groups</td>
+                            <td>Categorizing anomaly types</td>
+                        </tr>
+                        <tr>
+                            <td>Trend</td>
+                            <td>Direction and magnitude analysis</td>
+                            <td>Trend lines, forecasts</td>
+                            <td>Predicting future anomalies</td>
+                        </tr>
+                        <tr>
+                            <td>Comprehensive</td>
+                            <td>All analysis types combined</td>
+                            <td>Full analytical report</td>
+                            <td>Thorough investigation needs</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="success-box">
+                    <strong>💡 Investigation Tips:</strong>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Start with temporal analysis to understand when anomalies occur</li>
+                        <li>Use correlation analysis to identify related variables</li>
+                        <li>Document all findings, even negative results</li>
+                        <li>Involve subject matter experts for domain-specific insights</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="analytics-dashboard" class="section">
+                <h2>📊 Analytics Dashboard</h2>
+                
+                <h3>Performance Metrics</h3>
+                <p>Monitor system performance and detection accuracy with comprehensive analytics.</p>
+
+                <div class="feature-grid">
+                    <div class="metric-card">
+                        <h3>Detection Rate</h3>
+                        <p>Percentage of actual anomalies successfully identified by the system</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>False Positive Rate</h3>
+                        <p>Percentage of normal data incorrectly flagged as anomalous</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Processing Speed</h3>
+                        <p>Average time required to analyze and classify data points</p>
+                    </div>
+                    <div class="metric-card">
+                        <h3>System Uptime</h3>
+                        <p>Percentage of time the anomaly detection system is operational</p>
+                    </div>
+                </div>
+
+                <h3>Key Performance Indicators (KPIs)</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Target</th>
+                            <th>Current</th>
+                            <th>Trend</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Precision Score</td>
+                            <td>> 85%</td>
+                            <td class="highlight">92%</td>
+                            <td>↗️ Improving</td>
+                            <td>Monitor</td>
+                        </tr>
+                        <tr>
+                            <td>Recall Score</td>
+                            <td>> 80%</td>
+                            <td class="highlight">87%</td>
+                            <td>↗️ Stable</td>
+                            <td>Monitor</td>
+                        </tr>
+                        <tr>
+                            <td>F1 Score</td>
+                            <td>> 82%</td>
+                            <td class="highlight">89%</td>
+                            <td>↗️ Improving</td>
+                            <td>Monitor</td>
+                        </tr>
+                        <tr>
+                            <td>Processing Time</td>
+                            <td>< 500ms</td>
+                            <td class="highlight">245ms</td>
+                            <td>↗️ Stable</td>
+                            <td>Monitor</td>
+                        </tr>
+                        <tr>
+                            <td>System Availability</td>
+                            <td>> 99.5%</td>
+                            <td class="highlight">99.8%</td>
+                            <td>↗️ Stable</td>
+                            <td>Monitor</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Reporting and Exports</h3>
+                <p>Generate comprehensive reports for compliance, analysis, and stakeholder communication.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📄 Detection Reports</h4>
+                        <p>Detailed reports of all detected anomalies with analysis and recommendations.</p>
+                        <p><strong>Formats:</strong> PDF, HTML, JSON, Excel</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📈 Performance Reports</h4>
+                        <p>System performance metrics and KPI tracking over specified time periods.</p>
+                        <p><strong>Frequency:</strong> Daily, Weekly, Monthly</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🔍 Investigation Summary</h4>
+                        <p>Summary of investigation activities, findings, and resolution status.</p>
+                        <p><strong>Audience:</strong> Management, Auditors</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>⚖️ Compliance Reports</h4>
+                        <p>AFM-specific compliance reports demonstrating regulatory adherence.</p>
+                        <p><strong>Schedule:</strong> Automated quarterly reports</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="api-reference" class="section">
+                <h2>🔌 API Reference</h2>
+                
+                <h3>Core Endpoints</h3>
+                <p>The Anomaly Detection Interface provides RESTful API endpoints for programmatic access.</p>
+
+                <h4>Detect Anomalies</h4>
+                <div class="code-block">
+<span class="keyword">POST</span> <span class="string">/api/anomaly-detection/detect</span>
+<span class="keyword">Content-Type:</span> application/json
+
+{
+  <span class="string">"detection_id"</span>: <span class="string">"detection_12345"</span>,
+  <span class="string">"data"</span>: <span class="string">"{\"amounts\": [100000, 200000, 900000]}"</span>,
+  <span class="string">"methods"</span>: <span class="string">"statistical,ml_based"</span>,
+  <span class="string">"severity_threshold"</span>: <span class="string">"medium"</span>,
+  <span class="string">"detection_options"</span>: <span class="string">"{\"real_time\": true}"</span>
+}
+                </div>
+
+                <h4>Get Anomaly Summary</h4>
+                <div class="code-block">
+<span class="keyword">GET</span> <span class="string">/api/anomaly-detection/summary</span>
+<span class="keyword">Query Parameters:</span>
+  - time_period: <span class="string">"24h"</span> | <span class="string">"7d"</span> | <span class="string">"30d"</span>
+  - severity: <span class="string">"low"</span> | <span class="string">"medium"</span> | <span class="string">"high"</span> | <span class="string">"critical"</span>
+  - category: <span class="string">anomaly category filter</span>
+                </div>
+
+                <h4>Manage Alert Rules</h4>
+                <div class="code-block">
+<span class="comment">// Create Rule</span>
+<span class="keyword">POST</span> <span class="string">/api/anomaly-detection/rules</span>
+
+<span class="comment">// List Rules</span>
+<span class="keyword">GET</span> <span class="string">/api/anomaly-detection/rules</span>
+
+<span class="comment">// Update Rule</span>
+<span class="keyword">PUT</span> <span class="string">/api/anomaly-detection/rules/{rule_id}</span>
+
+<span class="comment">// Delete Rule</span>
+<span class="keyword">DELETE</span> <span class="string">/api/anomaly-detection/rules/{rule_id}</span>
+                </div>
+
+                <h4>Investigation Management</h4>
+                <div class="code-block">
+<span class="comment">// Start Investigation</span>
+<span class="keyword">POST</span> <span class="string">/api/anomaly-detection/investigations/start</span>
+
+<span class="comment">// List Investigations</span>
+<span class="keyword">GET</span> <span class="string">/api/anomaly-detection/investigations</span>
+
+<span class="comment">// Get Investigation Details</span>
+<span class="keyword">GET</span> <span class="string">/api/anomaly-detection/investigations/{session_id}</span>
+
+<span class="comment">// Add Evidence</span>
+<span class="keyword">POST</span> <span class="string">/api/anomaly-detection/investigations/{session_id}/evidence</span>
+                </div>
+
+                <h3>Response Formats</h3>
+                <p>All API responses follow a consistent format:</p>
+
+                <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"data"</span>: {
+    <span class="comment">// Response data</span>
+  },
+  <span class="string">"message"</span>: <span class="string">"Operation completed successfully"</span>,
+  <span class="string">"timestamp"</span>: <span class="string">"2024-01-15T10:30:00Z"</span>
+}
+                </div>
+
+                <h3>Error Handling</h3>
+                <p>Error responses include detailed information for debugging:</p>
+
+                <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Invalid detection method specified"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"INVALID_METHOD"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"provided"</span>: <span class="string">"invalid_method"</span>,
+    <span class="string">"valid_options"</span>: [<span class="string">"statistical"</span>, <span class="string">"ml_based"</span>, <span class="string">"rule_based"</span>, <span class="string">"hybrid"</span>]
+  }
+}
+                </div>
+
+                <div class="info-box">
+                    <strong>🔐 Authentication:</strong> All API calls require valid authentication tokens. Include the token in the Authorization header: <code>Authorization: Bearer &lt;token&gt;</code>
+                </div>
+            </section>
+
+            <section id="troubleshooting" class="section">
+                <h2>🛠️ Troubleshooting</h2>
+                
+                <h3>Common Issues and Solutions</h3>
+
+                <h4>Detection Not Working</h4>
+                <div class="warning-box">
+                    <strong>Symptoms:</strong> No anomalies detected despite suspicious data
+                    <br><br>
+                    <strong>Solutions:</strong>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Check if detection methods are enabled in settings</li>
+                        <li>Verify severity thresholds are not too restrictive</li>
+                        <li>Ensure input data format is correct (JSON)</li>
+                        <li>Run system health check to verify service status</li>
+                    </ul>
+                </div>
+
+                <h4>Too Many False Positives</h4>
+                <div class="warning-box">
+                    <strong>Symptoms:</strong> System flagging normal data as anomalous
+                    <br><br>
+                    <strong>Solutions:</strong>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Increase confidence score thresholds</li>
+                        <li>Adjust statistical method parameters (Z-score threshold)</li>
+                        <li>Retrain ML models with more representative data</li>
+                        <li>Review and refine alert rules</li>
+                    </ul>
+                </div>
+
+                <h4>Performance Issues</h4>
+                <div class="warning-box">
+                    <strong>Symptoms:</strong> Slow detection, timeouts, high resource usage
+                    <br><br>
+                    <strong>Solutions:</strong>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Reduce batch size for large datasets</li>
+                        <li>Disable resource-intensive ML methods temporarily</li>
+                        <li>Check system resources (CPU, memory)</li>
+                        <li>Enable caching to improve response times</li>
+                    </ul>
+                </div>
+
+                <h4>Alert Delivery Issues</h4>
+                <div class="warning-box">
+                    <strong>Symptoms:</strong> Missing notifications, delayed alerts
+                    <br><br>
+                    <strong>Solutions:</strong>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Verify notification channel configurations (SMTP, Slack, etc.)</li>
+                        <li>Check alert rule conditions and thresholds</li>
+                        <li>Review suppression settings</li>
+                        <li>Test notification channels manually</li>
+                    </ul>
+                </div>
+
+                <h3>System Health Monitoring</h3>
+                <p>Regular health checks help maintain optimal system performance:</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Daily Health Checks</strong>
+                        <p>Run automated health checks to verify all components are operational.</p>
+                    </li>
+                    <li>
+                        <strong>Performance Monitoring</strong>
+                        <p>Monitor key metrics: processing time, memory usage, detection accuracy.</p>
+                    </li>
+                    <li>
+                        <strong>Log Analysis</strong>
+                        <p>Review system logs for errors, warnings, and performance issues.</p>
+                    </li>
+                    <li>
+                        <strong>Model Performance</strong>
+                        <p>Regularly evaluate ML model accuracy and retrain if necessary.</p>
+                    </li>
+                </ol>
+
+                <h3>Getting Help</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📞 Technical Support</h4>
+                        <p>24/7 technical support for critical issues and system outages.</p>
+                        <p><strong>Email:</strong> support@mortgageai.com</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>📚 Documentation</h4>
+                        <p>Comprehensive online documentation with detailed guides and API references.</p>
+                        <p><strong>URL:</strong> docs.mortgageai.com</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>💬 Community Forum</h4>
+                        <p>User community for sharing tips, best practices, and troubleshooting.</p>
+                        <p><strong>URL:</strong> community.mortgageai.com</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>🎓 Training Resources</h4>
+                        <p>Video tutorials, webinars, and training materials for all skill levels.</p>
+                        <p><strong>URL:</strong> training.mortgageai.com</p>
+                    </div>
+                </div>
+
+                <div class="success-box">
+                    <strong>🚀 Pro Tips for Success:</strong>
+                    <ul style="margin-top: 0.5rem;">
+                        <li>Start with conservative thresholds and adjust based on results</li>
+                        <li>Regularly review and update alert rules based on feedback</li>
+                        <li>Use hybrid detection for best accuracy</li>
+                        <li>Document investigation findings to build organizational knowledge</li>
+                        <li>Involve domain experts in rule creation and threshold setting</li>
+                    </ul>
+                </div>
+            </section>
+
+            <div style="text-align: center; padding: 2rem; margin-top: 3rem; border-top: 2px solid var(--border-color);">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                    This guide covers the comprehensive functionality of the MortgageAI Anomaly Detection Interface.
+                </p>
+                <p style="color: var(--text-secondary);">
+                    For additional support or feature requests, please contact our technical team.
+                </p>
+                <div style="margin-top: 2rem;">
+                    <a href="#overview" class="button">Back to Top</a>
+                    <a href="mailto:support@mortgageai.com" class="button secondary">Contact Support</a>
+                    <a href="/docs" class="button success">More Documentation</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -70,6 +70,13 @@ const dutchMortgageQCRoutes = require('../routes/dutch_mortgage_qc');
 const applicationsRoutes = require('../routes/applications');
 const dashboardRoutes = require('../routes/dashboard');
 const settingsRoutes = require('../routes/settings');
+const cvVerificationRoutes = require('../routes/computer_vision_verification_fastify');
+const complianceNetworkGraphRoutes = require('../routes/compliance_network_graph');
+const autonomousWorkflowMonitorRoutes = require('../routes/autonomous_workflow_monitor');
+const advancedAnalyticsDashboardRoutes = require('../routes/advanced_analytics_dashboard');
+const anomalyDetectionInterfaceRoutes = require('../routes/anomaly_detection_interface');
+const advancedFieldValidationRoutes = require('../routes/advanced_field_validation');
+const agentPerformanceMetricsRoutes = require('../routes/agent_performance_metrics');
 
 // Register routes
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -90,6 +97,27 @@ fastify.register(dashboardRoutes, { prefix: '/api/dashboard' });
 
 // Register settings routes
 fastify.register(settingsRoutes, { prefix: '/api/settings' });
+
+// Register computer vision verification routes
+fastify.register(cvVerificationRoutes, { prefix: '/api/cv-verification' });
+
+// Register compliance network graph visualization routes
+fastify.register(complianceNetworkGraphRoutes, { prefix: '/api/compliance-network' });
+
+// Register autonomous workflow monitor routes
+fastify.register(autonomousWorkflowMonitorRoutes, { prefix: '/api/workflow-monitor' });
+
+// Register advanced analytics dashboard routes
+fastify.register(advancedAnalyticsDashboardRoutes, { prefix: '/api/analytics' });
+
+// Register anomaly detection interface routes
+fastify.register(anomalyDetectionInterfaceRoutes, { prefix: '/api/anomaly-detection' });
+
+// Register advanced field validation routes
+fastify.register(advancedFieldValidationRoutes, { prefix: '/api/field-validation' });
+
+// Register agent performance metrics routes
+fastify.register(agentPerformanceMetricsRoutes, { prefix: '/api/performance' });
 
 // Authentication middleware (when REQUIRE_AUTH=true)
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -130,6 +158,13 @@ fastify.get('/', async (request, reply) => {
       dutch_mortgage_qc: '/api/qc',
       applications: '/api/applications',
       dashboard: '/api/dashboard',
+      cv_verification: '/api/cv-verification',
+      compliance_network: '/api/compliance-network',
+            workflow_monitor: '/api/workflow-monitor',
+            analytics: '/api/analytics',
+      anomaly_detection: '/api/anomaly-detection',
+      field_validation: '/api/field-validation',
+      performance_metrics: '/api/performance',
       health: '/health'
     }
   };
@@ -200,8 +235,15 @@ fastify.setNotFoundHandler((request, reply) => {
       '/api/lenders',
       '/api/dashboard/*',
       '/api/settings/*',
+      '/api/cv-verification/*',
+      '/api/compliance-network/*',
+            '/api/workflow-monitor/*',
+            '/api/analytics/*',
+      '/api/anomaly-detection/*',
+      '/api/field-validation/*',
+      '/api/performance/*',
       '/health',
-      '/api/upload'
+            '/api/upload'
     ]
   });
 });

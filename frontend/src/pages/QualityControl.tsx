@@ -1,5 +1,5 @@
 /**
- * Quality Control Interface
+ * Quality Control Interface - Full Mantine Implementation
  *
  * Interface for interacting with the Mortgage Application Quality Control Agent with:
  * - Real-time document analysis and validation
@@ -13,50 +13,60 @@ import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
-  Typography,
+  Text,
   Box,
   Button,
   Alert,
-  LinearProgress,
+  Progress,
   Grid,
   Card,
-  CardContent,
-  Chip,
+  Badge,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
   List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Divider,
-  CircularProgress
-} from '@mui/material';
+  Loader,
+  Title,
+  Group,
+  Stack,
+  ActionIcon,
+  Tooltip,
+  ThemeIcon,
+  SimpleGrid,
+  RingProgress,
+  Center,
+  Tabs,
+} from '@mantine/core';
 import {
-  CheckCircle,
-  Error,
-  Warning,
-  Info,
-  ExpandMore,
-  Assignment,
-  Work,
-  Home,
-  AccountCircle,
-  Analytics,
-  Gavel,
-  NavigateNext,
-  NavigateBefore,
-  Assessment
-} from '@mui/icons-material';
-import { useSnackbar } from 'notistack';
-import { useNavigate } from 'react-router-dom';
+  IconShield,
+  IconCheck,
+  IconX,
+  IconAlertTriangle,
+  IconInfoCircle,
+  IconChevronDown,
+  IconFileText,
+  IconUser,
+  IconHome,
+  IconBuildingBank,
+  IconChartBar,
+  IconGavel,
+  IconArrowRight,
+  IconArrowLeft,
+  IconRefresh,
+  IconDownload,
+  IconEye,
+} from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { qualityControlApi, QCResult } from '../services/qualityControlApi';
+import { useDemoMode } from '../contexts/DemoModeContext';
 
 const QualityControl: React.FC = () => {
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
+  const [searchParams] = useSearchParams();
+  const { isDemoMode } = useDemoMode();
   const [analyzing, setAnalyzing] = useState(true);
   const [qcResult, setQcResult] = useState<QCResult | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('overview');
 
   useEffect(() => {
     const analyzeApplication = async () => {
@@ -64,395 +74,514 @@ const QualityControl: React.FC = () => {
 
       try {
         // Get application ID from URL or context
-        const urlParams = new URLSearchParams(window.location.search);
-        const applicationId = urlParams.get('application_id') || 'current_application';
+        const applicationId = searchParams.get('application_id') || 'current_application';
 
         const result = await qualityControlApi.runQualityControl(applicationId);
         setQcResult(result);
       } catch (error) {
         console.error('Failed to run quality control:', error);
-        enqueueSnackbar('Failed to run quality control analysis', { variant: 'error' });
+        notifications.show({
+          title: 'Quality Control Error',
+          message: 'Failed to run quality control analysis',
+          color: 'red',
+          icon: <IconX size={16} />,
+        });
       } finally {
         setAnalyzing(false);
       }
     };
 
     analyzeApplication();
-  }, [enqueueSnackbar]);
+  }, [searchParams]);
+
+  const handleRerunAnalysis = async () => {
+    setAnalyzing(true);
+    try {
+      const applicationId = searchParams.get('application_id') || 'current_application';
+      const result = await qualityControlApi.runQualityControl(applicationId);
+      setQcResult(result);
+      notifications.show({
+        title: 'Analysis Complete',
+        message: 'Quality control analysis has been updated',
+        color: 'green',
+        icon: <IconCheck size={16} />,
+      });
+    } catch (error) {
+      notifications.show({
+        title: 'Analysis Failed',
+        message: 'Failed to rerun quality control analysis',
+        color: 'red',
+        icon: <IconX size={16} />,
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'red';
+      case 'high': return 'orange';
+      case 'medium': return 'yellow';
+      case 'low': return 'blue';
+      default: return 'gray';
+    }
+  };
+
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical': return <IconX size={16} />;
+      case 'high': return <IconAlertTriangle size={16} />;
+      case 'medium': return <IconInfoCircle size={16} />;
+      case 'low': return <IconCheck size={16} />;
+      default: return <IconInfoCircle size={16} />;
+    }
+  };
 
   if (analyzing) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <CircularProgress />
-        </Box>
+      <Container size="xl" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Stack align="center" gap="md">
+            <Loader size="xl" />
+            <Title order={3}>Analyzing Application</Title>
+            <Text c="dimmed">Running quality control checks...</Text>
+          </Stack>
+        </Center>
       </Container>
     );
   }
 
   if (!qcResult) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h6" color="error">
-            Failed to load quality control results
-          </Typography>
-        </Box>
+      <Container size="xl" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Stack align="center" gap="md">
+            <ThemeIcon size="xl" color="red" radius={0}>
+              <IconX size={32} />
+            </ThemeIcon>
+            <Title order={3} c="red">Failed to Load Results</Title>
+            <Text c="dimmed">Unable to load quality control results</Text>
+            <Button 
+              leftSection={<IconRefresh size={16} />} 
+              onClick={handleRerunAnalysis}
+              radius={0}
+            >
+              Retry Analysis
+            </Button>
+          </Stack>
+        </Center>
       </Container>
     );
   }
 
-  const results: QCResult = qcResult;
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'critical': return 'error';
-      case 'high': return 'error';
-      case 'medium': return 'warning';
-      case 'low': return 'info';
-      default: return 'default';
-    }
-  };
-
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'critical':
-      case 'high': return <Error />;
-      case 'medium': return <Warning />;
-      case 'low': return <Info />;
-      default: return <Info />;
-    }
-  };
-
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case 'application_form': return <Assignment />;
-      case 'income_proof': return <Work />;
-      case 'property_documents': return <Home />;
-      case 'id_document': return <AccountCircle />;
-      default: return <Assignment />;
-    }
-  };
-
-  const handleContinue = () => {
-    navigate('/compliance');
-  };
-
-  const handleBack = () => {
-    navigate('/documents');
-  };
-
-  if (analyzing) {
-    return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-            Quality Control Analysis
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <Analytics sx={{ fontSize: 64, color: 'primary.main' }} />
-            <Typography variant="h6">
-              Analyzing your application documents...
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Our AI agents are performing comprehensive validation checks
-            </Typography>
-            <CircularProgress size={60} />
-            <LinearProgress sx={{ width: '100%', maxWidth: 400, height: 8, borderRadius: 4 }} />
-          </Box>
-        </Paper>
-      </Container>
-    );
-  }
-
-  if (!qcResult) return null;
+  const overallScore = qcResult.completeness_score;
+  const riskLevel = qcResult.risk_assessment?.overall_risk || 'medium';
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
-      <Paper elevation={0} sx={{
-        p: 6,
-        borderRadius: 4,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(226, 232, 240, 0.8)',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
-      }}>
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Box sx={{
-            width: 80,
-            height: 80,
-            borderRadius: 4,
-            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',
-            mb: 4,
-            boxShadow: '0 8px 24px rgba(99, 102, 241, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
-          }}>
-            <Assessment sx={{ color: 'white', fontSize: 40 }} />
-          </Box>
-          <Typography
-            variant="h2"
-            component="h1"
-            gutterBottom
-            align="center"
-            sx={{
-              fontWeight: 700,
-              mb: 3,
-              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Quality Control Results
-          </Typography>
-          <Typography
-            variant="h6"
-            align="center"
-            color="text.secondary"
-            sx={{ fontWeight: 400, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}
-          >
-            Comprehensive AI-powered analysis of your mortgage application documents
-          </Typography>
-        </Box>
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        {/* Header */}
+        <Group justify="space-between">
+          <Group>
+            <ThemeIcon size="xl" radius={0} color="indigo">
+              <IconShield size={32} />
+            </ThemeIcon>
+            <div>
+              <Title order={1}>Quality Control Analysis</Title>
+              <Text c="dimmed">Application ID: {qcResult.application_id}</Text>
+            </div>
+          </Group>
+          <Group>
+            <Button 
+              variant="outline" 
+              leftSection={<IconRefresh size={16} />}
+              onClick={handleRerunAnalysis}
+              loading={analyzing}
+              radius={0}
+            >
+              Rerun Analysis
+            </Button>
+            <Button 
+              leftSection={<IconDownload size={16} />}
+              radius={0}
+            >
+              Export Report
+            </Button>
+          </Group>
+        </Group>
 
-        {/* Overall Score */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography variant="h3" sx={{ fontWeight: 'bold', color: qcResult.passed ? 'success.main' : 'warning.main' }}>
-            {qcResult.completeness_score.toFixed(1)}%
-          </Typography>
-          <Typography variant="h6" gutterBottom>
-            Completeness Score
-          </Typography>
-          <Chip
-            label={qcResult.passed ? "PASSED" : "REQUIRES ATTENTION"}
-            color={qcResult.passed ? "success" : "warning"}
-            icon={qcResult.passed ? <CheckCircle /> : <Warning />}
-            sx={{ fontSize: '1rem', py: 1, px: 2 }}
-          />
-        </Box>
+        {/* Overview Cards */}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Overall Score</Text>
+                <Title order={2}>{overallScore.toFixed(1)}%</Title>
+              </div>
+              <RingProgress
+                size={60}
+                thickness={6}
+                sections={[{ value: overallScore, color: overallScore >= 80 ? 'green' : overallScore >= 60 ? 'yellow' : 'red' }]}
+              />
+            </Group>
+            <Progress 
+              value={overallScore} 
+              color={overallScore >= 80 ? 'green' : overallScore >= 60 ? 'yellow' : 'red'}
+              size="sm" 
+              mt="md"
+              radius={0}
+            />
+          </Card>
 
-        {/* Processing Summary */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Processing Summary
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={6} sm={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                    {qcResult.processing_summary.documents_processed}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Documents Processed
-                  </Typography>
-                </CardContent>
-              </Card>
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Status</Text>
+                <Badge 
+                  color={qcResult.passed ? 'green' : 'red'} 
+                  size="lg"
+                  radius={0}
+                >
+                  {qcResult.passed ? 'PASSED' : 'FAILED'}
+                </Badge>
+              </div>
+              <ThemeIcon 
+                size="xl" 
+                color={qcResult.passed ? 'green' : 'red'} 
+                radius={0}
+              >
+                {qcResult.passed ? <IconCheck size={24} /> : <IconX size={24} />}
+              </ThemeIcon>
+            </Group>
+          </Card>
+
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Risk Level</Text>
+                <Badge 
+                  color={getSeverityColor(riskLevel)} 
+                  size="lg"
+                  radius={0}
+                >
+                  {riskLevel.toUpperCase()}
+                </Badge>
+              </div>
+              <ThemeIcon 
+                size="xl" 
+                color={getSeverityColor(riskLevel)} 
+                radius={0}
+              >
+                {getSeverityIcon(riskLevel)}
+              </ThemeIcon>
+            </Group>
+          </Card>
+
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Issues Found</Text>
+                <Title order={2}>
+                  {qcResult.processing_summary?.critical_issues || 0}
+                </Title>
+              </div>
+              <ThemeIcon size="xl" color="orange" radius={0}>
+                <IconAlertTriangle size={24} />
+              </ThemeIcon>
+            </Group>
+          </Card>
+        </SimpleGrid>
+
+        {/* Detailed Analysis Tabs */}
+        <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'overview')} radius={0}>
+          <Tabs.List>
+            <Tabs.Tab value="overview" leftSection={<IconEye size={16} />}>
+              Overview
+            </Tabs.Tab>
+            <Tabs.Tab value="fields" leftSection={<IconFileText size={16} />}>
+              Field Validation
+            </Tabs.Tab>
+            <Tabs.Tab value="anomalies" leftSection={<IconAlertTriangle size={16} />}>
+              Anomalies
+            </Tabs.Tab>
+            <Tabs.Tab value="documents" leftSection={<IconFileText size={16} />}>
+              Documents
+            </Tabs.Tab>
+            <Tabs.Tab value="compliance" leftSection={<IconGavel size={16} />}>
+              Compliance
+            </Tabs.Tab>
+            <Tabs.Tab value="recommendations" leftSection={<IconChartBar size={16} />}>
+              Recommendations
+            </Tabs.Tab>
+          </Tabs.List>
+
+          <Tabs.Panel value="overview" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Processing Summary</Title>
+                  <SimpleGrid cols={2} spacing="md">
+                    <div>
+                      <Text size="sm" c="dimmed">Total Fields</Text>
+                      <Text size="xl" fw={700}>{qcResult.processing_summary?.total_fields || 0}</Text>
+                    </div>
+                    <div>
+                      <Text size="sm" c="dimmed">Valid Fields</Text>
+                      <Text size="xl" fw={700} c="green">{qcResult.processing_summary?.valid_fields || 0}</Text>
+                    </div>
+                    <div>
+                      <Text size="sm" c="dimmed">Invalid Fields</Text>
+                      <Text size="xl" fw={700} c="red">{qcResult.processing_summary?.invalid_fields || 0}</Text>
+                    </div>
+                    <div>
+                      <Text size="sm" c="dimmed">Documents Processed</Text>
+                      <Text size="xl" fw={700}>{qcResult.processing_summary?.documents_processed || 0}</Text>
+                    </div>
+                  </SimpleGrid>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Review Details</Title>
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Text size="sm">QC Officer</Text>
+                      <Text size="sm" fw={500}>{qcResult.qc_officer}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm">Review Duration</Text>
+                      <Text size="sm" fw={500}>{qcResult.review_duration} min</Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm">Reviewed At</Text>
+                      <Text size="sm" fw={500}>
+                        {new Date(qcResult.reviewed_at).toLocaleString()}
+                      </Text>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
             </Grid>
-            <Grid item xs={6} sm={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" color="success.main" sx={{ fontWeight: 'bold' }}>
-                    {qcResult.processing_summary.fields_validated}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Fields Validated
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" color="warning.main" sx={{ fontWeight: 'bold' }}>
-                    {qcResult.processing_summary.anomalies_found}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Anomalies Found
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h4" color="error.main" sx={{ fontWeight: 'bold' }}>
-                    {qcResult.processing_summary.critical_issues}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Critical Issues
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
+          </Tabs.Panel>
 
-        <Divider sx={{ my: 4 }} />
-
-        {/* Detailed Results */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Detailed Analysis
-          </Typography>
-
-          {/* Field Validation */}
-          <Accordion defaultExpanded sx={{ mb: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <CheckCircle color="success" />
-                <Typography variant="h6">
-                  Field Validation ({qcResult.field_validation.summary.valid_fields}/{qcResult.field_validation.summary.total_fields} valid)
-                </Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <List>
-                {qcResult.field_validation.results.map((result, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      {result.valid ? (
-                        <CheckCircle color="success" />
-                      ) : (
-                        getSeverityIcon(result.severity)
-                      )}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={result.field.replace(/_/g, ' ').toUpperCase()}
-                      secondary={result.error || 'Valid'}
-                    />
-                    <Chip
-                      label={result.valid ? 'Valid' : result.severity.toUpperCase()}
-                      color={result.valid ? 'success' : getSeverityColor(result.severity) as any}
-                      size="small"
-                    />
-                  </ListItem>
+          <Tabs.Panel value="fields" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Field Validation Results</Title>
+              <Stack gap="md">
+                {qcResult.field_validation?.results?.map((field, index) => (
+                  <Paper key={index} p="md" withBorder radius={0}>
+                    <Group justify="space-between">
+                      <Group>
+                        <ThemeIcon 
+                          color={field.valid ? 'green' : getSeverityColor(field.severity)} 
+                          radius={0}
+                        >
+                          {field.valid ? <IconCheck size={16} /> : getSeverityIcon(field.severity)}
+                        </ThemeIcon>
+                        <div>
+                          <Text fw={500}>{field.field.replace(/_/g, ' ').toUpperCase()}</Text>
+                          {field.error && <Text size="sm" c="red">{field.error}</Text>}
+                          {field.suggestion && <Text size="sm" c="blue">{field.suggestion}</Text>}
+                        </div>
+                      </Group>
+                      <Badge 
+                        color={field.valid ? 'green' : getSeverityColor(field.severity)}
+                        radius={0}
+                      >
+                        {field.valid ? 'Valid' : field.severity.toUpperCase()}
+                      </Badge>
+                    </Group>
+                  </Paper>
                 ))}
-              </List>
-            </AccordionDetails>
-          </Accordion>
+              </Stack>
+            </Card>
+          </Tabs.Panel>
 
-          {/* Anomaly Detection */}
-          <Accordion sx={{ mb: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Warning color="warning" />
-                <Typography variant="h6">
-                  Anomaly Detection ({qcResult.anomaly_check.anomalies.length} issues found)
-                </Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              {qcResult.anomaly_check.anomalies.length > 0 ? (
-                <List>
+          <Tabs.Panel value="anomalies" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Anomaly Detection</Title>
+              {qcResult.anomaly_check?.anomalies?.length > 0 ? (
+                <Stack gap="md">
                   {qcResult.anomaly_check.anomalies.map((anomaly, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        {getSeverityIcon(anomaly.severity)}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={anomaly.field.replace(/_/g, ' ').toUpperCase()}
-                        secondary={anomaly.description}
-                      />
-                      <Chip
-                        label={anomaly.severity.toUpperCase()}
-                        color={getSeverityColor(anomaly.severity) as any}
-                        size="small"
-                      />
-                    </ListItem>
+                    <Alert 
+                      key={index}
+                      color={getSeverityColor(anomaly.severity)}
+                      icon={getSeverityIcon(anomaly.severity)}
+                      title={`${anomaly.type.replace(/_/g, ' ').toUpperCase()} - ${anomaly.field}`}
+                      radius={0}
+                    >
+                      <Text size="sm" mb="xs">{anomaly.description}</Text>
+                      <Text size="xs" c="dimmed">Impact: {anomaly.impact}</Text>
+                    </Alert>
                   ))}
-                </List>
+                </Stack>
               ) : (
-                <Typography color="text.secondary">No anomalies detected</Typography>
+                <Alert color="green" icon={<IconCheck size={16} />} radius={0}>
+                  No anomalies detected in the application data.
+                </Alert>
               )}
-            </AccordionDetails>
-          </Accordion>
+            </Card>
+          </Tabs.Panel>
 
-          {/* Document Analysis */}
-          <Accordion sx={{ mb: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Assignment color="primary" />
-                <Typography variant="h6">
-                  Document Analysis ({qcResult.document_analysis.length} documents processed)
-                </Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <List>
-                {qcResult.document_analysis.map((doc, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      {getDocumentIcon(doc.document_type)}
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={doc.document_type.replace(/_/g, ' ').toUpperCase()}
-                      secondary={`Completeness: ${doc.completeness}% • Status: ${doc.processing_status}`}
+          <Tabs.Panel value="documents" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Document Analysis</Title>
+              <Stack gap="md">
+                {qcResult.document_analysis?.map((doc, index) => (
+                  <Paper key={index} p="md" withBorder radius={0}>
+                    <Group justify="space-between" mb="sm">
+                      <Group>
+                        <ThemeIcon color={doc.valid ? 'green' : 'red'} radius={0}>
+                          <IconFileText size={16} />
+                        </ThemeIcon>
+                        <div>
+                          <Text fw={500}>{doc.document_type.replace(/_/g, ' ').toUpperCase()}</Text>
+                          <Text size="sm" c="dimmed">Status: {doc.processing_status}</Text>
+                        </div>
+                      </Group>
+                      <Group>
+                        <Badge color={doc.present ? 'green' : 'red'} radius={0}>
+                          {doc.present ? 'Present' : 'Missing'}
+                        </Badge>
+                        <Badge color={doc.valid ? 'green' : 'red'} radius={0}>
+                          {doc.valid ? 'Valid' : 'Invalid'}
+                        </Badge>
+                      </Group>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm">Completeness: {doc.completeness}%</Text>
+                      <Text size="sm">Confidence: {doc.confidence_score}%</Text>
+                    </Group>
+                    <Progress 
+                      value={doc.completeness} 
+                      color={doc.completeness >= 80 ? 'green' : 'yellow'}
+                      size="sm" 
+                      mt="xs"
+                      radius={0}
                     />
-                    <Chip
-                      label={`${doc.completeness}%`}
-                      color={doc.completeness === 100 ? 'success' : 'warning'}
-                      size="small"
-                    />
-                  </ListItem>
+                    {doc.issues?.length > 0 && (
+                      <List size="sm" mt="sm">
+                        {doc.issues.map((issue, issueIndex) => (
+                          <List.Item key={issueIndex} icon={<IconAlertTriangle size={12} />}>
+                            {issue}
+                          </List.Item>
+                        ))}
+                      </List>
+                    )}
+                  </Paper>
                 ))}
-              </List>
-            </AccordionDetails>
-          </Accordion>
-        </Box>
+              </Stack>
+            </Card>
+          </Tabs.Panel>
 
-        {/* Remediation Instructions */}
-        {qcResult.remediation_instructions.length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Remediation Instructions
-            </Typography>
-            <Alert severity="info" sx={{ mb: 2 }}>
-              The following issues were identified and require attention before proceeding:
-            </Alert>
-            <List>
-              {qcResult.remediation_instructions.map((instruction, index) => (
-                <ListItem key={index} sx={{ borderLeft: 4, borderColor: `${getSeverityColor(instruction.severity)}.main`, pl: 2, mb: 1 }}>
-                  <ListItemIcon>
-                    {getSeverityIcon(instruction.severity)}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={instruction.issue}
-                    secondary={instruction.instruction}
-                  />
-                  <Chip
-                    label={instruction.severity.toUpperCase()}
-                    color={getSeverityColor(instruction.severity) as any}
-                    size="small"
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        )}
+          <Tabs.Panel value="compliance" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">AFM Compliance Checks</Title>
+              <Stack gap="md">
+                {qcResult.compliance_checks?.map((check, index) => (
+                  <Paper key={index} p="md" withBorder radius={0}>
+                    <Group justify="space-between">
+                      <Group>
+                        <ThemeIcon color={check.passed ? 'green' : 'red'} radius={0}>
+                          <IconGavel size={16} />
+                        </ThemeIcon>
+                        <div>
+                          <Text fw={500}>{check.check_name}</Text>
+                          <Text size="sm" c="dimmed">{check.details}</Text>
+                          {check.afm_requirement && (
+                            <Text size="xs" c="blue">AFM Requirement: {check.afm_requirement}</Text>
+                          )}
+                        </div>
+                      </Group>
+                      <Badge color={check.passed ? 'green' : 'red'} radius={0}>
+                        {check.passed ? 'PASSED' : 'FAILED'}
+                      </Badge>
+                    </Group>
+                  </Paper>
+                ))}
+              </Stack>
+            </Card>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="recommendations" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Recommendations</Title>
+                  <Stack gap="md">
+                    {qcResult.recommendations?.map((rec, index) => (
+                      <Alert 
+                        key={index}
+                        color={rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'yellow' : 'blue'}
+                        icon={getSeverityIcon(rec.priority)}
+                        title={rec.type.replace(/_/g, ' ').toUpperCase()}
+                        radius={0}
+                      >
+                        <Text size="sm">{rec.message}</Text>
+                        {rec.deadline && (
+                          <Text size="xs" c="dimmed" mt="xs">Deadline: {rec.deadline}</Text>
+                        )}
+                      </Alert>
+                    ))}
+                  </Stack>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Remediation Instructions</Title>
+                  <Stack gap="md">
+                    {qcResult.remediation_instructions?.map((instruction, index) => (
+                      <Paper key={index} p="md" withBorder radius={0}>
+                        <Group justify="space-between" mb="sm">
+                          <Badge color={getSeverityColor(instruction.severity)} radius={0}>
+                            {instruction.priority.toUpperCase()}
+                          </Badge>
+                          <Text size="xs" c="dimmed">Est. {instruction.estimated_time}</Text>
+                        </Group>
+                        <Text fw={500} size="sm" mb="xs">{instruction.issue}</Text>
+                        <Text size="sm" c="dimmed" mb="xs">{instruction.instruction}</Text>
+                        <Text size="sm" c="blue">{instruction.solution}</Text>
+                      </Paper>
+                    ))}
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Tabs.Panel>
+        </Tabs>
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
-          <Button
-            variant="outlined"
-            onClick={handleBack}
-            startIcon={<NavigateBefore />}
-            sx={{ borderRadius: 2 }}
+        <Group justify="space-between">
+          <Button 
+            variant="outline" 
+            leftSection={<IconArrowLeft size={16} />}
+            onClick={() => navigate(-1)}
+            radius={0}
           >
-            Back to Documents
+            Back to Application
           </Button>
-          <Button
-            variant="contained"
-            onClick={handleContinue}
-            endIcon={<NavigateNext />}
-            sx={{ borderRadius: 2, px: 4 }}
-          >
-            Continue to Compliance Check
-          </Button>
-        </Box>
-      </Paper>
+          <Group>
+            {!qcResult.passed && (
+              <Button 
+                color="orange"
+                leftSection={<IconAlertTriangle size={16} />}
+                radius={0}
+              >
+                Request Review
+              </Button>
+            )}
+            <Button 
+              leftSection={<IconArrowRight size={16} />}
+              disabled={!qcResult.passed}
+              onClick={() => navigate('/results')}
+              radius={0}
+            >
+              Continue to Results
+            </Button>
+          </Group>
+        </Group>
+      </Stack>
     </Container>
   );
 };

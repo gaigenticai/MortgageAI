@@ -1,378 +1,232 @@
 /**
- * Professional Footer Component for MortgageAI
+ * Professional Footer Component for MortgageAI - Mantine Version
  */
 
 import React from 'react';
 import {
   Box,
   Container,
-  Typography,
-  Grid,
-  Link,
+  Text,
+  Group,
+  Stack,
+  Anchor,
   Divider,
-  IconButton
-} from '@mui/material';
+  ActionIcon,
+  Grid,
+  Badge,
+} from '@mantine/core';
 import {
-  GitHub,
-  LinkedIn,
-  Email,
-  Phone,
-  LocationOn,
-  Psychology
-} from '@mui/icons-material';
+  IconBrandGithub,
+  IconBrandLinkedin,
+  IconMail,
+  IconPhone,
+  IconMapPin,
+  IconBrain,
+  IconShield,
+  IconCertificate,
+} from '@tabler/icons-react';
 
 const Footer: React.FC = () => {
   return (
     <Box
       component="footer"
-      sx={{
+      style={{
         background: 'linear-gradient(135deg, #0F172A 0%, #1E293B 100%)',
         color: 'white',
-        py: 8,
-        mt: 'auto',
-        position: 'relative',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '1px',
-          background: 'linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.3) 50%, transparent 100%)',
-        }
+        borderRadius: 0,
+        marginTop: 'auto',
       }}
     >
-      <Container maxWidth="lg">
-        <Grid container spacing={4}>
+      <Container size="xl" py="xl">
+        <Grid>
           {/* Company Info */}
-          <Grid item xs={12} md={4}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-              <Box sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2,
-                background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mr: 2,
-                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
-              }}>
-                <Psychology sx={{ color: 'white', fontSize: 24 }} />
-              </Box>
-              <Box>
-                <Typography variant="h5" sx={{ fontWeight: 700, color: 'white', lineHeight: 1.2 }}>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Stack gap="md">
+              <Group>
+                <Box
+                  style={{
+                    width: 40,
+                    height: 40,
+                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 0,
+                  }}
+                >
+                  <IconBrain size={24} color="white" />
+                </Box>
+                <Text size="xl" fw={700} c="white">
                   MortgageAI
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.75rem' }}>
-                  by Gaigentic
-                </Typography>
-              </Box>
-            </Box>
-            <Typography variant="body2" sx={{ mb: 3, color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.6 }}>
-              Premium AI solution for enhancing mortgage advice quality and application accuracy.
-              Powered by advanced compliance and quality control agents.
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton
-                color="inherit"
-                size="small"
-                sx={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    background: 'rgba(99, 102, 241, 0.2)',
-                    transform: 'translateY(-1px)',
-                  },
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <GitHub />
-              </IconButton>
-              <IconButton
-                color="inherit"
-                size="small"
-                sx={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  '&:hover': {
-                    background: 'rgba(236, 72, 153, 0.2)',
-                    transform: 'translateY(-1px)',
-                  },
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <LinkedIn />
-              </IconButton>
-            </Box>
-          </Grid>
+                </Text>
+              </Group>
+              
+              <Text size="sm" c="gray.3" style={{ lineHeight: 1.6 }}>
+                Advanced AI-powered mortgage advisory platform specialized for the Dutch market. 
+                Fully compliant with AFM regulations and integrated with major Dutch lenders.
+              </Text>
+
+              <Group gap="xs">
+                <Badge color="emerald" variant="filled" radius={0}>
+                  <IconShield size={12} style={{ marginRight: 4 }} />
+                  AFM Compliant
+                </Badge>
+                <Badge color="indigo" variant="filled" radius={0}>
+                  <IconCertificate size={12} style={{ marginRight: 4 }} />
+                  NHG Certified
+                </Badge>
+              </Group>
+            </Stack>
+          </Grid.Col>
 
           {/* Quick Links */}
-          <Grid item xs={12} md={2}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'white', mb: 3 }}>
-              Features
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#6366F1',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                Compliance Agent
-              </Link>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#6366F1',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                QC Agent
-              </Link>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#10B981',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                Document Processing
-              </Link>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#EC4899',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                API Integration
-              </Link>
-            </Box>
-          </Grid>
+          <Grid.Col span={{ base: 12, sm: 6, md: 2 }}>
+            <Stack gap="sm">
+              <Text fw={600} c="white" size="sm">
+                Platform
+              </Text>
+              <Stack gap="xs">
+                <Anchor href="/dashboard" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Dashboard
+                </Anchor>
+                <Anchor href="/application" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Applications
+                </Anchor>
+                <Anchor href="/compliance" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Compliance
+                </Anchor>
+                <Anchor href="/quality-control" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Quality Control
+                </Anchor>
+              </Stack>
+            </Stack>
+          </Grid.Col>
+
+          {/* Dutch Services */}
+          <Grid.Col span={{ base: 12, sm: 6, md: 2 }}>
+            <Stack gap="sm">
+              <Text fw={600} c="white" size="sm">
+                Dutch Services
+              </Text>
+              <Stack gap="xs">
+                <Anchor href="/afm-compliance-advisor" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  AFM Compliance
+                </Anchor>
+                <Anchor href="/bkr-credit-check" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  BKR Credit Check
+                </Anchor>
+                <Anchor href="/nhg-eligibility-check" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  NHG Eligibility
+                </Anchor>
+                <Anchor href="/dutch-market-insights" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Market Insights
+                </Anchor>
+              </Stack>
+            </Stack>
+          </Grid.Col>
 
           {/* Support */}
-          <Grid item xs={12} md={2}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'white', mb: 3 }}>
-              Support
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#6366F1',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                Documentation
-              </Link>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#6366F1',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                API Reference
-              </Link>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#10B981',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                Help Center
-              </Link>
-              <Link
-                href="#"
-                sx={{
-                  color: 'rgba(255, 255, 255, 0.8)',
-                  textDecoration: 'none',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  '&:hover': {
-                    color: '#EC4899',
-                    textDecoration: 'none',
-                  },
-                  transition: 'color 0.2s ease',
-                }}
-              >
-                Contact Us
-              </Link>
-            </Box>
-          </Grid>
+          <Grid.Col span={{ base: 12, sm: 6, md: 2 }}>
+            <Stack gap="sm">
+              <Text fw={600} c="white" size="sm">
+                Support
+              </Text>
+              <Stack gap="xs">
+                <Anchor href="/docs" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Documentation
+                </Anchor>
+                <Anchor href="/api" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  API Reference
+                </Anchor>
+                <Anchor href="/help" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Help Center
+                </Anchor>
+                <Anchor href="/contact" c="gray.3" size="sm" style={{ textDecoration: 'none' }}>
+                  Contact Us
+                </Anchor>
+              </Stack>
+            </Stack>
+          </Grid.Col>
 
           {/* Contact Info */}
-          <Grid item xs={12} md={4}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'white', mb: 3 }}>
-              Contact Information
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 2,
-                  background: 'rgba(99, 102, 241, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Email sx={{ fontSize: 16, color: '#6366F1' }} />
-                </Box>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.875rem' }}>
-                  support@mortgage-ai.com
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 2,
-                  background: 'rgba(16, 185, 129, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <Phone sx={{ fontSize: 16, color: '#10B981' }} />
-                </Box>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.875rem' }}>
-                  +31 20 123 4567
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 2,
-                  background: 'rgba(236, 72, 153, 0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}>
-                  <LocationOn sx={{ fontSize: 16, color: '#EC4899' }} />
-                </Box>
-                <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '0.875rem' }}>
-                  Amsterdam, Netherlands
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
+          <Grid.Col span={{ base: 12, sm: 6, md: 2 }}>
+            <Stack gap="sm">
+              <Text fw={600} c="white" size="sm">
+                Contact
+              </Text>
+              <Stack gap="xs">
+                <Group gap="xs">
+                  <IconMail size={16} color="#9CA3AF" />
+                  <Text size="sm" c="gray.3">
+                    info@mortgageai.nl
+                  </Text>
+                </Group>
+                <Group gap="xs">
+                  <IconPhone size={16} color="#9CA3AF" />
+                  <Text size="sm" c="gray.3">
+                    +31 20 123 4567
+                  </Text>
+                </Group>
+                <Group gap="xs">
+                  <IconMapPin size={16} color="#9CA3AF" />
+                  <Text size="sm" c="gray.3">
+                    Amsterdam, Netherlands
+                  </Text>
+                </Group>
+              </Stack>
+
+              {/* Social Links */}
+              <Group gap="xs" mt="sm">
+                <ActionIcon variant="subtle" color="gray" radius={0}>
+                  <IconBrandGithub size={18} />
+                </ActionIcon>
+                <ActionIcon variant="subtle" color="gray" radius={0}>
+                  <IconBrandLinkedin size={18} />
+                </ActionIcon>
+                <ActionIcon variant="subtle" color="gray" radius={0}>
+                  <IconMail size={18} />
+                </ActionIcon>
+              </Group>
+            </Stack>
+          </Grid.Col>
         </Grid>
 
-        <Divider sx={{ my: 6, background: 'linear-gradient(90deg, transparent 0%, rgba(226, 232, 240, 0.3) 50%, transparent 100%)' }} />
+        <Divider my="xl" color="gray.7" />
 
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 3
-        }}>
-          <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.875rem' }}>
+        {/* Bottom Section */}
+        <Group justify="space-between" align="center">
+          <Text size="sm" c="gray.4">
             © 2024 MortgageAI by Gaigentic. All rights reserved.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            <Link
-              href="#"
-              sx={{
-                color: 'rgba(255, 255, 255, 0.6)',
-                textDecoration: 'none',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                '&:hover': {
-                  color: '#6366F1',
-                  textDecoration: 'none',
-                },
-                transition: 'color 0.2s ease',
-              }}
-            >
+          </Text>
+          
+          <Group gap="md">
+            <Anchor href="/privacy" c="gray.4" size="sm" style={{ textDecoration: 'none' }}>
               Privacy Policy
-            </Link>
-            <Link
-              href="#"
-              sx={{
-                color: 'rgba(255, 255, 255, 0.6)',
-                textDecoration: 'none',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                '&:hover': {
-                  color: '#6366F1',
-                  textDecoration: 'none',
-                },
-                transition: 'color 0.2s ease',
-              }}
-            >
+            </Anchor>
+            <Anchor href="/terms" c="gray.4" size="sm" style={{ textDecoration: 'none' }}>
               Terms of Service
-            </Link>
-            <Link
-              href="#"
-              sx={{
-                color: 'rgba(255, 255, 255, 0.6)',
-                textDecoration: 'none',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                '&:hover': {
-                  color: '#EC4899',
-                  textDecoration: 'none',
-                },
-                transition: 'color 0.2s ease',
-              }}
-            >
-              AFM Compliance
-            </Link>
-          </Box>
+            </Anchor>
+            <Anchor href="/cookies" c="gray.4" size="sm" style={{ textDecoration: 'none' }}>
+              Cookie Policy
+            </Anchor>
+          </Group>
+        </Group>
+
+        {/* Compliance Notice */}
+        <Box
+          mt="md"
+          p="md"
+          style={{
+            background: 'rgba(99, 102, 241, 0.1)',
+            border: '1px solid rgba(99, 102, 241, 0.2)',
+            borderRadius: 0,
+          }}
+        >
+          <Text size="xs" c="gray.3" ta="center">
+            <IconShield size={14} style={{ marginRight: 4, verticalAlign: 'middle' }} />
+            This platform is fully compliant with Dutch AFM (Autoriteit Financiële Markten) regulations. 
+            All mortgage advice is provided in accordance with Wft (Wet op het financieel toezicht) requirements.
+          </Text>
         </Box>
       </Container>
     </Box>

@@ -149,6 +149,12 @@ class Settings:
             logging.error(f"Missing required configuration: {', '.join(missing)}")
             return False
 
+        # Allow demo keys for testing
+        if self.OPENAI_API_KEY and self.OPENAI_API_KEY.startswith('demo-'):
+            logging.warning("Using demo OPENAI_API_KEY - API calls will be mocked")
+        if self.ANTHROPIC_API_KEY and self.ANTHROPIC_API_KEY.startswith('demo-'):
+            logging.warning("Using demo ANTHROPIC_API_KEY - API calls will be mocked")
+
         return True
 
     def get_database_config(self) -> dict:

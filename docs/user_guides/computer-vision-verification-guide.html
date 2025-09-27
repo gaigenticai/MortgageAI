@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Vision Document Verification - User Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 40px -20px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            margin: 30px 0 20px 0;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: #555;
+            margin: 25px 0 15px 0;
+            font-weight: 500;
+        }
+
+        p {
+            margin-bottom: 15px;
+            color: #666;
+            text-align: justify;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card .icon {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: #333;
+            margin: 15px 0;
+        }
+
+        .step-list {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 20px 30px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .step-list ol {
+            padding-left: 20px;
+        }
+
+        .step-list li {
+            margin: 10px 0;
+            color: #555;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-left: 5px solid #f39c12;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .warning .icon {
+            color: #f39c12;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .tip {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            border-left: 5px solid #17a2b8;
+            padding: 15px 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .tip .icon {
+            color: #17a2b8;
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .api-endpoint {
+            background: #667eea;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            display: inline-block;
+            margin: 5px 0;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-authentic {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-suspicious {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .status-fraudulent {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .status-inconclusive {
+            color: #6c757d;
+            font-weight: bold;
+        }
+
+        .screenshot {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .workflow-step .step-number {
+            background: #667eea;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .workflow-step .step-content h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .workflow-step .step-content p {
+            color: #666;
+            margin: 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            border-top: 1px solid #eee;
+            margin-top: 40px;
+            color: #999;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .workflow-step {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .workflow-step .step-number {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="feature-icon">🔍</div>
+            <h1>Computer Vision Document Verification</h1>
+            <p>Advanced AI-Powered Document Authenticity Analysis</p>
+        </div>
+
+        <section id="overview">
+            <h2>📋 Overview</h2>
+            <p>
+                The Computer Vision Document Verification system uses state-of-the-art artificial intelligence 
+                to analyze document authenticity with unprecedented accuracy. This advanced system combines 
+                multiple verification techniques to detect forgery, analyze signatures, identify tampering, 
+                and provide comprehensive authenticity scoring for mortgage-related documents.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h3>Forgery Detection</h3>
+                    <p>Advanced algorithms detect various types of document forgery including image splicing, copy-move attacks, and digital manipulation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">✍️</div>
+                    <h3>Signature Analysis</h3>
+                    <p>Comprehensive signature verification using geometric features, pressure analysis, and stroke pattern recognition.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔎</div>
+                    <h3>Tampering Detection</h3>
+                    <p>Sophisticated image forensics to identify document modifications, alterations, and authenticity issues.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h3>Authenticity Scoring</h3>
+                    <p>Multi-modal confidence scoring system providing detailed authenticity assessments with technical analysis.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⛓️</div>
+                    <h3>Blockchain Audit Trail</h3>
+                    <p>Optional blockchain-based verification logging for immutable audit trails and compliance tracking.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📦</div>
+                    <h3>Batch Processing</h3>
+                    <p>Efficient batch verification of multiple documents with comprehensive reporting and analytics.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="getting-started">
+            <h2>🚀 Getting Started</h2>
+            
+            <h3>Accessing the System</h3>
+            <p>
+                Navigate to the Computer Vision Verification section from the main MortgageAI dashboard. 
+                The system is available at <span class="api-endpoint">/cv-verification</span> and provides 
+                both web interface and API access.
+            </p>
+
+            <div class="tip">
+                <span class="icon">💡</span>
+                <strong>Pro Tip:</strong> For optimal results, ensure documents are well-lit, properly aligned, 
+                and in high resolution (minimum 300 DPI recommended).
+            </div>
+        </section>
+
+        <section id="document-upload">
+            <h2>📤 Document Upload & Verification</h2>
+
+            <h3>Supported File Formats</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Format</th>
+                            <th>Extension</th>
+                            <th>Max Size</th>
+                            <th>Recommended Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>JPEG</td>
+                            <td>.jpg, .jpeg</td>
+                            <td>50 MB</td>
+                            <td>Scanned documents, photographs</td>
+                        </tr>
+                        <tr>
+                            <td>PNG</td>
+                            <td>.png</td>
+                            <td>50 MB</td>
+                            <td>High-quality images, screenshots</td>
+                        </tr>
+                        <tr>
+                            <td>TIFF</td>
+                            <td>.tiff, .tif</td>
+                            <td>50 MB</td>
+                            <td>Professional scans, archival documents</td>
+                        </tr>
+                        <tr>
+                            <td>PDF</td>
+                            <td>.pdf</td>
+                            <td>50 MB</td>
+                            <td>Multi-page documents, official forms</td>
+                        </tr>
+                        <tr>
+                            <td>BMP</td>
+                            <td>.bmp</td>
+                            <td>50 MB</td>
+                            <td>Uncompressed images</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Single Document Verification</h3>
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Upload Document</h4>
+                    <p>Drag and drop your document into the main upload area or click to browse and select files.</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Add Reference Signatures (Optional)</h4>
+                    <p>Upload known authentic signatures for comparison and enhanced verification accuracy.</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Configure Options</h4>
+                    <p>Enable blockchain audit trail and select verification options based on your requirements.</p>
+                </div>
+            </div>
+
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Start Verification</h4>
+                    <p>Click "Start Verification" to begin the AI-powered analysis process.</p>
+                </div>
+            </div>
+
+            <h3>Batch Document Verification</h3>
+            <p>
+                For processing multiple documents simultaneously, enable "Batch Mode" from the verification options. 
+                This allows you to upload up to 10 documents at once for efficient processing.
+            </p>
+
+            <div class="step-list">
+                <ol>
+                    <li>Enable "Batch Mode" toggle in verification options</li>
+                    <li>Upload multiple documents (up to 10 files)</li>
+                    <li>Optionally add batch metadata for each document</li>
+                    <li>Start batch verification process</li>
+                    <li>Monitor progress and view individual results</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="verification-results">
+            <h2>📈 Understanding Verification Results</h2>
+
+            <h3>Verification Status Levels</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Confidence Range</th>
+                            <th>Description</th>
+                            <th>Recommended Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="status-authentic">Authentic</span></td>
+                            <td>80-100%</td>
+                            <td>Document verified as genuine with high confidence</td>
+                            <td>Accept document for processing</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-suspicious">Suspicious</span></td>
+                            <td>60-79%</td>
+                            <td>Document shows potential signs of manipulation</td>
+                            <td>Manual review recommended</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-fraudulent">Fraudulent</span></td>
+                            <td>0-39%</td>
+                            <td>High probability of document forgery detected</td>
+                            <td>Reject document, investigate further</td>
+                        </tr>
+                        <tr>
+                            <td><span class="status-inconclusive">Inconclusive</span></td>
+                            <td>40-59%</td>
+                            <td>Unable to determine authenticity conclusively</td>
+                            <td>Request higher quality document</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Detailed Analysis Components</h3>
+            
+            <h4>Overall Confidence Score</h4>
+            <p>
+                A composite score combining multiple verification techniques including signature analysis, 
+                forgery detection, and image forensics. Higher scores indicate greater confidence in authenticity.
+            </p>
+
+            <h4>Signature Authenticity</h4>
+            <p>
+                Measures the authenticity of signatures found in the document using advanced geometric analysis, 
+                pressure point detection, and stroke pattern recognition.
+            </p>
+
+            <h4>Forgery Probability</h4>
+            <p>
+                Indicates the likelihood that the document has been forged or manipulated. Lower scores are better, 
+                representing reduced probability of forgery.
+            </p>
+
+            <h4>Tampering Evidence</h4>
+            <p>
+                Detailed technical analysis of any suspicious modifications detected, including:
+            </p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li>Image splicing detection</li>
+                <li>Copy-move analysis</li>
+                <li>Compression inconsistencies</li>
+                <li>Metadata anomalies</li>
+                <li>Digital manipulation artifacts</li>
+            </ul>
+        </section>
+
+        <section id="advanced-features">
+            <h2>⚙️ Advanced Features</h2>
+
+            <h3>Blockchain Audit Trail</h3>
+            <p>
+                Enable blockchain logging to create immutable verification records for compliance and audit purposes. 
+                Each verification generates a unique blockchain hash that can be used to verify the integrity 
+                of the verification process.
+            </p>
+
+            <div class="warning">
+                <span class="icon">⚠️</span>
+                <strong>Note:</strong> Blockchain features require additional configuration and may incur additional costs. 
+                Contact your system administrator for setup and pricing information.
+            </div>
+
+            <h3>Reference Signature Management</h3>
+            <p>
+                Upload and manage reference signatures for improved verification accuracy. The system learns 
+                from authentic signature samples to better detect forgeries and variations.
+            </p>
+
+            <div class="step-list">
+                <ol>
+                    <li>Navigate to the reference signatures section</li>
+                    <li>Upload high-quality images of authentic signatures</li>
+                    <li>Add descriptive names and metadata</li>
+                    <li>Use references during verification for enhanced accuracy</li>
+                </ol>
+            </div>
+
+            <h3>API Integration</h3>
+            <p>
+                For automated integration with existing systems, use the RESTful API endpoints:
+            </p>
+
+            <div class="code-block">
+POST /api/cv-verification/verify
+POST /api/cv-verification/batch-verify
+GET  /api/cv-verification/result/:id
+GET  /api/cv-verification/history
+GET  /api/cv-verification/analytics
+            </div>
+
+            <div class="tip">
+                <span class="icon">🔧</span>
+                <strong>Developer Tip:</strong> API documentation with detailed examples is available at 
+                <span class="api-endpoint">/api/cv-verification/docs</span>
+            </div>
+        </section>
+
+        <section id="analytics">
+            <h2>📊 Analytics & Reporting</h2>
+
+            <h3>Verification Dashboard</h3>
+            <p>
+                Access comprehensive analytics including:
+            </p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li>Total verification statistics</li>
+                <li>Status distribution charts</li>
+                <li>Confidence score trends</li>
+                <li>Processing time analysis</li>
+                <li>Forgery type breakdown</li>
+                <li>Historical performance data</li>
+            </ul>
+
+            <h3>Export & Reporting</h3>
+            <p>
+                Generate detailed verification reports in multiple formats:
+            </p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li><strong>PDF Reports:</strong> Comprehensive verification summaries with technical details</li>
+                <li><strong>JSON Data:</strong> Machine-readable results for system integration</li>
+                <li><strong>CSV Exports:</strong> Tabular data for analysis and record-keeping</li>
+                <li><strong>Audit Logs:</strong> Complete verification history with blockchain hashes</li>
+            </ul>
+        </section>
+
+        <section id="troubleshooting">
+            <h2>🛠️ Troubleshooting</h2>
+
+            <h3>Common Issues & Solutions</h3>
+
+            <h4>Low Verification Confidence</h4>
+            <p><strong>Symptoms:</strong> Consistently low confidence scores or inconclusive results</p>
+            <p><strong>Solutions:</strong></p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li>Ensure document images are high resolution (300+ DPI)</li>
+                <li>Improve lighting and contrast in scanned documents</li>
+                <li>Remove shadows and ensure even illumination</li>
+                <li>Use reference signatures for better comparison</li>
+                <li>Check that documents are properly aligned and not skewed</li>
+            </ul>
+
+            <h4>File Upload Failures</h4>
+            <p><strong>Symptoms:</strong> Unable to upload documents or timeout errors</p>
+            <p><strong>Solutions:</strong></p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li>Check file size limits (50MB maximum per file)</li>
+                <li>Verify file format is supported</li>
+                <li>Ensure stable internet connection</li>
+                <li>Try uploading files individually if batch upload fails</li>
+                <li>Clear browser cache and cookies</li>
+            </ul>
+
+            <h4>Processing Timeouts</h4>
+            <p><strong>Symptoms:</strong> Verification process hangs or times out</p>
+            <p><strong>Solutions:</strong></p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li>Reduce image file sizes while maintaining quality</li>
+                <li>Process documents individually instead of in batches</li>
+                <li>Contact system administrator if timeouts persist</li>
+                <li>Check system resource availability during peak hours</li>
+            </ul>
+
+            <h3>System Requirements</h3>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Minimum</th>
+                            <th>Recommended</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Browser</td>
+                            <td>Chrome 80+, Firefox 75+, Safari 13+</td>
+                            <td>Latest stable versions</td>
+                        </tr>
+                        <tr>
+                            <td>Internet Connection</td>
+                            <td>1 Mbps upload speed</td>
+                            <td>10+ Mbps for batch processing</td>
+                        </tr>
+                        <tr>
+                            <td>RAM (Browser)</td>
+                            <td>4 GB</td>
+                            <td>8+ GB for large documents</td>
+                        </tr>
+                        <tr>
+                            <td>Screen Resolution</td>
+                            <td>1024x768</td>
+                            <td>1920x1080 or higher</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="security">
+            <h2>🔐 Security & Privacy</h2>
+
+            <h3>Data Security</h3>
+            <p>
+                All document uploads and verification processes are secured using enterprise-grade encryption:
+            </p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li><strong>TLS 1.3:</strong> All data transmission is encrypted in transit</li>
+                <li><strong>AES-256:</strong> Document storage uses military-grade encryption</li>
+                <li><strong>Access Controls:</strong> Role-based permissions and authentication</li>
+                <li><strong>Audit Logging:</strong> Complete verification history with timestamps</li>
+                <li><strong>Data Isolation:</strong> User data is segmented and protected</li>
+            </ul>
+
+            <h3>Privacy Compliance</h3>
+            <p>
+                The system is designed to comply with major privacy regulations:
+            </p>
+            <ul style="margin: 15px 0 15px 40px; color: #666;">
+                <li><strong>GDPR:</strong> European data protection compliance</li>
+                <li><strong>CCPA:</strong> California consumer privacy compliance</li>
+                <li><strong>PIPEDA:</strong> Canadian privacy law compliance</li>
+                <li><strong>Data Retention:</strong> Configurable retention policies</li>
+                <li><strong>Right to Delete:</strong> Users can request data deletion</li>
+            </ul>
+
+            <h3>Document Cleanup</h3>
+            <p>
+                Temporary files are automatically cleaned up based on configured retention policies. 
+                By default, temporary processing files are deleted after 24 hours, while verification 
+                results are retained for 90 days unless otherwise configured.
+            </p>
+        </section>
+
+        <section id="support">
+            <h2>📞 Support & Contact</h2>
+
+            <h3>Getting Help</h3>
+            <p>
+                For technical support, questions, or feature requests, please contact your system administrator 
+                or use the following resources:
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📚</div>
+                    <h3>Documentation</h3>
+                    <p>Comprehensive API documentation and technical guides available in the system help section.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💬</div>
+                    <h3>Live Chat</h3>
+                    <p>Real-time support through the integrated chat system for immediate assistance.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎓</div>
+                    <h3>Training</h3>
+                    <p>Interactive tutorials and training materials to help you master the verification system.</p>
+                </div>
+            </div>
+
+            <div class="tip">
+                <span class="icon">📋</span>
+                <strong>Before Contacting Support:</strong> Please have your verification ID, timestamp, 
+                and document details ready for faster assistance.
+            </div>
+        </section>
+
+        <div class="footer">
+            <p>&copy; 2024 MortgageAI - Computer Vision Document Verification System</p>
+            <p>Advanced AI-Powered Document Authentication for Financial Services</p>
+        </div>
+    </div>
+</body>
+</html>

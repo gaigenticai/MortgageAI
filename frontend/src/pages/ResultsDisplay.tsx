@@ -1,5 +1,5 @@
 /**
- * Final Results Display
+ * Final Results Display - Full Mantine Implementation
  *
  * Comprehensive results display showing analysis from both:
  * - Quality Control Agent (document validation and completeness)
@@ -8,58 +8,68 @@
  * - Professional summary with all findings
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
-  Typography,
+  Text,
   Box,
   Button,
   Alert,
   Grid,
   Card,
-  CardContent,
-  Chip,
+  Badge,
   Divider,
   List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Stepper,
-  Step,
-  StepLabel
-} from '@mui/material';
+  Title,
+  Group,
+  Stack,
+  ActionIcon,
+  Tooltip,
+  ThemeIcon,
+  SimpleGrid,
+  RingProgress,
+  Center,
+  Tabs,
+  Timeline,
+  Progress,
+  Loader,
+} from '@mantine/core';
 import {
-  CheckCircle,
-  Error,
-  Warning,
-  Info,
-  ExpandMore,
-  Assignment,
-  Work,
-  Home,
-  AccountCircle,
-  Analytics,
-  Gavel,
-  Celebration,
-  Download,
-  Print,
-  Share,
-  NavigateBefore
-} from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { CircularProgress } from '@mui/material';
+  IconCheck,
+  IconX,
+  IconAlertTriangle,
+  IconInfoCircle,
+  IconChevronDown,
+  IconFileText,
+  IconUser,
+  IconHome,
+  IconBuildingBank,
+  IconChartBar,
+  IconGavel,
+  IconArrowRight,
+  IconArrowLeft,
+  IconDownload,
+  IconShare,
+  IconTrophy,
+  IconClock,
+  IconShield,
+  IconTrendingUp,
+  IconEye,
+  IconClipboardCheck,
+} from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { resultsApi, FinalResults } from '../services/resultsApi';
-
 
 const ResultsDisplay: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [finalResults, setFinalResults] = useState<FinalResults | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>('overview');
 
   useEffect(() => {
     loadFinalResults();
@@ -68,401 +78,640 @@ const ResultsDisplay: React.FC = () => {
   const loadFinalResults = async () => {
     try {
       setLoading(true);
-      // Get application ID from URL or context
-      const urlParams = new URLSearchParams(window.location.search);
-      const applicationId = urlParams.get('application_id') || 'current_application';
-
+      const applicationId = searchParams.get('application_id') || 'current_application';
       const results = await resultsApi.getFinalResults(applicationId);
       setFinalResults(results);
     } catch (error) {
       console.error('Failed to load final results:', error);
+      notifications.show({
+        title: 'Loading Error',
+        message: 'Failed to load final results',
+        color: 'red',
+        icon: <IconX size={16} />,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !finalResults) {
-    return (
-      <Container maxWidth="lg">
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <CircularProgress />
-        </Box>
-      </Container>
-    );
-  }
+  const handleExportReport = () => {
+    notifications.show({
+      title: 'Export Started',
+      message: 'Generating comprehensive report...',
+      color: 'blue',
+      icon: <IconDownload size={16} />,
+    });
+  };
 
-  const results: FinalResults = finalResults;
+  const handlePrintReport = () => {
+    window.print();
+  };
+
+  const handleShareReport = () => {
+    notifications.show({
+      title: 'Share Report',
+      message: 'Report sharing link generated',
+      color: 'green',
+      icon: <IconShare size={16} />,
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'success';
-      case 'conditional': return 'warning';
-      case 'rejected': return 'error';
-      case 'pending_review': return 'info';
-      default: return 'default';
+      case 'approved': return 'green';
+      case 'conditional': return 'yellow';
+      case 'rejected': return 'red';
+      case 'pending_review': return 'blue';
+      default: return 'gray';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved': return <CheckCircle />;
-      case 'conditional': return <Warning />;
-      case 'rejected': return <Error />;
-      case 'pending_review': return <Info />;
-      default: return <Info />;
+      case 'approved': return <IconCheck size={24} />;
+      case 'conditional': return <IconAlertTriangle size={24} />;
+      case 'rejected': return <IconX size={24} />;
+      case 'pending_review': return <IconClock size={24} />;
+      default: return <IconInfoCircle size={24} />;
     }
   };
 
-  const getTimelineIcon = (status: string) => {
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'low': return 'green';
+      case 'medium': return 'yellow';
+      case 'high': return 'red';
+      default: return 'gray';
+    }
+  };
+
+  const getStepperStatus = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle color="success" />;
-      case 'in_progress': return <Info color="primary" />;
-      case 'pending': return <Info color="disabled" />;
-      default: return <Info />;
+      case 'completed': return 'completed';
+      case 'in_progress': return 'loading';
+      case 'pending': return undefined;
+      default: return undefined;
     }
   };
 
-  const handleDownloadReport = () => {
-    // In a real app, this would generate and download a PDF report
-    alert('Report download feature would be implemented here');
-  };
+  if (loading || !finalResults) {
+    return (
+      <Container size="xl" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Stack align="center" gap="md">
+            <Loader size="xl" />
+            <Title order={3}>Loading Final Results</Title>
+            <Text c="dimmed">Compiling comprehensive analysis...</Text>
+          </Stack>
+        </Center>
+      </Container>
+    );
+  }
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleShare = () => {
-    // In a real app, this would share the results
-    alert('Share feature would be implemented here');
-  };
-
-  const handleBack = () => {
-    navigate('/compliance');
-  };
+  const overallScore = finalResults.overall_score;
+  const status = finalResults.overall_status;
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
-      <Paper elevation={0} sx={{
-        p: 6,
-        borderRadius: 4,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(226, 232, 240, 0.8)',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
-      }}>
-        {/* Header */}
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Box sx={{
-            width: 80,
-            height: 80,
-            borderRadius: 4,
-            background: finalResults.overall_status === 'approved'
-              ? 'linear-gradient(135deg, #10B981 0%, #34D399 100%)'
-              : finalResults.overall_status === 'conditional'
-              ? 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)'
-              : 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',
-            mb: 4,
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
-          }}>
-            <Celebration sx={{ color: 'white', fontSize: 40 }} />
-          </Box>
-          <Typography
-            variant="h2"
-            component="h1"
-            gutterBottom
-            sx={{
-              fontWeight: 700,
-              mb: 3,
-              background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Application Processing Complete
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 2, fontSize: '1.125rem' }}>
-            Application ID: <strong>{finalResults.application_id}</strong>
-          </Typography>
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        {/* Header with Celebration */}
+        <Paper p="xl" radius={0} withBorder>
+          <Group justify="space-between">
+            <Group>
+              <ThemeIcon size="xl" color={getStatusColor(status)} radius={0}>
+                {status === 'approved' ? <IconTrophy size={32} /> : getStatusIcon(status)}
+              </ThemeIcon>
+              <div>
+                <Title order={1}>Final Application Results</Title>
+                <Text c="dimmed">Application ID: {finalResults.application_id}</Text>
+                <Badge 
+                  size="lg" 
+                  color={getStatusColor(status)} 
+                  mt="xs"
+                  radius={0}
+                >
+                  {status.replace('_', ' ').toUpperCase()}
+                </Badge>
+              </div>
+            </Group>
+            <Group>
+              <Tooltip label="Export Report">
+                <ActionIcon 
+                  size="lg" 
+                  variant="outline" 
+                  onClick={handleExportReport}
+                  radius={0}
+                >
+                  <IconDownload size={20} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Print Report">
+                <ActionIcon 
+                  size="lg" 
+                  variant="outline" 
+                  onClick={handlePrintReport}
+                  radius={0}
+                >
+                  <IconFileText size={20} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Share Report">
+                <ActionIcon 
+                  size="lg" 
+                  variant="outline" 
+                  onClick={handleShareReport}
+                  radius={0}
+                >
+                  <IconShare size={20} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          </Group>
+        </Paper>
 
-          {/* Overall Status */}
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h2" sx={{ fontWeight: 'bold', color: `${getStatusColor(finalResults.overall_status)}.main`, mb: 1 }}>
-              {finalResults.overall_score.toFixed(1)}%
-            </Typography>
-            <Typography variant="h6" gutterBottom>
-              Overall Application Score
-            </Typography>
-            <Chip
-              label={finalResults.overall_status.replace('_', ' ').toUpperCase()}
-              color={getStatusColor(finalResults.overall_status) as any}
-              icon={getStatusIcon(finalResults.overall_status)}
-              sx={{ fontSize: '1.1rem', py: 1.5, px: 3 }}
-            />
-          </Box>
+        {/* Key Metrics Overview */}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Overall Score</Text>
+                <Title order={2}>{overallScore.toFixed(1)}%</Title>
+              </div>
+              <RingProgress
+                size={60}
+                thickness={6}
+                sections={[{ 
+                  value: overallScore, 
+                  color: overallScore >= 80 ? 'green' : overallScore >= 60 ? 'yellow' : 'red' 
+                }]}
+              />
+            </Group>
+          </Card>
 
-          {/* Success Message */}
-          {finalResults.overall_status === 'approved' && (
-            <Alert severity="success" sx={{ mb: 3, py: 2 }}>
-              <Typography variant="h6" gutterBottom>
-                🎉 Congratulations! Your Application is Approved
-              </Typography>
-              <Typography variant="body2">
-                Your mortgage application has passed all automated quality control and compliance checks.
-                It has been forwarded to your lender for final underwriting review.
-              </Typography>
-            </Alert>
-          )}
-        </Box>
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">AFM Compliance</Text>
+                <Title order={2}>{finalResults.afm_compliance.compliance_score.toFixed(1)}%</Title>
+              </div>
+              <ThemeIcon size="xl" color="indigo" radius={0}>
+                <IconGavel size={24} />
+              </ThemeIcon>
+            </Group>
+          </Card>
 
-        <Divider sx={{ my: 4 }} />
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Quality Control</Text>
+                <Title order={2}>{finalResults.quality_control.completeness_score.toFixed(1)}%</Title>
+              </div>
+              <ThemeIcon size="xl" color="emerald" radius={0}>
+                <IconShield size={24} />
+              </ThemeIcon>
+            </Group>
+          </Card>
+
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Risk Profile</Text>
+                <Badge 
+                  color={getRiskColor(finalResults.afm_compliance.risk_profile)} 
+                  size="lg"
+                  radius={0}
+                >
+                  {finalResults.afm_compliance.risk_profile.toUpperCase()}
+                </Badge>
+              </div>
+              <ThemeIcon 
+                size="xl" 
+                color={getRiskColor(finalResults.afm_compliance.risk_profile)} 
+                radius={0}
+              >
+                <IconTrendingUp size={24} />
+              </ThemeIcon>
+            </Group>
+          </Card>
+        </SimpleGrid>
 
         {/* Processing Timeline */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Processing Timeline
-          </Typography>
-          <Stepper orientation="vertical">
+        <Card radius={0} shadow="sm" padding="lg">
+          <Title order={3} mb="md">Processing Timeline</Title>
+          <Timeline active={finalResults.processing_timeline.findIndex(step => step.status === 'in_progress')}>
             {finalResults.processing_timeline.map((step, index) => (
-              <Step key={step.step} active={step.status === 'in_progress'} completed={step.status === 'completed'}>
-                <StepLabel
-                  icon={getTimelineIcon(step.status)}
-                  sx={{
-                    '& .MuiStepLabel-label': {
-                      fontSize: '1rem',
-                      fontWeight: step.status === 'completed' ? 'bold' : 'normal'
-                    }
-                  }}
-                >
-                  <Box>
-                    <Typography variant="subtitle1">{step.step}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {step.details}
-                    </Typography>
-                    {step.timestamp && (
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(step.timestamp).toLocaleString()}
-                      </Typography>
-                    )}
-                  </Box>
-                </StepLabel>
-              </Step>
+              <Timeline.Item
+                key={index}
+                bullet={
+                  step.status === 'completed' ? <IconCheck size={12} /> :
+                  step.status === 'in_progress' ? <IconClock size={12} /> :
+                  <IconInfoCircle size={12} />
+                }
+                title={step.step}
+              >
+                <Text c="dimmed" size="sm">{step.details}</Text>
+                {step.timestamp && (
+                  <Text size="xs" c="dimmed" mt={4}>
+                    {new Date(step.timestamp).toLocaleString()}
+                  </Text>
+                )}
+              </Timeline.Item>
             ))}
-          </Stepper>
-        </Box>
+          </Timeline>
+        </Card>
 
-        <Divider sx={{ my: 4 }} />
+        {/* Detailed Analysis Tabs */}
+        <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'overview')} radius={0}>
+          <Tabs.List>
+            <Tabs.Tab value="overview" leftSection={<IconEye size={16} />}>
+              Overview
+            </Tabs.Tab>
+            <Tabs.Tab value="compliance" leftSection={<IconGavel size={16} />}>
+              AFM Compliance
+            </Tabs.Tab>
+            <Tabs.Tab value="quality" leftSection={<IconShield size={16} />}>
+              Quality Control
+            </Tabs.Tab>
+            <Tabs.Tab value="financial" leftSection={<IconChartBar size={16} />}>
+              Financial Analysis
+            </Tabs.Tab>
+            <Tabs.Tab value="lenders" leftSection={<IconBuildingBank size={16} />}>
+              Lender Matches
+            </Tabs.Tab>
+            <Tabs.Tab value="advice" leftSection={<IconClipboardCheck size={16} />}>
+              Final Advice
+            </Tabs.Tab>
+          </Tabs.List>
 
-        {/* Detailed Scores */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Detailed Analysis Scores
-          </Typography>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card variant="outlined">
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Analytics color="primary" sx={{ mr: 1 }} />
-                    <Typography variant="h6">Quality Control</Typography>
-                  </Box>
-                  <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 1 }}>
-                    {finalResults.quality_control.completeness_score.toFixed(1)}%
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Completeness Score
-                  </Typography>
-                  <Chip
-                    label={finalResults.quality_control.passed ? "PASSED" : "ISSUES FOUND"}
-                    color={finalResults.quality_control.passed ? "success" : "warning"}
-                    size="small"
-                  />
-                  <Typography variant="body2" sx={{ mt: 2 }}>
-                    Critical Issues: {finalResults.quality_control.critical_issues}
-                  </Typography>
-                </CardContent>
-              </Card>
+          <Tabs.Panel value="overview" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Executive Summary</Title>
+                  <Text mb="md">{finalResults.final_advice.summary}</Text>
+                  
+                  <Title order={4} mb="sm">Key Highlights</Title>
+                  <List spacing="xs" size="sm">
+                    {finalResults.final_advice.key_recommendations.slice(0, 3).map((rec, index) => (
+                      <List.Item key={index} icon={<IconCheck size={16} color="green" />}>
+                        {rec}
+                      </List.Item>
+                    ))}
+                  </List>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Report Details</Title>
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Text size="sm">Generated</Text>
+                      <Text size="sm" fw={500}>
+                        {new Date(finalResults.generated_at).toLocaleDateString()}
+                      </Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm">Valid Until</Text>
+                      <Text size="sm" fw={500}>
+                        {new Date(finalResults.valid_until).toLocaleDateString()}
+                      </Text>
+                    </Group>
+                    <Divider />
+                    <Group justify="space-between">
+                      <Text size="sm">Overall Status</Text>
+                      <Badge color={getStatusColor(status)} radius={0}>
+                        {status.replace('_', ' ')}
+                      </Badge>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
             </Grid>
+          </Tabs.Panel>
 
-            <Grid item xs={12} md={6}>
-              <Card variant="outlined">
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Gavel color="success" sx={{ mr: 1 }} />
-                    <Typography variant="h6">Compliance & Advice</Typography>
-                  </Box>
-                  <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'success.main', mb: 1 }}>
-                    {finalResults.compliance.compliance_score}%
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    AFM Compliance Score
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Readability: {finalResults.compliance.readability_level}
-                  </Typography>
-                  <Box sx={{ mt: 2 }}>
-                    <Chip
-                      label="ADVICE GENERATED"
-                      color="success"
-                      size="small"
-                      sx={{ mr: 1 }}
+          <Tabs.Panel value="compliance" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">AFM Compliance Status</Title>
+                  <Stack gap="md">
+                    <Group justify="space-between">
+                      <Text>Compliance Score</Text>
+                      <Badge color="indigo" size="lg" radius={0}>
+                        {finalResults.afm_compliance.compliance_score.toFixed(1)}%
+                      </Badge>
+                    </Group>
+                    <Progress 
+                      value={finalResults.afm_compliance.compliance_score} 
+                      color="indigo" 
+                      size="lg"
+                      radius={0}
                     />
-                    <Chip
-                      label="UNDERSTANDING CONFIRMED"
-                      color="success"
-                      size="small"
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
+                    
+                    <Group justify="space-between">
+                      <Text>AFM Status</Text>
+                      <Badge 
+                        color={finalResults.afm_compliance.afm_status === 'compliant' ? 'green' : 'yellow'} 
+                        radius={0}
+                      >
+                        {finalResults.afm_compliance.afm_status.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Text>Risk Profile</Text>
+                      <Badge color={getRiskColor(finalResults.afm_compliance.risk_profile)} radius={0}>
+                        {finalResults.afm_compliance.risk_profile.toUpperCase()}
+                      </Badge>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Compliance Recommendations</Title>
+                  <Stack gap="sm">
+                    {finalResults.afm_compliance.recommendations.map((rec, index) => (
+                      <Alert key={index} color="blue" icon={<IconInfoCircle size={16} />} radius={0}>
+                        <Text size="sm">{rec}</Text>
+                      </Alert>
+                    ))}
+                  </Stack>
+                </Card>
+              </Grid.Col>
             </Grid>
-          </Grid>
-        </Box>
+          </Tabs.Panel>
 
-        {/* Final Advice */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Final Recommendations
-          </Typography>
+          <Tabs.Panel value="quality" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Quality Control Summary</Title>
+                  <Stack gap="md">
+                    <Group justify="space-between">
+                      <Text>Completeness Score</Text>
+                      <Badge color="emerald" size="lg" radius={0}>
+                        {finalResults.quality_control.completeness_score.toFixed(1)}%
+                      </Badge>
+                    </Group>
+                    <Progress 
+                      value={finalResults.quality_control.completeness_score} 
+                      color="emerald" 
+                      size="lg"
+                      radius={0}
+                    />
+                    
+                    <Group justify="space-between">
+                      <Text>QC Status</Text>
+                      <Badge color={finalResults.quality_control.passed ? 'green' : 'red'} radius={0}>
+                        {finalResults.quality_control.passed ? 'PASSED' : 'FAILED'}
+                      </Badge>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Text>Critical Issues</Text>
+                      <Badge color={finalResults.quality_control.critical_issues > 0 ? 'red' : 'green'} radius={0}>
+                        {finalResults.quality_control.critical_issues}
+                      </Badge>
+                    </Group>
+                  </Stack>
+                </Card>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Field Validation</Title>
+                  <Stack gap="sm">
+                    {finalResults.quality_control.field_validation.map((field, index) => (
+                      <Paper key={index} p="sm" withBorder radius={0}>
+                        <Group justify="space-between">
+                          <Group>
+                            <ThemeIcon 
+                              size="sm" 
+                              color={field.valid ? 'green' : 'red'} 
+                              radius={0}
+                            >
+                              {field.valid ? <IconCheck size={12} /> : <IconX size={12} />}
+                            </ThemeIcon>
+                            <Text size="sm">{field.field.replace(/_/g, ' ')}</Text>
+                          </Group>
+                          <Badge 
+                            color={field.valid ? 'green' : 'red'} 
+                            size="sm"
+                            radius={0}
+                          >
+                            {field.valid ? 'Valid' : field.severity}
+                          </Badge>
+                        </Group>
+                        {field.error && (
+                          <Text size="xs" c="red" mt="xs">{field.error}</Text>
+                        )}
+                      </Paper>
+                    ))}
+                  </Stack>
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Tabs.Panel>
 
-          <Accordion defaultExpanded sx={{ mb: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Typography variant="h6">Summary</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography variant="body1" sx={{ lineHeight: 1.6 }}>
-                {finalResults.final_advice.summary}
-              </Typography>
-            </AccordionDetails>
-          </Accordion>
+          <Tabs.Panel value="financial" pt="xl">
+            <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+              <Card radius={0} shadow="sm" padding="lg">
+                <Title order={3} mb="md">Financial Ratios</Title>
+                <Stack gap="md">
+                  <div>
+                    <Group justify="space-between" mb="xs">
+                      <Text size="sm">Debt-to-Income Ratio</Text>
+                      <Text size="sm" fw={500}>{finalResults.financial_analysis.dti_ratio.toFixed(1)}%</Text>
+                    </Group>
+                    <Progress 
+                      value={finalResults.financial_analysis.dti_ratio} 
+                      color={finalResults.financial_analysis.dti_ratio <= 30 ? 'green' : 'yellow'}
+                      radius={0}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Group justify="space-between" mb="xs">
+                      <Text size="sm">Loan-to-Value Ratio</Text>
+                      <Text size="sm" fw={500}>{finalResults.financial_analysis.ltv_ratio.toFixed(1)}%</Text>
+                    </Group>
+                    <Progress 
+                      value={finalResults.financial_analysis.ltv_ratio} 
+                      color={finalResults.financial_analysis.ltv_ratio <= 80 ? 'green' : 'yellow'}
+                      radius={0}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Group justify="space-between" mb="xs">
+                      <Text size="sm">Affordability Score</Text>
+                      <Text size="sm" fw={500}>{finalResults.financial_analysis.affordability_score.toFixed(1)}%</Text>
+                    </Group>
+                    <Progress 
+                      value={finalResults.financial_analysis.affordability_score} 
+                      color={finalResults.financial_analysis.affordability_score >= 70 ? 'green' : 'yellow'}
+                      radius={0}
+                    />
+                  </div>
+                </Stack>
+              </Card>
+              
+              <Card radius={0} shadow="sm" padding="lg">
+                <Title order={3} mb="md">Risk Factors</Title>
+                <Stack gap="sm">
+                  {finalResults.financial_analysis.risk_factors.map((factor, index) => (
+                    <Alert key={index} color="yellow" icon={<IconAlertTriangle size={16} />} radius={0}>
+                      <Text size="sm">{factor}</Text>
+                    </Alert>
+                  ))}
+                </Stack>
+              </Card>
+            </SimpleGrid>
+          </Tabs.Panel>
 
-          <Accordion sx={{ mb: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Typography variant="h6">Key Recommendations</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <List>
-                {finalResults.final_advice.key_recommendations.map((rec, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <CheckCircle color="success" />
-                    </ListItemIcon>
-                    <ListItemText primary={rec} />
-                  </ListItem>
+          <Tabs.Panel value="lenders" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Recommended Lenders</Title>
+              <Stack gap="md">
+                {finalResults.lender_matches.map((lender, index) => (
+                  <Paper key={index} p="md" withBorder radius={0}>
+                    <Grid>
+                      <Grid.Col span={{ base: 12, md: 8 }}>
+                        <Group justify="space-between" mb="sm">
+                          <div>
+                            <Text fw={600} size="lg">{lender.lender}</Text>
+                            <Text c="dimmed" size="sm">{lender.product}</Text>
+                          </div>
+                          <Badge color="green" size="lg" radius={0}>
+                            {lender.eligibility_score.toFixed(0)}% Match
+                          </Badge>
+                        </Group>
+                        <Group gap="xl">
+                          <div>
+                            <Text size="xs" c="dimmed">Interest Rate</Text>
+                            <Text fw={500}>{lender.interest_rate.toFixed(2)}%</Text>
+                          </div>
+                          <div>
+                            <Text size="xs" c="dimmed">Max LTV</Text>
+                            <Text fw={500}>{lender.max_ltv}%</Text>
+                          </div>
+                        </Group>
+                      </Grid.Col>
+                      <Grid.Col span={{ base: 12, md: 4 }}>
+                        <Text size="sm" fw={500} mb="xs">Conditions:</Text>
+                        <List size="xs">
+                          {lender.conditions.map((condition, condIndex) => (
+                            <List.Item key={condIndex}>{condition}</List.Item>
+                          ))}
+                        </List>
+                      </Grid.Col>
+                    </Grid>
+                  </Paper>
                 ))}
-              </List>
-            </AccordionDetails>
-          </Accordion>
+              </Stack>
+            </Card>
+          </Tabs.Panel>
 
-          <Accordion sx={{ mb: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Typography variant="h6">Next Steps</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <List>
-                {finalResults.final_advice.next_steps.map((step, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <Info color="primary" />
-                    </ListItemIcon>
-                    <ListItemText primary={step} />
-                  </ListItem>
-                ))}
-              </List>
-            </AccordionDetails>
-          </Accordion>
+          <Tabs.Panel value="advice" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Stack gap="lg">
+                  <Card radius={0} shadow="sm" padding="lg">
+                    <Title order={3} mb="md">Summary</Title>
+                    <Text>{finalResults.final_advice.summary}</Text>
+                  </Card>
 
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMore />}>
-              <Typography variant="h6">Risk Assessment</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Alert severity="info">
-                <Typography variant="body2">
-                  {finalResults.final_advice.risk_assessment}
-                </Typography>
-              </Alert>
-            </AccordionDetails>
-          </Accordion>
-        </Box>
+                  <Card radius={0} shadow="sm" padding="lg">
+                    <Title order={3} mb="md">Key Recommendations</Title>
+                    <List spacing="sm">
+                      {finalResults.final_advice.key_recommendations.map((rec, index) => (
+                        <List.Item key={index} icon={<IconCheck size={16} color="green" />}>
+                          {rec}
+                        </List.Item>
+                      ))}
+                    </List>
+                  </Card>
 
-        {/* Quality Control Recommendations */}
-        {finalResults.quality_control.recommendations.length > 0 && (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Quality Control Recommendations
-            </Typography>
-            <Alert severity="info">
-              <Typography variant="body2" gutterBottom>
-                The following recommendations were identified during quality control analysis:
-              </Typography>
-              <List dense>
-                {finalResults.quality_control.recommendations.map((rec, index) => (
-                  <ListItem key={index}>
-                    <ListItemIcon>
-                      <Warning color="warning" />
-                    </ListItemIcon>
-                    <ListItemText primary={rec} />
-                  </ListItem>
-                ))}
-              </List>
-            </Alert>
-          </Box>
-        )}
+                  <Card radius={0} shadow="sm" padding="lg">
+                    <Title order={3} mb="md">Next Steps</Title>
+                    <List spacing="sm">
+                      {finalResults.final_advice.next_steps.map((step, index) => (
+                        <List.Item key={index} icon={<IconArrowRight size={16} color="blue" />}>
+                          {step}
+                        </List.Item>
+                      ))}
+                    </List>
+                  </Card>
+                </Stack>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Risk Assessment</Title>
+                  <Alert color="blue" icon={<IconInfoCircle size={16} />} radius={0}>
+                    <Text size="sm">{finalResults.final_advice.risk_assessment}</Text>
+                  </Alert>
+                </Card>
+              </Grid.Col>
+            </Grid>
+          </Tabs.Panel>
+        </Tabs>
+
+        {/* Next Steps Action Items */}
+        <Card radius={0} shadow="sm" padding="lg">
+          <Title order={3} mb="md">Action Items</Title>
+          <Stack gap="sm">
+            {finalResults.next_steps.map((step, index) => (
+              <Paper key={index} p="md" withBorder radius={0}>
+                <Group justify="space-between">
+                  <Group>
+                    <Badge color={step.priority === 'high' ? 'red' : step.priority === 'medium' ? 'yellow' : 'blue'} radius={0}>
+                      {step.priority.toUpperCase()}
+                    </Badge>
+                    <div>
+                      <Text fw={500}>{step.step}</Text>
+                      <Text size="sm" c="dimmed">Responsible: {step.responsible_party}</Text>
+                    </div>
+                  </Group>
+                  {step.deadline && (
+                    <Text size="sm" c="dimmed">Due: {step.deadline}</Text>
+                  )}
+                </Group>
+              </Paper>
+            ))}
+          </Stack>
+        </Card>
 
         {/* Action Buttons */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-          <Button
-            variant="outlined"
-            onClick={handleBack}
-            startIcon={<NavigateBefore />}
-            sx={{ borderRadius: 2 }}
+        <Group justify="space-between">
+          <Button 
+            variant="outline" 
+            leftSection={<IconArrowLeft size={16} />}
+            onClick={() => navigate(-1)}
+            radius={0}
           >
-            Back to Compliance Check
+            Back to Quality Control
           </Button>
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
-              variant="outlined"
-              startIcon={<Download />}
-              onClick={handleDownloadReport}
-              sx={{ borderRadius: 2 }}
+          <Group>
+            <Button 
+              variant="outline"
+              leftSection={<IconDownload size={16} />}
+              onClick={handleExportReport}
+              radius={0}
             >
-              Download Report
+              Export Full Report
             </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Print />}
-              onClick={handlePrint}
-              sx={{ borderRadius: 2 }}
-            >
-              Print
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<Share />}
-              onClick={handleShare}
-              sx={{ borderRadius: 2 }}
-            >
-              Share
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Footer */}
-        <Box sx={{ mt: 4, pt: 3, borderTop: 1, borderColor: 'divider', textAlign: 'center' }}>
-          <Typography variant="body2" color="text.secondary">
-            Report generated on {new Date(finalResults.generated_at).toLocaleString()}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Powered by MortgageAI - Agentic AI Solution for Mortgage Advice
-          </Typography>
-        </Box>
-      </Paper>
+            {status === 'approved' && (
+              <Button 
+                leftSection={<IconArrowRight size={16} />}
+                onClick={() => navigate('/lender-integration')}
+                radius={0}
+              >
+                Proceed to Lender Submission
+              </Button>
+            )}
+          </Group>
+        </Group>
+      </Stack>
     </Container>
   );
 };

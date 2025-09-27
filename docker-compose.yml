@@ -137,7 +137,7 @@ services:
       - ./backend/agents:/app/agents
       - ./models:/app/models
     ports:
-      - "${AGENTS_PORT:-8000}:8000"
+      - "${AGENTS_PORT:-8003}:8000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -264,7 +264,7 @@ services:
       - SMTP_PASS=${SMTP_PASS}
       - FROM_EMAIL=${FROM_EMAIL}
       - NODE_ENV=production
-      - AFM_MONITOR_PORT=8003
+      - AFM_MONITOR_PORT=8004
     env_file: .env
     volumes:
       - ./backend:/app/backend:ro
@@ -272,7 +272,7 @@ services:
       - ./compliance-reports:/app/reports
       - ./compliance-reports:/app/compliance-reports
     ports:
-      - "${AFM_MONITOR_PORT:-8003}:8003"
+      - "${AFM_MONITOR_PORT:-8004}:8004"
     depends_on:
       postgres:
         condition: service_healthy
@@ -284,7 +284,46 @@ services:
       - mortgage-ai-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # AI Chat WebSocket Service - Real-time conversational AI for mortgage advisory
+  chat-websocket:
+    build:
+      context: .
+      dockerfile: docker/chat-websocket.Dockerfile
+    container_name: mortgage-ai-chat-websocket
+    environment:
+      - DATABASE_URL=postgresql://mortgage_user:mortgage_pass@postgres:5432/mortgage_db
+      - REDIS_URL=redis://redis:6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=mortgage_db
+      - DB_USER=mortgage_user
+      - DB_PASSWORD=mortgage_pass
+      - AGENTS_API_URL=http://ai-agents:8000
+      - NODE_ENV=production
+      - CHAT_WEBSOCKET_PORT=8005
+    env_file: .env
+    volumes:
+      - ./backend:/app/backend:ro
+      - ./logs:/app/logs
+    ports:
+      - "${CHAT_WEBSOCKET_PORT:-8005}:8005"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ai-agents:
+        condition: service_healthy
+    networks:
+      - mortgage-ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
       interval: 30s
       timeout: 10s
       retries: 3

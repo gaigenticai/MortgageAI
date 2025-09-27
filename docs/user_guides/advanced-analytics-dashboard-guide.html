@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Analytics Dashboard User Guide - MortgageAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .nav-tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+        
+        .nav-tab.active {
+            color: #2a5298;
+            border-bottom-color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+        
+        .nav-tab:hover {
+            color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+        }
+        
+        .section h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 4px solid #2a5298;
+            padding-left: 15px;
+        }
+        
+        .section h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            margin-top: 25px;
+            font-size: 1.4em;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e9ecff 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-card h4 {
+            color: #2a5298;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .endpoint {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        
+        .method.get { background: #4CAF50; }
+        .method.post { background: #2196F3; }
+        .method.put { background: #FF9800; }
+        .method.delete { background: #f44336; }
+        
+        .step {
+            background: #f8f9ff;
+            padding: 20px;
+            border-left: 4px solid #2a5298;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .step h4 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+        
+        .warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .warning strong {
+            color: #856404;
+        }
+        
+        .info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border: 1px solid #17a2b8;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .info strong {
+            color: #0c5460;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #28a745;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .success strong {
+            color: #155724;
+        }
+        
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .parameter-table th,
+        .parameter-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .parameter-table th {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .parameter-table tr:hover {
+            background: #f8f9ff;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e9ecef;
+            color: #495057;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .badge.required {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .badge.optional {
+            background: #6c757d;
+            color: white;
+        }
+        
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .nav-tab {
+                min-width: auto;
+                flex: 1;
+                text-align: center;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .code-block {
+                font-size: 0.9em;
+            }
+        }
+        
+        .chart-example {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            color: #6c757d;
+        }
+        
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .widget {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .widget h5 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1e3c72;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298, #667eea);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Advanced Analytics Dashboard</h1>
+            <p>Dutch Market Intelligence, Predictive Modeling & Comprehensive Reporting</p>
+        </div>
+        
+        <div class="content">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+                <button class="nav-tab" onclick="showTab('market-intelligence')">Market Intelligence</button>
+                <button class="nav-tab" onclick="showTab('predictive-modeling')">Predictive Models</button>
+                <button class="nav-tab" onclick="showTab('visualizations')">Visualizations</button>
+                <button class="nav-tab" onclick="showTab('reporting')">Reporting</button>
+                <button class="nav-tab" onclick="showTab('api-reference')">API Reference</button>
+            </div>
+            
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="section">
+                    <h2>🎯 Dashboard Overview</h2>
+                    <p>The Advanced Analytics Dashboard provides comprehensive market intelligence and predictive analytics for the Dutch mortgage market. This powerful platform combines real-time data from multiple Dutch financial institutions and regulatory bodies to deliver actionable insights for strategic decision-making.</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🏠 Dutch Market Intelligence</h4>
+                            <p>Real-time data integration from CBS, DNB, Kadaster, AFM, NHG, and BKR for comprehensive market coverage.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔮 Predictive Modeling</h4>
+                            <p>Advanced machine learning models for forecasting market trends, pricing, and risk assessment.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📈 Interactive Visualizations</h4>
+                            <p>Dynamic charts, graphs, and dashboards with real-time updates and customizable layouts.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📋 Comprehensive Reporting</h4>
+                            <p>Automated report generation with export capabilities in multiple formats (PDF, Excel, JSON).</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>⚡ Real-time Insights</h4>
+                            <p>Automated insight generation with configurable alerts and threshold monitoring.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🎯 Benchmark Analysis</h4>
+                            <p>Peer comparison, historical analysis, and performance benchmarking against market standards.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>🚀 Key Features</h2>
+                    
+                    <h3>Dutch Market Data Sources</h3>
+                    <ul>
+                        <li><strong>CBS (Statistics Netherlands):</strong> Economic indicators, housing statistics, population data</li>
+                        <li><strong>DNB (Dutch Central Bank):</strong> Interest rates, monetary policy, financial stability</li>
+                        <li><strong>Kadaster (Land Registry):</strong> Property valuations, transaction volumes, price trends</li>
+                        <li><strong>AFM (Financial Markets Authority):</strong> Regulatory updates, compliance data</li>
+                        <li><strong>NHG (National Mortgage Guarantee):</strong> Guarantee applications, approval rates</li>
+                        <li><strong>BKR (Credit Registration Bureau):</strong> Credit data, default rates</li>
+                    </ul>
+                    
+                    <h3>Analytics Capabilities</h3>
+                    <ul>
+                        <li><strong>Trend Analysis:</strong> Identify patterns in house prices, interest rates, and market activity</li>
+                        <li><strong>Risk Assessment:</strong> Evaluate market risks, credit risks, and regulatory compliance</li>
+                        <li><strong>Opportunity Detection:</strong> Identify market opportunities and growth potential</li>
+                        <li><strong>Predictive Forecasting:</strong> Generate forecasts for key market indicators</li>
+                        <li><strong>Comparative Analysis:</strong> Benchmark performance against peers and historical data</li>
+                    </ul>
+                </div>
+                
+                <div class="section">
+                    <h2>📊 Sample Dashboard Layout</h2>
+                    <div class="dashboard-layout">
+                        <div class="widget">
+                            <h5>Market Health Score</h5>
+                            <div class="metric-value">85.2%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 85.2%"></div>
+                            </div>
+                        </div>
+                        <div class="widget">
+                            <h5>Average House Price</h5>
+                            <div class="metric-value">€425K</div>
+                            <small>+8.2% YoY</small>
+                        </div>
+                        <div class="widget">
+                            <h5>Interest Rate (10Y)</h5>
+                            <div class="metric-value">4.25%</div>
+                            <small>+0.15% MoM</small>
+                        </div>
+                        <div class="widget">
+                            <h5>Approval Rate</h5>
+                            <div class="metric-value">87.3%</div>
+                            <small>AFM Compliant</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Market Intelligence Tab -->
+            <div id="market-intelligence" class="tab-content">
+                <div class="section">
+                    <h2>🏦 Dutch Market Intelligence</h2>
+                    <p>Access comprehensive market data from authoritative Dutch sources with real-time updates and historical analysis.</p>
+                    
+                    <h3>Market Indicators</h3>
+                    <div class="step">
+                        <h4>Current Market Overview</h4>
+                        <p>Get real-time market indicators including housing prices, interest rates, lending volumes, and economic indicators.</p>
+                        <div class="code-block">
+GET /api/analytics/metrics/realtime
+# Returns current market indicators with:
+# - Housing market data
+# - Interest rate trends
+# - Lending market activity
+# - Economic indicators
+# - Regulatory environment status
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h4>Historical Trends Analysis</h4>
+                        <p>Analyze historical trends for any market metric with configurable time periods and aggregation.</p>
+                        <div class="code-block">
+GET /api/analytics/trends/house_prices?periods=24&aggregation=monthly
+# Returns historical trend data including:
+# - Time series data points
+# - Trend analysis (direction, volatility, growth rate)
+# - Statistical measures (R-squared, correlation)
+# - Seasonal adjustment factors
+                        </div>
+                    </div>
+                    
+                    <h3>Market Insights Generation</h3>
+                    <table class="parameter-table">
+                        <tr>
+                            <th>Insight Type</th>
+                            <th>Description</th>
+                            <th>Update Frequency</th>
+                        </tr>
+                        <tr>
+                            <td>Trend Analysis</td>
+                            <td>Price trends, market velocity, volume patterns</td>
+                            <td>Daily</td>
+                        </tr>
+                        <tr>
+                            <td>Risk Assessment</td>
+                            <td>Market risks, credit risks, affordability analysis</td>
+                            <td>Weekly</td>
+                        </tr>
+                        <tr>
+                            <td>Opportunity Detection</td>
+                            <td>Market opportunities, underserved segments</td>
+                            <td>Monthly</td>
+                        </tr>
+                        <tr>
+                            <td>Regulatory Impact</td>
+                            <td>AFM regulation changes, compliance implications</td>
+                            <td>As needed</td>
+                        </tr>
+                    </table>
+                    
+                    <h3>Data Quality & Reliability</h3>
+                    <div class="info">
+                        <strong>Data Sources:</strong> All data is sourced directly from official Dutch institutions with API integrations for real-time updates. Data quality scores are calculated based on completeness, timeliness, and accuracy metrics.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Predictive Modeling Tab -->
+            <div id="predictive-modeling" class="tab-content">
+                <div class="section">
+                    <h2>🔮 Predictive Analytics & Modeling</h2>
+                    <p>Leverage advanced machine learning models to forecast market trends and generate predictive insights.</p>
+                    
+                    <h3>Available Model Types</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>Linear Regression</h4>
+                            <p>Simple, interpretable models for understanding relationships between variables</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Random Forest</h4>
+                            <p>Ensemble method providing robust predictions with feature importance analysis</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Gradient Boosting</h4>
+                            <p>Advanced ensemble technique for high-accuracy predictions</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>Neural Networks</h4>
+                            <p>Deep learning models for complex pattern recognition (optional)</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Creating Forecasting Models</h3>
+                    <div class="step">
+                        <h4>Step 1: Model Configuration</h4>
+                        <p>Configure model parameters and select target variables for prediction.</p>
+                        <div class="code-block">
+POST /api/analytics/forecasts/create
+{
+  "target_variable": "house_price",
+  "model_type": "gradient_boosting",
+  "input_data": {
+    "interest_rate": 4.25,
+    "unemployment": 3.8,
+    "inflation": 3.2,
+    "gdp_growth": 2.1
+  },
+  "forecast_periods": 6,
+  "confidence_interval": 0.95
+}
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h4>Step 2: Model Training & Validation</h4>
+                        <p>Models are automatically trained on historical data with cross-validation for performance assessment.</p>
+                        <ul>
+                            <li><strong>Training Data:</strong> Up to 10,000 historical data points</li>
+                            <li><strong>Validation Split:</strong> 80/20 train/validation split</li>
+                            <li><strong>Performance Metrics:</strong> MAE, RMSE, R-squared, accuracy percentage</li>
+                            <li><strong>Cross-validation:</strong> 5-fold cross-validation for robust estimates</li>
+                        </ul>
+                    </div>
+                    
+                    <h3>Forecast Generation</h3>
+                    <p>Generated forecasts include point estimates, confidence intervals, and uncertainty quantification:</p>
+                    <div class="code-block">
+{
+  "model_id": "model_uuid",
+  "forecasts": [
+    {
+      "period": 1,
+      "forecast_value": 435000.0,
+      "confidence_interval": {
+        "lower": 413250.0,
+        "upper": 456750.0
+      },
+      "trend_component": 425000.0,
+      "uncertainty_component": 0.025
+    }
+  ],
+  "accuracy_metrics": {
+    "r_squared": 0.873,
+    "mean_absolute_error": 12500.0,
+    "accuracy_percentage": 94.2
+  }
+}
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Model Limitations:</strong> Predictive models are based on historical data and may not capture unprecedented market events. Always consider model confidence intervals and validate predictions against expert judgment.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Visualizations Tab -->
+            <div id="visualizations" class="tab-content">
+                <div class="section">
+                    <h2>📈 Interactive Visualizations</h2>
+                    <p>Create dynamic, interactive visualizations for comprehensive market analysis and presentation.</p>
+                    
+                    <h3>Available Chart Types</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📊 Market Health Gauge</h4>
+                            <p>Real-time market health indicator with color-coded performance levels</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📈 Trend Line Charts</h4>
+                            <p>Time series visualizations showing market trends over configurable periods</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📊 Comparative Bar Charts</h4>
+                            <p>Compare metrics across categories, regions, or time periods</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🥧 Market Composition</h4>
+                            <p>Pie charts showing market share, lending breakdown, or demographic analysis</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔥 Correlation Heatmaps</h4>
+                            <p>Visualize relationships between market variables and indicators</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🎯 Scatter Plots</h4>
+                            <p>Explore relationships between variables with regression lines</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Creating Dashboard Visualizations</h3>
+                    <div class="step">
+                        <h4>Generate Visualization Data</h4>
+                        <p>Request specific chart types with customized parameters.</p>
+                        <div class="code-block">
+GET /api/analytics/visualizations/dashboard?chart_types=gauge,line,bar,pie&time_period=12m
+# Returns visualization configurations for:
+# - Market health gauge
+# - Price trend lines
+# - Interest rate comparisons
+# - Market composition charts
+# - Correlation matrices
+                        </div>
+                    </div>
+                    
+                    <h3>Chart Configuration Options</h3>
+                    <table class="parameter-table">
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Options</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>chart_types</td>
+                            <td>gauge, line, bar, pie, heatmap, scatter</td>
+                            <td>Types of charts to generate</td>
+                        </tr>
+                        <tr>
+                            <td>time_period</td>
+                            <td>1m, 3m, 6m, 12m, 24m</td>
+                            <td>Historical data period for charts</td>
+                        </tr>
+                        <tr>
+                            <td>theme</td>
+                            <td>light, dark, auto</td>
+                            <td>Visual theme for charts</td>
+                        </tr>
+                        <tr>
+                            <td>refresh_cache</td>
+                            <td>true, false</td>
+                            <td>Force refresh of cached data</td>
+                        </tr>
+                    </table>
+                    
+                    <h3>Interactive Features</h3>
+                    <ul>
+                        <li><strong>Zoom & Pan:</strong> Navigate through time series data with interactive controls</li>
+                        <li><strong>Hover Details:</strong> Get detailed information by hovering over data points</li>
+                        <li><strong>Legend Filtering:</strong> Toggle data series visibility using interactive legends</li>
+                        <li><strong>Export Options:</strong> Save charts as PNG, SVG, or PDF for presentations</li>
+                        <li><strong>Real-time Updates:</strong> Charts automatically update with new data</li>
+                    </ul>
+                    
+                    <div class="chart-example">
+                        <h4>📊 Sample Visualization</h4>
+                        <p>Interactive charts will be rendered here in the actual dashboard</p>
+                        <small>Charts support responsive design and work on all devices</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reporting Tab -->
+            <div id="reporting" class="tab-content">
+                <div class="section">
+                    <h2>📋 Comprehensive Reporting</h2>
+                    <p>Generate detailed analytics reports with customizable sections, automated insights, and multiple export formats.</p>
+                    
+                    <h3>Report Types</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📊 Market Analysis Report</h4>
+                            <p>Comprehensive market overview with trends, insights, and forecasts</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>⚠️ Risk Assessment Report</h4>
+                            <p>Detailed risk analysis with mitigation strategies and recommendations</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📈 Performance Report</h4>
+                            <p>Performance metrics, KPI tracking, and benchmark comparisons</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🛡️ Compliance Report</h4>
+                            <p>AFM compliance status, regulatory updates, and audit trail</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Generating Custom Reports</h3>
+                    <div class="step">
+                        <h4>Report Configuration</h4>
+                        <p>Configure report parameters and select included sections.</p>
+                        <div class="code-block">
+POST /api/analytics/reports/generate
+{
+  "report_name": "Monthly Market Analysis",
+  "report_type": "market_analysis",
+  "time_period": "12m",
+  "sections": [
+    "overview",
+    "metrics", 
+    "insights",
+    "forecasts",
+    "recommendations"
+  ],
+  "export_format": "pdf",
+  "custom_parameters": {
+    "include_regulatory_section": true,
+    "focus_regions": ["randstad", "rest_of_netherlands"]
+  }
+}
+                        </div>
+                    </div>
+                    
+                    <h3>Report Sections</h3>
+                    <table class="parameter-table">
+                        <tr>
+                            <th>Section</th>
+                            <th>Content</th>
+                            <th>Required</th>
+                        </tr>
+                        <tr>
+                            <td>overview</td>
+                            <td>Executive summary, key metrics, data sources</td>
+                            <td><span class="badge optional">Optional</span></td>
+                        </tr>
+                        <tr>
+                            <td>metrics</td>
+                            <td>Detailed performance metrics and KPIs</td>
+                            <td><span class="badge optional">Optional</span></td>
+                        </tr>
+                        <tr>
+                            <td>insights</td>
+                            <td>Market insights with analysis and implications</td>
+                            <td><span class="badge optional">Optional</span></td>
+                        </tr>
+                        <tr>
+                            <td>forecasts</td>
+                            <td>Predictive forecasts and scenario analysis</td>
+                            <td><span class="badge optional">Optional</span></td>
+                        </tr>
+                        <tr>
+                            <td>visualizations</td>
+                            <td>Charts, graphs, and visual analysis</td>
+                            <td><span class="badge optional">Optional</span></td>
+                        </tr>
+                        <tr>
+                            <td>recommendations</td>
+                            <td>Strategic recommendations and action items</td>
+                            <td><span class="badge optional">Optional</span></td>
+                        </tr>
+                    </table>
+                    
+                    <h3>Export Formats</h3>
+                    <ul>
+                        <li><strong>PDF:</strong> Professional formatted reports suitable for presentations and sharing</li>
+                        <li><strong>Excel:</strong> Data-rich spreadsheets with multiple sheets and interactive elements</li>
+                        <li><strong>HTML:</strong> Web-ready reports with interactive visualizations</li>
+                        <li><strong>JSON:</strong> Structured data format for system integration</li>
+                    </ul>
+                    
+                    <h3>Automated Reporting</h3>
+                    <div class="info">
+                        <strong>Scheduled Reports:</strong> Configure automated report generation with daily, weekly, or monthly schedules. Reports can be automatically distributed to stakeholders via email or integrated systems.
+                    </div>
+                    
+                    <div class="step">
+                        <h4>Report Download</h4>
+                        <p>Access generated reports through the download API.</p>
+                        <div class="code-block">
+GET /api/analytics/reports/{reportId}/download
+# Returns:
+# - Generated report in requested format
+# - Report metadata and generation timestamp
+# - Access permissions and sharing settings
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- API Reference Tab -->
+            <div id="api-reference" class="tab-content">
+                <div class="section">
+                    <h2>🔧 API Reference</h2>
+                    <p>Complete API documentation for integrating with the Advanced Analytics Dashboard.</p>
+                    
+                    <h3>Authentication</h3>
+                    <p>All API endpoints require proper authentication when <code>REQUIRE_AUTH=true</code>:</p>
+                    <div class="code-block">
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+                    </div>
+                    
+                    <h3>Market Intelligence Endpoints</h3>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Real-time Market Metrics</h4>
+                        <p><span class="endpoint">/api/analytics/metrics/realtime</span></p>
+                        <p>Retrieve current market indicators and real-time metrics.</p>
+                        <div class="code-block">
+GET /api/analytics/metrics/realtime
+Response: {
+  "success": true,
+  "timestamp": "2024-01-15T14:30:00Z",
+  "market_status": "active",
+  "key_indicators": {
+    "house_price_index": 142.5,
+    "average_mortgage_rate": 4.25,
+    "market_velocity": 28,
+    "lending_activity": 5.2
+  },
+  "alert_levels": {
+    "price_volatility": "normal",
+    "interest_rate_risk": "elevated"
+  }
+}
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Market Insights</h4>
+                        <p><span class="endpoint">/api/analytics/insights</span></p>
+                        <p>Get generated market insights with configurable filters.</p>
+                        <div class="code-block">
+GET /api/analytics/insights?insight_types=trend_analysis,risk_assessment&confidence_threshold=0.7
+Parameters:
+- insight_types: trend_analysis, risk_assessment, opportunity_detection, regulatory_impact
+- time_period: 1m, 3m, 6m, 12m, 24m
+- confidence_threshold: 0.0 to 1.0 (minimum confidence level)
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Historical Trends</h4>
+                        <p><span class="endpoint">/api/analytics/trends/{metric}</span></p>
+                        <p>Retrieve historical trend data for specific market metrics.</p>
+                        <div class="code-block">
+GET /api/analytics/trends/house_prices?periods=24&aggregation=monthly
+Parameters:
+- periods: 6 to 60 (number of time periods)
+- aggregation: daily, weekly, monthly, quarterly
+                        </div>
+                    </div>
+                    
+                    <h3>Predictive Modeling Endpoints</h3>
+                    
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Create Forecast Model</h4>
+                        <p><span class="endpoint">/api/analytics/forecasts/create</span></p>
+                        <p>Create and train a predictive model for forecasting.</p>
+                        <div class="code-block">
+POST /api/analytics/forecasts/create
+{
+  "target_variable": "house_price",
+  "model_type": "ensemble",
+  "input_data": {
+    "interest_rate": 4.25,
+    "unemployment": 3.8,
+    "inflation": 3.2
+  },
+  "forecast_periods": 6,
+  "confidence_interval": 0.95
+}
+                        </div>
+                    </div>
+                    
+                    <h3>Visualization Endpoints</h3>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Dashboard Visualizations</h4>
+                        <p><span class="endpoint">/api/analytics/visualizations/dashboard</span></p>
+                        <p>Generate visualization configurations for dashboard charts.</p>
+                        <div class="code-block">
+GET /api/analytics/visualizations/dashboard?chart_types=gauge,line,bar,pie&time_period=12m
+Parameters:
+- chart_types: gauge, line, bar, pie, heatmap, scatter
+- time_period: 1m, 3m, 6m, 12m, 24m
+- refresh_cache: true, false
+                        </div>
+                    </div>
+                    
+                    <h3>Reporting Endpoints</h3>
+                    
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Generate Report</h4>
+                        <p><span class="endpoint">/api/analytics/reports/generate</span></p>
+                        <p>Create comprehensive analytics reports with custom configuration.</p>
+                        <div class="code-block">
+POST /api/analytics/reports/generate
+{
+  "report_name": "Monthly Market Analysis",
+  "report_type": "market_analysis",
+  "time_period": "12m",
+  "sections": ["overview", "metrics", "insights"],
+  "export_format": "pdf"
+}
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Comprehensive Analysis</h4>
+                        <p><span class="endpoint">/api/analytics/analysis/comprehensive</span></p>
+                        <p>Generate complete market analysis with all components.</p>
+                        <div class="code-block">
+GET /api/analytics/analysis/comprehensive?analysis_type=market_analysis&time_period=12m&include_forecasts=true
+Parameters:
+- analysis_type: market_analysis, risk_assessment, performance, compliance
+- time_period: 1m, 3m, 6m, 12m, 24m
+- include_forecasts: true, false
+- include_visualizations: true, false
+                        </div>
+                    </div>
+                    
+                    <h3>Benchmark Analysis</h3>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Market Benchmarks</h4>
+                        <p><span class="endpoint">/api/analytics/benchmarks</span></p>
+                        <p>Get benchmark comparisons and performance analysis.</p>
+                        <div class="code-block">
+GET /api/analytics/benchmarks?benchmark_type=peer_comparison&metrics=interest_rates,approval_rates
+Parameters:
+- benchmark_type: peer_comparison, historical_comparison, regional_comparison
+- metrics: interest_rates, approval_rates, processing_times, loan_amounts
+                        </div>
+                    </div>
+                    
+                    <h3>Configuration and Health</h3>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> System Configuration</h4>
+                        <p><span class="endpoint">/api/analytics/config</span></p>
+                        <p>Retrieve current analytics system configuration and feature flags.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Health Check</h4>
+                        <p><span class="endpoint">/api/analytics/health</span></p>
+                        <p>Check health status of analytics services and dependencies.</p>
+                    </div>
+                    
+                    <h3>Rate Limits</h3>
+                    <table class="parameter-table">
+                        <tr>
+                            <th>Endpoint Category</th>
+                            <th>Rate Limit</th>
+                            <th>Time Window</th>
+                        </tr>
+                        <tr>
+                            <td>Real-time metrics</td>
+                            <td>60 requests</td>
+                            <td>Per minute</td>
+                        </tr>
+                        <tr>
+                            <td>Analysis generation</td>
+                            <td>10 requests</td>
+                            <td>Per minute</td>
+                        </tr>
+                        <tr>
+                            <td>Report generation</td>
+                            <td>5 requests</td>
+                            <td>Per minute</td>
+                        </tr>
+                        <tr>
+                            <td>General queries</td>
+                            <td>100 requests</td>
+                            <td>Per minute</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="warning">
+                        <strong>Performance Note:</strong> Complex analysis operations may take up to 5 minutes to complete. Use appropriate timeouts in your applications and consider implementing progress indicators for better user experience.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 MortgageAI - Advanced Analytics Dashboard. Built for Dutch mortgage market intelligence and predictive analytics.</p>
+            <p>For technical support, configuration assistance, or advanced analytics consultation, please contact the system administrator.</p>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Progress bar animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>

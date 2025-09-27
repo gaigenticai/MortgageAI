@@ -6,8 +6,12 @@ process.env.REACT_APP_API_BASE_URL = 'http://localhost:3000';
 process.env.REACT_APP_WS_URL = 'ws://localhost:3000';
 
 // Mock localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
+const localStorageMock: Storage = {
+  get length() {
+    return 0;
+  },
+  key: jest.fn(),
+  getItem: jest.fn(() => null),
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),

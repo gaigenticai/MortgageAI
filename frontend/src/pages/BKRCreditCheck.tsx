@@ -1,77 +1,88 @@
-/**
- * BKR Credit Check
- *
- * Integrates with Dutch BKR (Bureau Krediet Registratie) for credit scoring
- * Provides comprehensive credit assessment for mortgage applications
- */
 import React, { useState, useEffect } from 'react';
 import {
   Container,
   Card,
-  CardContent,
-  Typography,
   Button,
   Box,
   Grid,
-  Chip,
+  Badge,
   Alert,
   Avatar,
-  CircularProgress,
+  Loader,
   Paper,
-  LinearProgress,
+  Progress,
   List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Divider,
-} from '@mui/material';
+  Text,
+  Title,
+  Group,
+  Stack,
+} from '@mantine/core';
 import {
-  Assessment,
-  CheckCircle,
-  Warning,
-  Error as ErrorIcon,
-  CreditScore,
-  ArrowBack,
-  Refresh,
-} from '@mui/icons-material';
+  IconChartBar,
+  IconCheck,
+  IconAlertTriangle,
+  IconCreditCard,
+  IconArrowLeft,
+  IconRefresh,
+} from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import { creditCheckApi, CreditReport } from '../services/creditCheckApi';
+import { notifications } from '@mantine/notifications';
+import { apiClient } from '../services/apiClient';
 import { useClient } from '../contexts/ClientContext';
-
+import { useDemoMode } from '../contexts/DemoModeContext';
 
 const BKRCreditCheck: React.FC = () => {
-  const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
-  const { currentClientId } = useClient();
-
-  const [creditReport, setCreditReport] = useState<CreditReport | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [creditReport, setCreditReport] = useState<any>(null);
+  const navigate = useNavigate();
+  const { currentClientId } = useClient();
+  const { isDemoMode } = useDemoMode();
 
-  // Initialize API service with snackbar
   useEffect(() => {
-    creditCheckApi.setSnackbar(enqueueSnackbar);
-  }, [enqueueSnackbar]);
-
-  useEffect(() => {
-    loadCreditReport();
-  }, [currentClientId]);
+    if (isDemoMode) {
+      // Load demo data immediately in demo mode
+      loadCreditReport();
+    } else if (currentClientId) {
+      // Load real data only if client is selected in production mode
+      loadCreditReport();
+    }
+  }, [currentClientId, isDemoMode]);
 
   const loadCreditReport = async () => {
-    if (!currentClientId) {
-      enqueueSnackbar('No client selected', { variant: 'warning' });
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
-      const report = await creditCheckApi.getClientCreditReport(currentClientId);
+      
+      if (isDemoMode) {
+        // Return mock data for demo mode
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
+        const mockReport = getMockBKRReport();
+        setCreditReport(mockReport);
+        return;
+      }
+
+      if (!currentClientId) {
+        notifications.show({
+          title: 'Warning',
+          message: 'No client selected',
+          color: 'yellow',
+          icon: <IconAlertTriangle size={16} />,
+        });
+        setLoading(false);
+        return;
+      }
+
+      const report = await apiClient.getBKRReportByClient(currentClientId);
       setCreditReport(report);
     } catch (error) {
       console.error('Failed to load credit report:', error);
-      enqueueSnackbar('Failed to load BKR credit report', { variant: 'error' });
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to load BKR credit report',
+        color: 'red',
+        icon: <IconAlertTriangle size={16} />,
+      });
     } finally {
       setLoading(false);
     }
@@ -79,315 +90,265 @@ const BKRCreditCheck: React.FC = () => {
 
   const performCreditCheck = async () => {
     if (!creditReport) return;
-
     setChecking(true);
     try {
-      const response = await creditCheckApi.refreshCreditReport(creditReport.id);
+      if (isDemoMode) {
+        // Simulate refresh in demo mode
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const refreshedReport = getMockBKRReport();
+        setCreditReport(refreshedReport);
+        notifications.show({
+          title: 'Success',
+          message: 'BKR credit check refreshed successfully (Demo)',
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        });
+        return;
+      }
+
+      const response = await apiClient.refreshBKRReport(creditReport.id);
       if (response.status === 'completed' && response.report) {
         setCreditReport(response.report);
-        enqueueSnackbar('BKR credit check refreshed successfully', { variant: 'success' });
+        notifications.show({
+          title: 'Success',
+          message: 'BKR credit check refreshed successfully',
+          color: 'green',
+          icon: <IconCheck size={16} />,
+        });
       } else {
-        enqueueSnackbar('Credit check is processing. Please check back later.', { variant: 'info' });
+        notifications.show({
+          title: 'Info',
+          message: 'Credit check is processing. Please check back later.',
+          color: 'blue',
+          icon: <IconAlertTriangle size={16} />,
+        });
       }
     } catch (error) {
-      enqueueSnackbar('Failed to refresh BKR credit check', { variant: 'error' });
+      notifications.show({
+        title: 'Error',
+        message: 'Failed to refresh BKR credit check',
+        color: 'red',
+        icon: <IconAlertTriangle size={16} />,
+      });
     } finally {
       setChecking(false);
     }
   };
 
-  const getScoreColor = (score: number) => {
-    if (score >= 800) return 'success';
-    if (score >= 700) return 'warning';
-    if (score >= 600) return 'warning';
-    return 'error';
-  };
-
-  const getScoreLabel = (range: string) => {
-    switch (range) {
-      case 'excellent': return 'Excellent (800+)';
-      case 'good': return 'Good (700-799)';
-      case 'fair': return 'Fair (600-699)';
-      case 'poor': return 'Poor (500-599)';
-      case 'very_poor': return 'Very Poor (<500)';
-      default: return 'Unknown';
-    }
-  };
-
   if (loading) {
     return (
-      <Container maxWidth="lg">
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '60vh',
-          flexDirection: 'column',
-          gap: 2
-        }}>
-          <CircularProgress size={60} />
-          <Typography variant="h6" color="text.secondary">
-            Loading BKR Credit Report...
-          </Typography>
+      <Container size="xl" py="xl">
+        <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <Loader size="lg" />
         </Box>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mb: 4 }}>
-        <Button
-          startIcon={<ArrowBack />}
-          onClick={() => navigate('/')}
-          sx={{ mb: 2 }}
-        >
-          Back to Dashboard
-        </Button>
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        <Group>
+          <Button
+            leftSection={<IconArrowLeft size={16} />}
+            onClick={() => navigate(-1)}
+            variant="subtle"
+            radius={0}
+          >
+            Back
+          </Button>
+        </Group>
+        
+        <Group>
+          <Avatar size="xl" radius={0} color="indigo">
+            <IconCreditCard size={32} />
+          </Avatar>
+          <div>
+            <Title order={1}>BKR Credit Check</Title>
+            <Text c="dimmed">Dutch credit bureau verification and analysis</Text>
+          </div>
+        </Group>
 
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
-          BKR Credit Check
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          Dutch credit scoring and mortgage eligibility assessment
-        </Typography>
-
-        {creditReport && (
-          <>
+        {!creditReport ? (
+          <Card radius={0} shadow="sm" padding="lg">
+            <Title order={3} mb="md">No Credit Report Available</Title>
+            <Text c="dimmed" mb="md">
+              No BKR credit report found for the selected client. Please ensure a client is selected and try again.
+            </Text>
+            <Button
+              leftSection={<IconRefresh size={16} />}
+              onClick={loadCreditReport}
+              disabled={!currentClientId}
+              radius={0}
+            >
+              Load Credit Report
+            </Button>
+          </Card>
+        ) : (
+          <Stack gap="lg">
             {/* Credit Score Overview */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <Avatar sx={{
-                        bgcolor: getScoreColor(creditReport.credit_score) + '.main',
-                        mr: 2,
-                        width: 48,
-                        height: 48
-                      }}>
-                        <CreditScore />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          Credit Score
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          BKR Report • {new Date(creditReport.report_date).toLocaleDateString('nl-NL')}
-                        </Typography>
-                      </Box>
-                    </Box>
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Paper p="md" radius={0} style={{ textAlign: 'center' }}>
+                  <Text size="sm" c="dimmed">Credit Score</Text>
+                  <Title order={2} c="indigo" my="sm">
+                    {creditReport.creditScore}
+                  </Title>
+                  <Progress
+                    value={(creditReport.creditScore / 850) * 100}
+                    color="indigo"
+                    radius={0}
+                  />
+                </Paper>
+              </Grid.Col>
 
-                    <Box sx={{ textAlign: 'center', mb: 2 }}>
-                      <Typography variant="h2" sx={{
-                        fontWeight: 700,
-                        color: getScoreColor(creditReport.credit_score) + '.main',
-                        mb: 1
-                      }}>
-                        {creditReport.credit_score}
-                      </Typography>
-                      <Chip
-                        label={getScoreLabel(creditReport.score_range)}
-                        color={getScoreColor(creditReport.credit_score)}
-                        sx={{ fontWeight: 600 }}
-                      />
-                    </Box>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Paper p="md" radius={0} style={{ textAlign: 'center' }}>
+                  <Text size="sm" c="dimmed">Risk Category</Text>
+                  <Badge
+                    color={creditReport.riskCategory === 'Low' ? 'green' : 'orange'}
+                    size="lg"
+                    radius={0}
+                    mt="sm"
+                  >
+                    {creditReport.riskCategory}
+                  </Badge>
+                </Paper>
+              </Grid.Col>
 
-                    <Button
-                      fullWidth
-                      variant="outlined"
-                      onClick={performCreditCheck}
-                      disabled={checking}
-                      startIcon={checking ? <CircularProgress size={16} /> : <Refresh />}
-                    >
-                      {checking ? 'Checking...' : 'Refresh Credit Report'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Paper p="md" radius={0} style={{ textAlign: 'center' }}>
+                  <Text size="sm" c="dimmed">Total Debt</Text>
+                  <Title order={2} my="sm">
+                    €{creditReport.totalDebt?.toLocaleString() || '0'}
+                  </Title>
+                </Paper>
+              </Grid.Col>
 
-              <Grid item xs={12} md={6}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-                      Mortgage Eligibility
-                    </Typography>
-
-                    <Box sx={{ textAlign: 'center', mb: 2 }}>
-                      <Avatar sx={{
-                        bgcolor: creditReport.mortgage_eligibility.eligible ? 'success.main' : 'error.main',
-                        width: 48,
-                        height: 48,
-                        mx: 'auto',
-                        mb: 2
-                      }}>
-                        {creditReport.mortgage_eligibility.eligible ? <CheckCircle /> : <ErrorIcon />}
-                      </Avatar>
-
-                      <Typography variant="h4" sx={{
-                        fontWeight: 700,
-                        color: creditReport.mortgage_eligibility.eligible ? 'success.main' : 'error.main',
-                        mb: 1
-                      }}>
-                        {creditReport.mortgage_eligibility.eligible ? 'Eligible' : 'Not Eligible'}
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Max Amount: €{creditReport.mortgage_eligibility.max_mortgage_amount.toLocaleString()}
-                      </Typography>
-
-                      {creditReport.mortgage_eligibility.conditions && (
-                        <Box>
-                          <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                            Conditions:
-                          </Typography>
-                          <List dense>
-                            {creditReport.mortgage_eligibility.conditions.map((condition, index) => (
-                              <ListItem key={index}>
-                                <ListItemIcon>
-                                  <Warning sx={{ color: 'warning.main', fontSize: 16 }} />
-                                </ListItemIcon>
-                                <ListItemText
-                                  primary={<Typography variant="body2">{condition}</Typography>}
-                                />
-                              </ListItem>
-                            ))}
-                          </List>
-                        </Box>
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
+              <Grid.Col span={{ base: 12, md: 3 }}>
+                <Paper p="md" radius={0} style={{ textAlign: 'center' }}>
+                  <Text size="sm" c="dimmed">Active Loans</Text>
+                  <Title order={2} my="sm">
+                    {creditReport.activeLoans || 0}
+                  </Title>
+                </Paper>
+              </Grid.Col>
             </Grid>
 
-            {/* Payment History */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                      Payment History
-                    </Typography>
+            {/* Credit Details */}
+            <Card radius={0} shadow="sm" padding="lg">
+              <Group justify="space-between" mb="md">
+                <Title order={3}>Credit Details</Title>
+                <Button
+                  variant="outline"
+                  leftSection={<IconRefresh size={16} />}
+                  onClick={performCreditCheck}
+                  loading={checking}
+                  radius={0}
+                >
+                  {checking ? 'Refreshing...' : 'Refresh Report'}
+                </Button>
+              </Group>
 
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} sm={4}>
-                        <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'success.light' }}>
-                          <Typography variant="h4" sx={{ fontWeight: 700, color: 'success.dark' }}>
-                            {creditReport.payment_history.on_time_payments}
-                          </Typography>
-                          <Typography variant="body2" color="success.dark">
-                            On-Time Payments
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'warning.light' }}>
-                          <Typography variant="h4" sx={{ fontWeight: 700, color: 'warning.dark' }}>
-                            {creditReport.payment_history.late_payments}
-                          </Typography>
-                          <Typography variant="body2" color="warning.dark">
-                            Late Payments
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                      <Grid item xs={12} sm={4}>
-                        <Paper sx={{ p: 2, textAlign: 'center', bgcolor: 'error.light' }}>
-                          <Typography variant="h4" sx={{ fontWeight: 700, color: 'error.dark' }}>
-                            {creditReport.payment_history.defaulted_loans}
-                          </Typography>
-                          <Typography variant="body2" color="error.dark">
-                            Defaulted Loans
-                          </Typography>
-                        </Paper>
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
+              {creditReport.loans && creditReport.loans.length > 0 ? (
+                <List spacing="md">
+                  {creditReport.loans.map((loan: any, index: number) => (
+                    <React.Fragment key={index}>
+                      <List.Item
+                        icon={<IconChartBar size={20} />}
+                      >
+                        <div>
+                          <Text fw={500}>{loan.type}</Text>
+                          <Text size="sm" c="dimmed">
+                            Amount: €{loan.amount?.toLocaleString() || '0'}
+                          </Text>
+                          <Text size="sm" c="dimmed">
+                            Monthly Payment: €{loan.monthlyPayment?.toLocaleString() || '0'}
+                          </Text>
+                          <Badge
+                            color={loan.status === 'Active' ? 'green' : 'gray'}
+                            size="sm"
+                            radius={0}
+                            mt="xs"
+                          >
+                            {loan.status}
+                          </Badge>
+                        </div>
+                      </List.Item>
+                      {index < creditReport.loans.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                </List>
+              ) : (
+                <Text c="dimmed">No active loans found.</Text>
+              )}
+            </Card>
 
-            {/* Active Loans */}
-            {creditReport.active_loans.length > 0 && (
-              <Card sx={{ mb: 4 }}>
-                <CardContent>
-                  <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                    Active Loans
-                  </Typography>
-
-                  <List>
-                    {creditReport.active_loans.map((loan, index) => (
-                      <React.Fragment key={index}>
-                        <ListItem>
-                          <ListItemIcon>
-                            <Assessment />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                                {loan.type} - {loan.creditor}
-                              </Typography>
-                            }
-                          secondary={
-                            <Box>
-                              <Typography variant="body2" color="text.secondary">
-                                Amount: €{loan.outstanding_amount.toLocaleString()} • Monthly: €{loan.monthly_payment}
-                              </Typography>
-                              <Chip
-                                label={loan.status}
-                                size="small"
-                                color={loan.status === 'current' ? 'success' : 'warning'}
-                                sx={{ mt: 1 }}
-                              />
-                            </Box>
-                          }
-                          />
-                        </ListItem>
-                        {index < creditReport.active_loans.length - 1 && <Divider />}
-                      </React.Fragment>
-                    ))}
-                  </List>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Recommendations */}
-            <Alert severity="info" sx={{ mb: 4 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                BKR Recommendations
-              </Typography>
-              <ul style={{ margin: 0, paddingLeft: '20px' }}>
-                {creditReport.recommendations.map((rec, index) => (
-                  <li key={index}>
-                    <Typography variant="body2">{rec.message}</Typography>
-                  </li>
-                ))}
-              </ul>
+            {/* Report Information */}
+            <Alert color="blue" icon={<IconAlertTriangle size={16} />} radius={0}>
+              This BKR credit report was generated on{' '}
+              {new Date(creditReport.reportDate).toLocaleDateString()}. 
+              Credit information is updated regularly and may change.
             </Alert>
-
-            {/* Action Buttons */}
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
-              <Button
-                variant="outlined"
-                onClick={() => navigate('/nhg-eligibility')}
-              >
-                Check NHG Eligibility
-              </Button>
-              <Button
-                variant="contained"
-                onClick={() => navigate('/mortgage-application')}
-                sx={{
-                  background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                }}
-              >
-                Proceed to Application
-              </Button>
-            </Box>
-          </>
+          </Stack>
         )}
-      </Box>
+      </Stack>
     </Container>
   );
+};
+
+// Mock data function for demo mode
+const getMockBKRReport = () => {
+  return {
+    id: 'demo-bkr-report-001',
+    clientId: 'demo-client-001',
+    creditScore: 742,
+    riskCategory: 'Low',
+    totalDebt: 45000,
+    activeLoans: 2,
+    reportDate: new Date().toISOString(),
+    loans: [
+      {
+        type: 'Personal Loan',
+        amount: 15000,
+        monthlyPayment: 285,
+        status: 'Active',
+        lender: 'ING Bank',
+        startDate: '2022-03-15',
+        remainingBalance: 12500
+      },
+      {
+        type: 'Car Loan',
+        amount: 30000,
+        monthlyPayment: 450,
+        status: 'Active',
+        lender: 'Rabobank',
+        startDate: '2021-08-20',
+        remainingBalance: 18200
+      },
+      {
+        type: 'Credit Card',
+        amount: 2500,
+        monthlyPayment: 125,
+        status: 'Active',
+        lender: 'ABN AMRO',
+        startDate: '2020-01-10',
+        remainingBalance: 1800
+      }
+    ],
+    creditHistory: {
+      totalAccounts: 8,
+      closedAccounts: 5,
+      onTimePayments: 98.5,
+      latePayments: 2,
+      defaults: 0
+    },
+    recommendations: [
+      'Maintain current payment schedule to improve credit score',
+      'Consider consolidating smaller debts',
+      'Monitor credit utilization ratio'
+    ]
+  };
 };
 
 export default BKRCreditCheck;

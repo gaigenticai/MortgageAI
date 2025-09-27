@@ -1,19 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container, Grid, Card, CardContent, Typography, Button, Box, Chip,
-  LinearProgress, Alert, Avatar, List, ListItem, ListItemText,
-  ListItemIcon, Divider, CircularProgress, Paper, Tooltip, IconButton
-} from '@mui/material';
+  Grid,
+  Card,
+  Text,
+  Button,
+  Box,
+  Badge,
+  Progress,
+  Avatar,
+  Stack,
+  Group,
+  Divider,
+  Loader,
+  Tooltip,
+  Container,
+  Title,
+  ActionIcon,
+  Paper,
+  SimpleGrid,
+} from '@mantine/core';
 import {
-  Gavel, AccountBalance, Assessment, Security, TrendingUp,
-  CheckCircle, Warning, Person, Business, Schedule, Verified,
-  InfoOutlined
-} from '@mui/icons-material';
+  IconGavel,
+  IconBuildingBank,
+  IconChartBar,
+  IconTrendingUp,
+  IconUser,
+  IconBuilding,
+  IconClock,
+  IconInfoCircle,
+  IconArrowRight,
+  IconShield,
+  IconCheck,
+  IconAlertTriangle,
+} from '@tabler/icons-react';
 import { useNavigate } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
-import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
+import { notifications } from '@mantine/notifications';
 import { apiClient } from '../services/apiClient';
 import ComparisonChart from '../components/ComparisonChart';
+import { useDemoMode } from '../contexts/DemoModeContext';
 
 interface DashboardMetrics {
   afm_compliance_score: number;
@@ -21,789 +45,297 @@ interface DashboardMetrics {
   pending_reviews: number;
   applications_processed_today: number;
   first_time_right_rate: number;
-  avg_processing_time_minutes: number;
-}
-
-interface AgentStatus {
-  agent_type: 'afm_compliance' | 'dutch_mortgage_qc';
-  status: 'online' | 'offline' | 'processing';
-  last_activity: string;
-  processed_today: number;
-  success_rate: number;
-}
-
-interface LenderIntegrationStatus {
-  lender_name: string;
-  status: 'online' | 'offline' | 'maintenance';
-  api_response_time_ms: number;
-  success_rate: number;
-  last_sync: string;
+  average_processing_time: number;
+  compliance_alerts: number;
+  quality_score: number;
 }
 
 interface RecentActivity {
-  type: 'afm_compliance' | 'dutch_mortgage_qc';
-  action: string;
-  client_name: string;
+  id: string;
+  type: string;
+  description: string;
   timestamp: string;
-  result: string;
+  status: 'completed' | 'pending' | 'warning' | 'error';
+  client_name?: string;
 }
 
 const DutchMortgageDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
-  
-  const [dashboardMetrics, setDashboardMetrics] = useState<DashboardMetrics | null>(null);
-  const [agentStatuses, setAgentStatuses] = useState<AgentStatus[]>([]);
-  const [lenderStatuses, setLenderStatuses] = useState<LenderIntegrationStatus[]>([]);
+  const { isDemoMode } = useDemoMode();
+  const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Guided tour state
-  const [runTour, setRunTour] = useState(false);
-
-  // Define tour steps for guided walkthrough
-  const tourSteps: Step[] = [
-    {
-      target: '.demo-toggle',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>Welcome to MortgageAI!</Typography>
-          <Typography variant="body2">
-            Toggle "Demo Mode" to explore the platform with sample data - perfect for seeing our AI capabilities without requiring authentication.
-          </Typography>
-        </Box>
-      ),
-      placement: 'bottom',
-      disableBeacon: true,
-    },
-    {
-      target: '#metric-compliance',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>AFM Compliance Score</Typography>
-          <Typography variant="body2">
-            Real-time tracking of how well our AI agents comply with Dutch Financial Markets Authority (AFM) regulations.
-          </Typography>
-        </Box>
-      ),
-      placement: 'top',
-    },
-    {
-      target: '#metric-ftr',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>First-Time-Right Rate</Typography>
-          <Typography variant="body2">
-            The percentage of mortgage applications that pass quality control on the first submission, eliminating costly rework.
-          </Typography>
-        </Box>
-      ),
-      placement: 'top',
-    },
-    {
-      target: '#metric-avgtime',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>Average Processing Time</Typography>
-          <Typography variant="body2">
-            How quickly our AI agents complete mortgage processing tasks - from minutes instead of days.
-          </Typography>
-        </Box>
-      ),
-      placement: 'top',
-    },
-    {
-      target: '.quick-actions',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>Quick Actions</Typography>
-          <Typography variant="body2">
-            Start a new client intake, run compliance checks, or process applications with our AI-powered workflow.
-          </Typography>
-        </Box>
-      ),
-      placement: 'top',
-    },
-    {
-      target: '#comparison-chart',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>AI Impact Comparison</Typography>
-          <Typography variant="body2">
-            See the dramatic improvement in mortgage processing metrics before and after implementing MortgageAI.
-          </Typography>
-        </Box>
-      ),
-      placement: 'top',
-    },
-    {
-      target: '.recent-activity',
-      content: (
-        <Box>
-          <Typography variant="h6" sx={{ mb: 1 }}>Live Agent Activity</Typography>
-          <Typography variant="body2">
-            Real-time feed of all AI agent activities across the platform - from compliance checks to lender integrations.
-          </Typography>
-        </Box>
-      ),
-      placement: 'left',
-    },
-  ];
-
-  // Handle tour completion
-  const handleTourCallback = (data: CallBackProps) => {
-    const { status } = data;
-    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
-      setRunTour(false);
-      localStorage.setItem('mortgageai_tour_completed', 'true');
-    }
-  };
 
   useEffect(() => {
-    loadDashboardData();
-    // Set up real-time updates
-    const interval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [metricsData, activityData] = await Promise.all([
+          apiClient.getDashboardMetrics(),
+          apiClient.getRecentActivity()
+        ]);
+        
+        setMetrics(metricsData);
+        setRecentActivity(activityData);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        notifications.show({
+          title: 'Error',
+          message: 'Failed to load dashboard data',
+          color: 'red',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
-  // Trigger guided tour on first visit
-  useEffect(() => {
-    const tourCompleted = localStorage.getItem('mortgageai_tour_completed');
-    if (!tourCompleted && !loading) {
-      // Small delay to ensure DOM is ready
-      const timer = setTimeout(() => {
-        setRunTour(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
-
-  const loadDashboardData = async (showRefreshIndicator = false) => {
-    try {
-      if (showRefreshIndicator) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      
-      // Load real metrics from backend agents
-      const [metricsResponse, agentsResponse, lendersResponse, activityResponse] = await Promise.all([
-        apiClient.getDashboardMetrics(),
-        apiClient.getAgentStatus(),
-        apiClient.getLenderStatus(),
-        apiClient.getRecentActivity()
-      ]);
-
-      setDashboardMetrics(metricsResponse);
-      setAgentStatuses(agentsResponse.agents);
-      setLenderStatuses(lendersResponse.lenders);
-      setRecentActivity(activityResponse.activities);
-      
-    } catch (error) {
-      // Production-grade error handling - would integrate with error tracking service
-      enqueueSnackbar('Failed to load dashboard data', { variant: 'error' });
-      
-      // Fallback to demo data if API fails
-      setDashboardMetrics({
-        afm_compliance_score: 96.8,
-        active_sessions: 12,
-        pending_reviews: 3,
-        applications_processed_today: 47,
-        first_time_right_rate: 94.2,
-        avg_processing_time_minutes: 8.5
-      });
-      
-      setAgentStatuses([
-        {
-          agent_type: 'afm_compliance',
-          status: 'online',
-          last_activity: new Date().toISOString(),
-          processed_today: 32,
-          success_rate: 98.5
-        },
-        {
-          agent_type: 'dutch_mortgage_qc',
-          status: 'online', 
-          last_activity: new Date().toISOString(),
-          processed_today: 28,
-          success_rate: 96.1
-        }
-      ]);
-
-      setLenderStatuses([
-        {
-          lender_name: 'Stater',
-          status: 'online',
-          api_response_time_ms: 245,
-          success_rate: 98.2,
-          last_sync: new Date().toISOString()
-        },
-        {
-          lender_name: 'Quion',
-          status: 'online',
-          api_response_time_ms: 189,
-          success_rate: 97.8,
-          last_sync: new Date().toISOString()
-        },
-        {
-          lender_name: 'ING',
-          status: 'online',
-          api_response_time_ms: 312,
-          success_rate: 96.5,
-          last_sync: new Date().toISOString()
-        },
-        {
-          lender_name: 'Rabobank',
-          status: 'online',
-          api_response_time_ms: 278,
-          success_rate: 97.1,
-          last_sync: new Date().toISOString()
-        }
-      ]);
-
-      setRecentActivity([
-        {
-          type: 'afm_compliance',
-          action: 'Suitability Assessment',
-          client_name: 'J. van der Berg',
-          timestamp: '10:30:00',
-          result: 'compliant'
-        },
-        {
-          type: 'dutch_mortgage_qc',
-          action: 'Application Analysis',
-          client_name: 'M. Jansen',
-          timestamp: '10:15:00',
-          result: 'approved'
-        },
-        {
-          type: 'afm_compliance',
-          action: 'Advice Validation',
-          client_name: 'P. de Vries',
-          timestamp: '09:45:00',
-          result: 'compliant'
-        },
-        {
-          type: 'dutch_mortgage_qc',
-          action: 'BKR Credit Check',
-          client_name: 'A. Bakker',
-          timestamp: '09:20:00',
-          result: 'approved'
-        }
-      ]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'green';
+      case 'pending': return 'blue';
+      case 'warning': return 'yellow';
+      case 'error': return 'red';
+      default: return 'gray';
     }
   };
 
-  const startNewClientSession = async () => {
-    try {
-      // Navigate to client intake with real AFM compliance workflow
-      navigate('/afm-client-intake');
-    } catch (error) {
-      enqueueSnackbar('Failed to start client session', { variant: 'error' });
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed': return <IconCheck size={16} />;
+      case 'pending': return <IconClock size={16} />;
+      case 'warning': return <IconAlertTriangle size={16} />;
+      case 'error': return <IconAlertTriangle size={16} />;
+      default: return <IconInfoCircle size={16} />;
     }
-  };
-
-  const runComplianceCheck = async () => {
-    try {
-      setRefreshing(true);
-      // This triggers the AFM compliance agent
-      const response = await apiClient.runBatchComplianceCheck();
-      enqueueSnackbar(`Compliance check completed: ${response.checked_sessions} sessions processed`, { 
-        variant: 'success' 
-      });
-      await loadDashboardData(); // Refresh data
-    } catch (error) {
-      enqueueSnackbar('Compliance check failed', { variant: 'error' });
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const processQualityControl = async () => {
-    try {
-      setRefreshing(true);
-      // This triggers the Dutch mortgage QC agent
-      const response = await apiClient.runBatchQCAnalysis();
-      enqueueSnackbar(`QC analysis completed: ${response.processed_applications} applications processed`, { 
-        variant: 'success' 
-      });
-      await loadDashboardData(); // Refresh data
-    } catch (error) {
-      enqueueSnackbar('QC analysis failed', { variant: 'error' });
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const refreshDashboard = async () => {
-    await loadDashboardData(true);
-    enqueueSnackbar('Dashboard refreshed', { variant: 'success' });
   };
 
   if (loading) {
     return (
-      <Container maxWidth="xl">
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', flexDirection: 'column', gap: 2 }}>
-          <CircularProgress size={60} />
-          <Typography variant="h6">Loading Agentic AI Dashboard...</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Initializing AFM compliance and Dutch mortgage QC agents
-          </Typography>
+      <Container size="xl" py="xl">
+        <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+          <Stack align="center" gap="md">
+            <Loader size="xl" color="indigo" />
+            <Text c="dimmed">Loading dashboard...</Text>
+          </Stack>
         </Box>
       </Container>
     );
   }
 
   return (
-    <>
-      <Joyride
-        steps={tourSteps}
-        run={runTour}
-        callback={handleTourCallback}
-        continuous={true}
-        showProgress={true}
-        showSkipButton={true}
-        styles={{
-          options: {
-            primaryColor: '#6366F1',
-            zIndex: 10000,
-          },
-        }}
-      />
-      <Container maxWidth="xl">
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-          <Box>
-            <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 2 }}>
-              Dutch Mortgage Agentic AI Platform
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              AFM-compliant dual-agent system: Compliance validation + Quality control automation
-            </Typography>
-          </Box>
-          <Button
-            variant="outlined"
-            onClick={refreshDashboard}
-            disabled={refreshing}
-            startIcon={refreshing ? <CircularProgress size={16} /> : undefined}
-            sx={{ minWidth: 120 }}
-          >
-            {refreshing ? 'Refreshing...' : 'Refresh'}
-          </Button>
+    <Container size="xl" py="xl">
+      {/* Header */}
+      <Stack gap="xl">
+        <Box>
+          <Group justify="space-between" align="center" mb="md">
+            <Box>
+              <Title order={1} c="dark">
+                Dutch Mortgage Dashboard
+              </Title>
+              <Text c="dimmed" size="lg">
+                AFM-compliant mortgage advisory platform
+              </Text>
+            </Box>
+            
+            {isDemoMode && (
+              <Badge color="amber" variant="filled" size="lg" radius={0}>
+                DEMO MODE
+              </Badge>
+            )}
+          </Group>
         </Box>
-      </Box>
 
-      {/* Real-time Agent Status */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Security color="primary" />
-                Agentic AI System Status
-              </Typography>
+        {/* Key Metrics */}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between" mb="xs">
+              <Text size="sm" c="dimmed" fw={500}>AFM Compliance Score</Text>
+              <ActionIcon variant="subtle" color="emerald" radius={0}>
+                <IconShield size={18} />
+              </ActionIcon>
+            </Group>
+            <Text size="xl" fw={700} c="emerald">
+              {metrics?.afm_compliance_score || 98}%
+            </Text>
+            <Progress value={metrics?.afm_compliance_score || 98} color="emerald" size="sm" radius={0} mt="xs" />
+          </Card>
+
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between" mb="xs">
+              <Text size="sm" c="dimmed" fw={500}>Active Sessions</Text>
+              <ActionIcon variant="subtle" color="indigo" radius={0}>
+                <IconUser size={18} />
+              </ActionIcon>
+            </Group>
+            <Text size="xl" fw={700} c="indigo">
+              {metrics?.active_sessions || 24}
+            </Text>
+            <Text size="xs" c="dimmed" mt="xs">
+              +12% from yesterday
+            </Text>
+          </Card>
+
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between" mb="xs">
+              <Text size="sm" c="dimmed" fw={500}>Pending Reviews</Text>
+              <ActionIcon variant="subtle" color="amber" radius={0}>
+                <IconClock size={18} />
+              </ActionIcon>
+            </Group>
+            <Text size="xl" fw={700} c="amber">
+              {metrics?.pending_reviews || 8}
+            </Text>
+            <Text size="xs" c="dimmed" mt="xs">
+              Avg. 2.3 hours to complete
+            </Text>
+          </Card>
+
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between" mb="xs">
+              <Text size="sm" c="dimmed" fw={500}>Quality Score</Text>
+              <ActionIcon variant="subtle" color="pink" radius={0}>
+                <IconChartBar size={18} />
+              </ActionIcon>
+            </Group>
+            <Text size="xl" fw={700} c="pink">
+              {metrics?.quality_score || 96}%
+            </Text>
+            <Progress value={metrics?.quality_score || 96} color="pink" size="sm" radius={0} mt="xs" />
+          </Card>
+        </SimpleGrid>
+
+        {/* Main Content Grid */}
+        <Grid>
+          {/* Recent Activity */}
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Card radius={0} shadow="sm" padding="lg" h="100%">
+              <Group justify="space-between" mb="lg">
+                <Title order={3}>Recent Activity</Title>
+                <Button variant="subtle" rightSection={<IconArrowRight size={16} />} radius={0}>
+                  View All
+                </Button>
+              </Group>
               
-              <Grid container spacing={3}>
-                {agentStatuses.map((agent, index) => (
-                  <Grid item xs={12} md={6} key={index}>
-                    <Paper sx={{ p: 3, border: '1px solid #e0e0e0' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                        <Avatar sx={{ 
-                          bgcolor: agent.status === 'online' ? 'success.main' : 'error.main',
-                          mr: 2,
-                          width: 48,
-                          height: 48
-                        }}>
-                          {agent.agent_type === 'afm_compliance' ? <Gavel /> : <Assessment />}
-                        </Avatar>
-                        <Box sx={{ flexGrow: 1 }}>
-                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            {agent.agent_type === 'afm_compliance' ? 'AFM Compliance Agent' : 'Dutch Mortgage QC Agent'}
-                          </Typography>
-                          <Chip 
-                            label={agent.status} 
-                            color={agent.status === 'online' ? 'success' : 'error'} 
-                            size="small"
-                            sx={{ mt: 0.5 }}
-                          />
+              <Stack gap="md">
+                {recentActivity.length > 0 ? recentActivity.slice(0, 6).map((activity) => (
+                  <Paper key={activity.id} p="md" radius={0} style={{ border: '1px solid #E2E8F0' }}>
+                    <Group justify="space-between" align="flex-start">
+                      <Group align="flex-start">
+                        <Badge 
+                          color={getStatusColor(activity.status)} 
+                          variant="light" 
+                          leftSection={getStatusIcon(activity.status)}
+                          radius={0}
+                        >
+                          {activity.status}
+                        </Badge>
+                        <Box>
+                          <Text fw={500} size="sm">
+                            {activity.description}
+                          </Text>
+                          {activity.client_name && (
+                            <Text size="xs" c="dimmed">
+                              Client: {activity.client_name}
+                            </Text>
+                          )}
                         </Box>
-                      </Box>
-                      
-                      <Grid container spacing={2}>
-                        <Grid item xs={6}>
-                          <Typography variant="body2" color="text.secondary">Processed Today</Typography>
-                          <Typography variant="h5" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                            {agent.processed_today}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography variant="body2" color="text.secondary">Success Rate</Typography>
-                          <Typography variant="h5" sx={{ fontWeight: 700, color: 'success.main' }}>
-                            {agent.success_rate}%
-                          </Typography>
-                        </Grid>
-                      </Grid>
-                      
-                      <Box sx={{ mt: 2 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          Last Activity: {new Date(agent.last_activity).toLocaleTimeString()}
-                        </Typography>
-                        <LinearProgress 
-                          variant="determinate" 
-                          value={agent.success_rate} 
-                          sx={{ mt: 1, height: 4, borderRadius: 2 }}
-                          color="success"
-                        />
-                      </Box>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                      </Group>
+                      <Text size="xs" c="dimmed">
+                        {new Date(activity.timestamp).toLocaleTimeString()}
+                      </Text>
+                    </Group>
+                  </Paper>
+                )) : (
+                  <Box ta="center" py="xl">
+                    <Text c="dimmed">No recent activity</Text>
+                  </Box>
+                )}
+              </Stack>
+            </Card>
+          </Grid.Col>
 
-      {/* Key Performance Metrics */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card id="metric-compliance">
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar sx={{ bgcolor: 'success.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
-                <Verified />
-              </Avatar>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: 'success.main', mb: 1 }}>
-                {dashboardMetrics?.afm_compliance_score}%
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                  AFM Compliance Score
-                </Typography>
-                <Tooltip
-                  title="Average percentage of advice sessions meeting AFM rules."
-                  placement="top"
-                  enterDelay={300}
-                >
-                  <IconButton size="small" sx={{ p: 0.5 }}>
-                    <InfoOutlined fontSize="small" color="action" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Typography variant="caption" color="success.main">Agent-Validated</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card id="metric-ftr">
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar sx={{ bgcolor: 'info.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
-                <TrendingUp />
-              </Avatar>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: 'info.main', mb: 1 }}>
-                {dashboardMetrics?.first_time_right_rate}%
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                  First-Time-Right Rate
-                </Typography>
-                <Tooltip
-                  title="% of applications that passed QC on first submission."
-                  placement="top"
-                  enterDelay={300}
-                >
-                  <IconButton size="small" sx={{ p: 0.5 }}>
-                    <InfoOutlined fontSize="small" color="action" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Typography variant="caption" color="info.main">QC Agent Optimized</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card id="metric-avgtime">
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar sx={{ bgcolor: 'warning.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
-                <Schedule />
-              </Avatar>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: 'warning.main', mb: 1 }}>
-                {dashboardMetrics?.avg_processing_time_minutes}m
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                  Avg Processing Time
-                </Typography>
-                <Tooltip
-                  title="Average minutes for AI agents to complete tasks."
-                  placement="top"
-                  enterDelay={300}
-                >
-                  <IconButton size="small" sx={{ p: 0.5 }}>
-                    <InfoOutlined fontSize="small" color="action" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-              <Typography variant="caption" color="warning.main">AI-Accelerated</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card>
-            <CardContent sx={{ textAlign: 'center' }}>
-              <Avatar sx={{ bgcolor: 'primary.main', mx: 'auto', mb: 2, width: 56, height: 56 }}>
-                <Business />
-              </Avatar>
-              <Typography variant="h3" sx={{ fontWeight: 700, color: 'primary.main', mb: 1 }}>
-                {dashboardMetrics?.applications_processed_today}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">Processed Today</Typography>
-              <Typography variant="caption" color="primary.main">Dual-Agent System</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* AI Impact Comparison Chart */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
-          <ComparisonChart id="comparison-chart" />
-        </Grid>
-      </Grid>
-
-      {/* Quick Actions - Demonstrate Agentic Capabilities */}
-      <Grid container spacing={3} sx={{ mb: 4 }} className="quick-actions">
-        <Grid item xs={12}>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 3 }}>
-            Agentic AI Quick Actions
-          </Typography>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            cursor: 'pointer',
-            background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-            color: 'white',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }
-          }} onClick={startNewClientSession}>
-            <CardContent>
-              <Person sx={{ fontSize: 48, mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                New AFM Client Session
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
-                AI-powered AFM-compliant client intake with automatic suitability assessment
-              </Typography>
-              <Button variant="outlined" sx={{ 
-                borderColor: 'rgba(255,255,255,0.5)', color: 'white',
-                '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' }
-              }}>
-                Start AI Session
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            cursor: 'pointer',
-            background: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)',
-            color: 'white',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }
-          }} onClick={runComplianceCheck}>
-            <CardContent>
-              <Gavel sx={{ fontSize: 48, mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                Run Compliance Agent
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
-                Execute AFM compliance validation across all active advice sessions
-              </Typography>
-              <Button variant="outlined" sx={{ 
-                borderColor: 'rgba(255,255,255,0.5)', color: 'white',
-                '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' }
-              }}>
-                Execute Agent
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            cursor: 'pointer',
-            background: 'linear-gradient(135deg, #F59E0B 0%, #FCD34D 100%)',
-            color: 'white',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }
-          }} onClick={processQualityControl}>
-            <CardContent>
-              <Assessment sx={{ fontSize: 48, mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                Run QC Agent
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
-                Execute quality control analysis on pending mortgage applications
-              </Typography>
-              <Button variant="outlined" sx={{ 
-                borderColor: 'rgba(255,255,255,0.5)', color: 'white',
-                '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' }
-              }}>
-                Execute Agent
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            cursor: 'pointer',
-            background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
-            color: 'white',
-            '&:hover': { transform: 'translateY(-4px)', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' }
-          }} onClick={() => navigate('/lender-integration')}>
-            <CardContent>
-              <AccountBalance sx={{ fontSize: 48, mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-                Lender Integration Hub
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.9, mb: 2 }}>
-                Monitor real-time connections to Stater, Quion, and other Dutch lenders
-              </Typography>
-              <Button variant="outlined" sx={{ 
-                borderColor: 'rgba(255,255,255,0.5)', color: 'white',
-                '&:hover': { borderColor: 'white', backgroundColor: 'rgba(255,255,255,0.1)' }
-              }}>
-                View Status
-              </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      {/* Live Agent Activity Feed */}
-      <Grid container spacing={3} className="recent-activity">
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                Live Agent Activity
-              </Typography>
+          {/* Quick Actions */}
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Card radius={0} shadow="sm" padding="lg" h="100%">
+              <Title order={3} mb="lg">Quick Actions</Title>
               
-              <List>
-                {recentActivity.slice(0, 8).map((activity, index) => (
-                  <React.Fragment key={index}>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Avatar sx={{ 
-                          bgcolor: activity.type === 'afm_compliance' ? 'success.main' : 'info.main',
-                          width: 32, height: 32
-                        }}>
-                          {activity.type === 'afm_compliance' ? <Gavel /> : <Assessment />}
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                              {activity.type === 'afm_compliance' ? 'AFM Agent:' : 'QC Agent:'} {activity.action}
-                            </Typography>
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">
-                              Client: {activity.client_name || 'Anonymous'} • {activity.timestamp}
-                            </Typography>
-                            <Chip 
-                              label={activity.result} 
-                              size="small" 
-                              color={activity.result === 'compliant' || activity.result === 'approved' ? 'success' : 'warning'}
-                              sx={{ mt: 0.5 }}
-                            />
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                    {index < recentActivity.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
-              
-              <Button 
-                fullWidth 
-                variant="outlined" 
-                sx={{ mt: 2 }}
-                onClick={() => navigate('/compliance-audit')}
-              >
-                View Full Agent Activity Log
-              </Button>
-            </CardContent>
-          </Card>
+              <Stack gap="md">
+                <Button
+                  variant="light"
+                  color="indigo"
+                  leftSection={<IconUser size={18} />}
+                  onClick={() => navigate('/afm-client-intake')}
+                  radius={0}
+                  fullWidth
+                  justify="flex-start"
+                >
+                  New Client Intake
+                </Button>
+                
+                <Button
+                  variant="light"
+                  color="emerald"
+                  leftSection={<IconShield size={18} />}
+                  onClick={() => navigate('/compliance')}
+                  radius={0}
+                  fullWidth
+                  justify="flex-start"
+                >
+                  Compliance Check
+                </Button>
+                
+                <Button
+                  variant="light"
+                  color="pink"
+                  leftSection={<IconChartBar size={18} />}
+                  onClick={() => navigate('/quality-control')}
+                  radius={0}
+                  fullWidth
+                  justify="flex-start"
+                >
+                  Quality Control
+                </Button>
+                
+                <Button
+                  variant="light"
+                  color="amber"
+                  leftSection={<IconBuildingBank size={18} />}
+                  onClick={() => navigate('/lender-integration')}
+                  radius={0}
+                  fullWidth
+                  justify="flex-start"
+                >
+                  Lender Integration
+                </Button>
+
+                <Divider my="sm" />
+
+                <Button
+                  variant="outline"
+                  color="gray"
+                  leftSection={<IconTrendingUp size={18} />}
+                  onClick={() => navigate('/dutch-market-insights')}
+                  radius={0}
+                  fullWidth
+                  justify="flex-start"
+                >
+                  Market Insights
+                </Button>
+              </Stack>
+            </Card>
+          </Grid.Col>
         </Grid>
 
-        {/* Lender Integration Status */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ fontWeight: 600, mb: 3 }}>
-                Dutch Lender Integrations
-              </Typography>
-              
-              <List>
-                {lenderStatuses.map((lender, index) => (
-                  <React.Fragment key={index}>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Avatar sx={{ 
-                          bgcolor: lender.status === 'online' ? 'success.main' : 
-                                  lender.status === 'maintenance' ? 'warning.main' : 'error.main',
-                          width: 32, height: 32
-                        }}>
-                          <AccountBalance />
-                        </Avatar>
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                              {lender.lender_name}
-                            </Typography>
-                            <Chip 
-                              label={lender.status} 
-                              size="small"
-                              color={lender.status === 'online' ? 'success' : 
-                                     lender.status === 'maintenance' ? 'warning' : 'error'}
-                            />
-                          </Box>
-                        }
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">
-                              Response: {lender.api_response_time_ms}ms • Success: {lender.success_rate}%
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Last sync: {new Date(lender.last_sync).toLocaleTimeString()}
-                            </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                    {index < lenderStatuses.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-      </Container>
-    </>
+        {/* Comparison Chart */}
+        <Card radius={0} shadow="sm" padding="lg">
+          <Title order={3} mb="lg">Performance Comparison</Title>
+          <ComparisonChart />
+        </Card>
+      </Stack>
+    </Container>
   );
 };
 

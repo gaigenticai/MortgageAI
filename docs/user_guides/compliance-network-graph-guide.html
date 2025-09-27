@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compliance Network Graph Visualization - User Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            margin: -20px -20px 30px -20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background-color: #2c3e50;
+            padding: 15px 0;
+            margin: -20px -20px 30px -20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav li {
+            margin: 0 15px;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav a:hover {
+            background-color: #34495e;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        h4 {
+            color: #556b83;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .info-box {
+            background-color: #e8f4fd;
+            border: 1px solid #3498db;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning-box {
+            background-color: #fdf2e8;
+            border: 1px solid #e67e22;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .success-box {
+            background-color: #e8f8f5;
+            border: 1px solid #27ae60;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+        }
+
+        .step-item {
+            counter-increment: step-counter;
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            position: relative;
+        }
+
+        .step-item::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .step-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 15px 0;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .metric-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f3f4 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .metric-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .metric-value {
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .screenshot {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin: 20px auto;
+            display: block;
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #d68910 100%);
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding: 30px 0;
+            background-color: #2c3e50;
+            color: white;
+            text-align: center;
+            margin-left: -20px;
+            margin-right: -20px;
+            margin-bottom: -20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav li {
+                margin: 5px 0;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Compliance Network Graph Visualization</h1>
+            <p>Interactive Risk Propagation Analysis & Relationship Mapping for AFM Compliance</p>
+        </div>
+
+        <nav class="nav">
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#network-analysis">Network Analysis</a></li>
+                <li><a href="#risk-propagation">Risk Propagation</a></li>
+                <li><a href="#visualization">Visualization</a></li>
+                <li><a href="#regulatory-impact">Regulatory Impact</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview" class="section">
+            <h2>📋 Overview</h2>
+            <p>The Compliance Network Graph Visualization system provides a comprehensive view of relationships within your Dutch mortgage compliance environment. It enables real-time risk propagation analysis, regulatory change impact assessment, and interactive exploration of complex compliance networks.</p>
+
+            <div class="info-box">
+                <h4>🎯 Purpose</h4>
+                <p>This tool helps compliance officers, risk managers, and advisors understand how risks and regulatory changes propagate through their organization's network of clients, advisors, products, and regulatory requirements.</p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Interactive Analysis</h3>
+                    <p>Explore compliance networks with dynamic filtering, real-time updates, and comprehensive visualization options.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚠️</div>
+                    <h3>Risk Propagation</h3>
+                    <p>Model how compliance risks spread through your network using advanced algorithms and Monte Carlo simulation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Centrality analysis, community detection, anomaly identification, and comprehensive performance metrics.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎛️</div>
+                    <h3>Regulatory Simulation</h3>
+                    <p>Simulate regulatory changes and assess their impact before implementation with detailed recommendations.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="section">
+            <h2>🚀 Key Features</h2>
+
+            <h3>Network Visualization</h3>
+            <ul>
+                <li><strong>Interactive Graph Display:</strong> D3.js-powered visualization with zoom, pan, and selection capabilities</li>
+                <li><strong>Multiple Layout Algorithms:</strong> Spring, circular, hierarchical, and force-directed layouts</li>
+                <li><strong>Dynamic Node Sizing:</strong> Nodes scale based on risk scores and importance metrics</li>
+                <li><strong>Color-Coded Risk Levels:</strong> Visual risk indicators from very low to critical</li>
+                <li><strong>Real-time Updates:</strong> Live network updates as data changes</li>
+            </ul>
+
+            <h3>Risk Propagation Analysis</h3>
+            <ul>
+                <li><strong>Multiple Propagation Models:</strong> Linear, exponential, logarithmic, threshold, and cascade</li>
+                <li><strong>Convergence Analysis:</strong> Automatic detection of risk propagation equilibrium</li>
+                <li><strong>Critical Path Identification:</strong> Highlights most dangerous risk propagation routes</li>
+                <li><strong>Mitigation Recommendations:</strong> AI-generated suggestions for risk reduction</li>
+                <li><strong>Monte Carlo Simulation:</strong> Probabilistic risk assessment scenarios</li>
+            </ul>
+
+            <h3>Advanced Analytics</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Analysis Type</th>
+                            <th>Description</th>
+                            <th>Use Case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Centrality Analysis</td>
+                            <td>Degree, betweenness, closeness, eigenvector, PageRank</td>
+                            <td>Identify critical nodes and bottlenecks</td>
+                        </tr>
+                        <tr>
+                            <td>Community Detection</td>
+                            <td>Louvain algorithm and spectral clustering</td>
+                            <td>Discover natural groupings and organizational structure</td>
+                        </tr>
+                        <tr>
+                            <td>Anomaly Detection</td>
+                            <td>Statistical outlier identification and pattern analysis</td>
+                            <td>Find unusual nodes, edges, or network structures</td>
+                        </tr>
+                        <tr>
+                            <td>Network Metrics</td>
+                            <td>Density, clustering coefficient, path lengths</td>
+                            <td>Overall network health and connectivity assessment</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Regulatory Impact Simulation</h3>
+            <ul>
+                <li><strong>Scenario Modeling:</strong> Test impact of new regulations before implementation</li>
+                <li><strong>Change Comparison:</strong> Before/after network analysis with detailed metrics</li>
+                <li><strong>Entity Impact Assessment:</strong> Identify which clients, advisors, and products are most affected</li>
+                <li><strong>Implementation Strategies:</strong> Recommendations for smooth regulatory transitions</li>
+            </ul>
+        </section>
+
+        <section id="getting-started" class="section">
+            <h2>🚀 Getting Started</h2>
+
+            <div class="success-box">
+                <h4>✅ Prerequisites</h4>
+                <ul>
+                    <li>Active MortgageAI account with network analysis permissions</li>
+                    <li>Modern web browser (Chrome, Firefox, Safari, Edge)</li>
+                    <li>Compliance data (clients, advisors, regulations, relationships)</li>
+                </ul>
+            </div>
+
+            <h3>Step-by-Step Setup</h3>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-title">Access the Network Visualization</div>
+                    <p>Navigate to the Compliance Network Graph section in the MortgageAI dashboard. The system will automatically load your organization's compliance data and begin building the network graph.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Review Network Overview</div>
+                    <p>The system displays your compliance network with nodes representing clients, advisors, regulations, products, and other entities. Edges show relationships like "advises," "applies to," and "complies with."</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Understand Visual Elements</div>
+                    <p>Node sizes indicate risk levels (larger = higher risk), colors represent entity types, and edge thickness shows relationship strength. Red outlines highlight high-risk entities requiring attention.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Explore Interactive Features</div>
+                    <p>Click and drag nodes to reorganize the layout, use mouse wheel to zoom, select multiple nodes for analysis, and hover for detailed information tooltips.</p>
+                </div>
+            </div>
+
+            <h3>First Analysis</h3>
+            <p>Start with a comprehensive network analysis to establish baseline metrics:</p>
+            <ol>
+                <li>Click <span class="highlight">Run Analysis</span> to perform full network assessment</li>
+                <li>Review network statistics (nodes, edges, density, connectivity)</li>
+                <li>Examine centrality metrics to identify key players</li>
+                <li>Check anomaly detection results for unusual patterns</li>
+                <li>Review automated recommendations</li>
+            </ol>
+
+            <div class="info-box">
+                <h4>💡 Pro Tip</h4>
+                <p>Enable real-time analysis in settings for automatic updates as your compliance data changes. This ensures your risk assessments stay current with minimal manual intervention.</p>
+            </div>
+        </section>
+
+        <section id="network-analysis" class="section">
+            <h2>🔍 Network Analysis</h2>
+
+            <h3>Network Statistics Dashboard</h3>
+            <p>The statistics panel provides key metrics about your compliance network:</p>
+
+            <div class="metric-item">
+                <span class="metric-label">Total Nodes:</span>
+                <span class="metric-value">Number of entities in the network</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Total Edges:</span>
+                <span class="metric-value">Relationships between entities</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Network Density:</span>
+                <span class="metric-value">Percentage of possible connections realized</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Clustering Coefficient:</span>
+                <span class="metric-value">How tightly connected network neighborhoods are</span>
+            </div>
+
+            <h3>Centrality Analysis</h3>
+            <p>Centrality measures help identify the most important nodes in your compliance network:</p>
+
+            <h4>Degree Centrality</h4>
+            <p>Identifies entities with the most direct connections. High degree centrality indicates nodes that interact with many others in the network.</p>
+
+            <h4>Betweenness Centrality</h4>
+            <p>Finds nodes that serve as bridges between different parts of the network. Critical for understanding information flow and potential bottlenecks.</p>
+
+            <h4>PageRank Centrality</h4>
+            <p>Google's PageRank algorithm adapted for compliance networks. Identifies entities that are not just connected, but connected to other well-connected entities.</p>
+
+            <div class="warning-box">
+                <h4>⚠️ Important</h4>
+                <p>High centrality scores indicate critical nodes that require special attention in risk management. Failure of highly central nodes can have cascading effects throughout the network.</p>
+            </div>
+
+            <h3>Community Detection</h3>
+            <p>The system automatically identifies communities (clusters) within your compliance network:</p>
+            <ul>
+                <li><strong>Regulatory Communities:</strong> Groups of entities subject to similar regulations</li>
+                <li><strong>Business Unit Clusters:</strong> Natural organizational divisions</li>
+                <li><strong>Risk Profile Groups:</strong> Entities with similar risk characteristics</li>
+                <li><strong>Geographic Clusters:</strong> Location-based groupings</li>
+            </ul>
+
+            <h3>Anomaly Detection</h3>
+            <p>Automated anomaly detection identifies unusual patterns that may indicate:</p>
+            <ul>
+                <li>Compliance violations or potential issues</li>
+                <li>Unusual business relationships requiring investigation</li>
+                <li>Data quality problems or missing information</li>
+                <li>Emerging risks not captured by traditional methods</li>
+                <li>Organizational structure changes</li>
+            </ul>
+        </section>
+
+        <section id="risk-propagation" class="section">
+            <h2>⚠️ Risk Propagation Analysis</h2>
+
+            <h3>Understanding Risk Propagation</h3>
+            <p>Risk propagation analysis models how compliance risks spread through your network. This helps predict the broader impact of individual risk events and identify effective intervention points.</p>
+
+            <h3>Propagation Models</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model Type</th>
+                            <th>Description</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Linear</td>
+                            <td>Risk spreads proportionally to connection strength</td>
+                            <td>Basic scenarios, initial assessments</td>
+                        </tr>
+                        <tr>
+                            <td>Exponential</td>
+                            <td>Risk amplifies as it spreads through the network</td>
+                            <td>Severe compliance violations, crisis scenarios</td>
+                        </tr>
+                        <tr>
+                            <td>Logarithmic</td>
+                            <td>Risk impact diminishes with distance from source</td>
+                            <td>Localized issues, containable problems</td>
+                        </tr>
+                        <tr>
+                            <td>Threshold</td>
+                            <td>Risk only spreads if source risk exceeds threshold</td>
+                            <td>Binary compliance states, regulatory triggers</td>
+                        </tr>
+                        <tr>
+                            <td>Cascade</td>
+                            <td>Risk creates amplifying feedback loops</td>
+                            <td>Systemic risks, reputation damage</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Running Risk Propagation Analysis</h3>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-title">Select Source Nodes</div>
+                    <p>Choose entities where risk originates. You can select multiple nodes to model simultaneous risk events. High-risk clients or non-compliant advisors are common starting points.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Configure Propagation Parameters</div>
+                    <p>Set the propagation model (cascade recommended for AFM compliance), maximum steps (10-20 typically sufficient), and convergence tolerance (0.001 is default).</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Execute Analysis</div>
+                    <p>The system runs the propagation simulation, tracking how risk spreads through network connections. Processing time depends on network size and complexity.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Review Results</div>
+                    <p>Examine affected nodes, total risk increase, critical propagation paths, and system-generated mitigation recommendations.</p>
+                </div>
+            </div>
+
+            <h3>Interpreting Results</h3>
+            <h4>Key Metrics</h4>
+            <ul>
+                <li><strong>Total Risk Increase:</strong> Aggregate risk added to the network</li>
+                <li><strong>Affected Nodes:</strong> Number and identity of impacted entities</li>
+                <li><strong>Convergence Status:</strong> Whether the simulation reached equilibrium</li>
+                <li><strong>Propagation Steps:</strong> Time required for risk to stabilize</li>
+            </ul>
+
+            <h4>Critical Paths</h4>
+            <p>The system identifies the most dangerous risk propagation routes, showing:</p>
+            <ul>
+                <li>Source and target entities</li>
+                <li>Path length and intermediate nodes</li>
+                <li>Risk amplification at each step</li>
+                <li>Cumulative impact on target entities</li>
+            </ul>
+
+            <div class="success-box">
+                <h4>✨ Mitigation Strategies</h4>
+                <p>The AI system generates specific recommendations for reducing risk propagation, such as strengthening controls at bottleneck nodes, breaking high-risk connections, or implementing additional monitoring for critical paths.</p>
+            </div>
+        </section>
+
+        <section id="visualization" class="section">
+            <h2>📊 Visualization Controls</h2>
+
+            <h3>Layout Algorithms</h3>
+            <p>Choose the most appropriate layout for your analysis needs:</p>
+
+            <h4>Spring Layout (Force-Directed)</h4>
+            <p>Nodes repel each other while connected nodes are pulled together. Best for general exploration and identifying natural clusters.</p>
+
+            <h4>Circular Layout</h4>
+            <p>Arranges nodes in a circle. Useful for small networks or when you want to emphasize equality among entities.</p>
+
+            <h4>Hierarchical Layout</h4>
+            <p>Organizes nodes in levels based on relationships. Excellent for understanding organizational structure and reporting lines.</p>
+
+            <h4>Force Atlas</h4>
+            <p>Advanced force-directed layout optimized for large networks. Provides better separation of communities and clearer visualization of complex structures.</p>
+
+            <h3>Filtering and Customization</h3>
+            <h4>Risk Threshold Filtering</h4>
+            <p>Use the risk threshold slider to focus on entities above a certain risk level. This helps reduce visual clutter and concentrate on problem areas.</p>
+
+            <h4>Node Type Selection</h4>
+            <p>Show or hide specific entity types:</p>
+            <ul>
+                <li><strong>Clients:</strong> Individual mortgage applicants</li>
+                <li><strong>Advisors:</strong> Mortgage advisors and brokers</li>
+                <li><strong>Regulations:</strong> AFM rules and compliance requirements</li>
+                <li><strong>Products:</strong> Mortgage products and services</li>
+                <li><strong>Lenders:</strong> Financial institutions</li>
+                <li><strong>Risk Factors:</strong> Identified compliance risks</li>
+            </ul>
+
+            <h4>Edge Type Filtering</h4>
+            <p>Control which relationships are displayed:</p>
+            <ul>
+                <li><strong>Advises:</strong> Advisor-client relationships</li>
+                <li><strong>Applies To:</strong> Regulation-entity relationships</li>
+                <li><strong>Complies With:</strong> Compliance status connections</li>
+                <li><strong>Violates:</strong> Non-compliance relationships</li>
+                <li><strong>Depends On:</strong> Dependency relationships</li>
+                <li><strong>Influences:</strong> Influence or impact connections</li>
+            </ul>
+
+            <h3>Interactive Features</h3>
+            <h4>Navigation Controls</h4>
+            <ul>
+                <li><strong>Zoom:</strong> Mouse wheel or pinch gestures</li>
+                <li><strong>Pan:</strong> Click and drag on empty space</li>
+                <li><strong>Center View:</strong> Reset to default zoom and position</li>
+                <li><strong>Fit to Screen:</strong> Automatically scale to show all nodes</li>
+            </ul>
+
+            <h4>Node Selection</h4>
+            <ul>
+                <li><strong>Single Selection:</strong> Click on a node to select it</li>
+                <li><strong>Multi-Selection:</strong> Hold Ctrl/Cmd and click multiple nodes</li>
+                <li><strong>Box Selection:</strong> Click and drag to select multiple nodes</li>
+                <li><strong>Neighborhood Selection:</strong> Double-click to select a node and its neighbors</li>
+            </ul>
+
+            <h4>Information Display</h4>
+            <ul>
+                <li><strong>Hover Tooltips:</strong> Detailed information on mouse over</li>
+                <li><strong>Selection Panel:</strong> Comprehensive details for selected nodes</li>
+                <li><strong>Statistics Sidebar:</strong> Real-time network metrics</li>
+                <li><strong>Legend:</strong> Color and symbol explanations</li>
+            </ul>
+        </section>
+
+        <section id="regulatory-impact" class="section">
+            <h2>🎛️ Regulatory Impact Simulation</h2>
+
+            <h3>Overview</h3>
+            <p>The regulatory impact simulation feature allows you to model the effects of proposed regulatory changes before they are implemented. This helps in preparation, resource planning, and risk mitigation.</p>
+
+            <h3>Types of Regulatory Changes</h3>
+            <h4>New Regulations</h4>
+            <p>Add new AFM requirements or compliance rules to the network and assess their impact on existing entities and relationships.</p>
+
+            <h4>Regulation Updates</h4>
+            <p>Modify existing regulations' severity levels, scope, or requirements and observe the resulting changes in risk distribution.</p>
+
+            <h4>Structural Changes</h4>
+            <p>Model changes in organizational structure, such as new business units, merged entities, or dissolved relationships.</p>
+
+            <h3>Running a Simulation</h3>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-title">Define Changes</div>
+                    <p>Specify the regulatory changes you want to simulate. Include details like affected entities, new requirements, implementation timeline, and severity levels.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Set Baseline</div>
+                    <p>The system captures the current state of your compliance network as a baseline for comparison.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Execute Simulation</div>
+                    <p>The system applies the changes and recalculates network metrics, risk scores, and relationship dynamics.</p>
+                </div>
+
+                <div class="step-item">
+                    <div class="step-title">Analyze Impact</div>
+                    <p>Compare before and after states, review affected entities, and examine recommendation reports.</p>
+                </div>
+            </div>
+
+            <h3>Impact Assessment Metrics</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Description</th>
+                            <th>Impact Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Network Density Change</td>
+                            <td>How regulatory changes affect overall connectivity</td>
+                            <td>High</td>
+                        </tr>
+                        <tr>
+                            <td>Risk Distribution Shift</td>
+                            <td>Changes in risk concentration across entities</td>
+                            <td>Critical</td>
+                        </tr>
+                        <tr>
+                            <td>Centrality Disruption</td>
+                            <td>Impact on key nodes and network stability</td>
+                            <td>High</td>
+                        </tr>
+                        <tr>
+                            <td>Community Structure</td>
+                            <td>Changes in natural groupings and clusters</td>
+                            <td>Medium</td>
+                        </tr>
+                        <tr>
+                            <td>Compliance Cost</td>
+                            <td>Estimated additional compliance overhead</td>
+                            <td>Critical</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Implementation Recommendations</h3>
+            <p>Based on simulation results, the system provides:</p>
+            <ul>
+                <li><strong>Priority Actions:</strong> Most critical steps for smooth transition</li>
+                <li><strong>Resource Requirements:</strong> Estimated staffing and system needs</li>
+                <li><strong>Timeline Suggestions:</strong> Optimal implementation schedule</li>
+                <li><strong>Risk Mitigation:</strong> Strategies to minimize negative impacts</li>
+                <li><strong>Monitoring Points:</strong> Key metrics to track during implementation</li>
+            </ul>
+
+            <div class="info-box">
+                <h4>💡 Best Practices</h4>
+                <ul>
+                    <li>Run multiple scenarios with different assumptions</li>
+                    <li>Consider gradual implementation vs. immediate changes</li>
+                    <li>Factor in external market conditions and timing</li>
+                    <li>Involve stakeholders in scenario review and validation</li>
+                    <li>Document assumptions and rationale for future reference</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="troubleshooting" class="section">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Common Issues and Solutions</h3>
+            
+            <h4>Visualization Performance</h4>
+            <div class="warning-box">
+                <p><strong>Issue:</strong> Slow visualization or browser freezing with large networks</p>
+                <p><strong>Solution:</strong> Use filtering to reduce visible nodes, enable GPU acceleration in settings, or switch to a simpler layout algorithm like circular.</p>
+            </div>
+
+            <h4>Analysis Timeouts</h4>
+            <div class="warning-box">
+                <p><strong>Issue:</strong> Network analysis takes too long or times out</p>
+                <p><strong>Solution:</strong> Reduce the maximum propagation steps, increase the convergence tolerance, or contact support for server-side optimization.</p>
+            </div>
+
+            <h4>Data Quality Issues</h4>
+            <div class="warning-box">
+                <p><strong>Issue:</strong> Incorrect or missing relationships in the network</p>
+                <p><strong>Solution:</strong> Check data integration settings, verify source data quality, and ensure all required fields are populated in the underlying database.</p>
+            </div>
+
+            <h4>Risk Calculation Discrepancies</h4>
+            <div class="warning-box">
+                <p><strong>Issue:</strong> Risk scores don't match expectations or manual calculations</p>
+                <p><strong>Solution:</strong> Review risk calculation parameters, check data input quality, and verify that the correct propagation model is selected for your scenario.</p>
+            </div>
+
+            <h3>Error Messages</h3>
+            <h4>"Network too large for visualization"</h4>
+            <p>The network exceeds display limits. Use filters to reduce complexity or contact support about increasing limits.</p>
+
+            <h4>"Risk propagation did not converge"</h4>
+            <p>The simulation didn't reach equilibrium within the maximum steps. Increase step limit or adjust convergence tolerance.</p>
+
+            <h4>"Insufficient data for community detection"</h4>
+            <p>The network needs more connections for meaningful community analysis. Ensure relationship data is complete.</p>
+
+            <h3>Performance Optimization</h3>
+            <ul>
+                <li><strong>Browser Settings:</strong> Enable hardware acceleration, disable unnecessary extensions</li>
+                <li><strong>Network Filters:</strong> Use risk thresholds and entity type filters to reduce complexity</li>
+                <li><strong>Analysis Options:</strong> Disable computationally expensive features for routine use</li>
+                <li><strong>Data Management:</strong> Regular cleanup of historical data and archived entities</li>
+            </ul>
+
+            <h3>Getting Help</h3>
+            <div class="success-box">
+                <h4>📧 Support Channels</h4>
+                <ul>
+                    <li><strong>In-App Help:</strong> Click the help icon in the navigation bar</li>
+                    <li><strong>Documentation:</strong> Comprehensive guides in the docs section</li>
+                    <li><strong>Support Ticket:</strong> Submit detailed issue reports through the support portal</li>
+                    <li><strong>Community Forum:</strong> Connect with other users and share best practices</li>
+                </ul>
+            </div>
+
+            <h3>System Requirements</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Component</th>
+                            <th>Minimum</th>
+                            <th>Recommended</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Browser</td>
+                            <td>Chrome 90+, Firefox 88+, Safari 14+</td>
+                            <td>Latest version of Chrome or Firefox</td>
+                        </tr>
+                        <tr>
+                            <td>RAM</td>
+                            <td>4 GB</td>
+                            <td>8 GB or more</td>
+                        </tr>
+                        <tr>
+                            <td>Screen Resolution</td>
+                            <td>1024x768</td>
+                            <td>1920x1080 or higher</td>
+                        </tr>
+                        <tr>
+                            <td>Internet Connection</td>
+                            <td>Broadband</td>
+                            <td>High-speed broadband</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <div class="footer">
+            <p>&copy; 2024 MortgageAI - Compliance Network Graph Visualization</p>
+            <p>Advanced AFM Compliance Solutions for Dutch Mortgage Markets</p>
+            <br>
+            <p><strong>Version:</strong> 1.0.0 | <strong>Last Updated:</strong> December 2024</p>
+        </div>
+    </div>
+</body>
+</html>

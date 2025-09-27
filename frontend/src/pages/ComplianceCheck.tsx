@@ -1,597 +1,786 @@
 /**
- * Compliance & Plain-Language Advisor Interface
+ * AFM Compliance Check - Full Mantine Implementation
  *
- * Interface for interacting with the Compliance & Plain-Language Advisor Agent with:
- * - Mortgage advice generation with AFM compliance
- * - Plain-language transformation and simplification
- * - Explain-back validation for user understanding
- * - Real-time compliance checking and suggestions
- * - Integration with backend compliance agent
+ * Comprehensive AFM compliance assessment with:
+ * - Real-time compliance analysis
+ * - Product recommendations
+ * - Regulatory requirements validation
+ * - Risk assessment and profiling
+ * - Integration with compliance APIs
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Paper,
-  Typography,
+  Text,
   Box,
   Button,
   Alert,
   Grid,
   Card,
-  CardContent,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  Divider,
+  Badge,
   List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Chip,
+  Title,
+  Group,
+  Stack,
+  ActionIcon,
+  Tooltip,
+  ThemeIcon,
+  SimpleGrid,
+  RingProgress,
+  Center,
+  Tabs,
+  Timeline,
+  Progress,
+  Loader,
   Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  CircularProgress
-} from '@mui/material';
+  Table,
+  Divider,
+} from '@mantine/core';
 import {
-  Gavel,
-  CheckCircle,
-  Help,
-  ExpandMore,
-  Lightbulb,
-  Warning,
-  NavigateNext,
-  NavigateBefore,
-  Send,
-  ThumbUp,
-  ThumbDown,
-  Psychology
-} from '@mui/icons-material';
-import { useSnackbar } from 'notistack';
-import { useNavigate } from 'react-router-dom';
-import { Formik, Form, Field } from 'formik';
-import * as Yup from 'yup';
-
-// Mock compliance advice results - in production this would come from the backend agent
-interface ComplianceResult {
-  advice_id: string;
-  original_advice: string;
-  compliant_advice: string;
-  compliance_score: number;
-  readability_level: string;
-  key_requirements: string[];
-  missing_disclosures: string[];
-  simplification_suggestions: Array<{
-    original: string;
-    simplified: string;
-    improvement: string;
-  }>;
-  explain_back_questions: Array<{
-    question: string;
-    expected_answer: string;
-    user_answer?: string;
-    understood: boolean;
-  }>;
-  generated_at: string;
-}
-
-interface UserProfile {
-  firstTimeBuyer: boolean;
-  age: number;
-  income: number;
-  mortgageAmount: number;
-  propertyValue: number;
-  employmentStatus: string;
-  riskTolerance: string;
-}
+  IconGavel,
+  IconShield,
+  IconCheck,
+  IconX,
+  IconAlertTriangle,
+  IconInfoCircle,
+  IconChevronDown,
+  IconFileText,
+  IconUser,
+  IconBuildingBank,
+  IconChartBar,
+  IconArrowRight,
+  IconArrowLeft,
+  IconRefresh,
+  IconDownload,
+  IconEye,
+  IconClipboardCheck,
+  IconScale,
+  IconCertificate,
+  IconExclamationMark,
+  IconClock,
+  IconTrendingUp,
+} from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { 
+  complianceApi, 
+  ComplianceAnalysis, 
+  ComplianceAssessmentRequest,
+  ComplianceRecommendation,
+  ProductRecommendation 
+} from '../services/complianceApi';
 
 const ComplianceCheck: React.FC = () => {
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
-  const [generating, setGenerating] = useState(false);
-  const [complianceResult, setComplianceResult] = useState<ComplianceResult | null>(null);
-  const [explainBackDialog, setExplainBackDialog] = useState(false);
-  const [userAnswers, setUserAnswers] = useState<Record<number, string>>({});
+  const [searchParams] = useSearchParams();
+  const [loading, setLoading] = useState(true);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [complianceResult, setComplianceResult] = useState<ComplianceAnalysis | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('overview');
 
-  const userProfile: UserProfile = {
-    firstTimeBuyer: true,
-    age: 35,
-    income: 75000,
-    mortgageAmount: 340000,
-    propertyValue: 400000,
-    employmentStatus: 'employed',
-    riskTolerance: 'moderate'
+  useEffect(() => {
+    loadComplianceAnalysis();
+  }, []);
+
+  const loadComplianceAnalysis = async () => {
+    setLoading(true);
+    try {
+      const clientId = searchParams.get('client_id') || 'current_client';
+      // For now, use mock data since the API method doesn't exist yet
+      const result: ComplianceAnalysis = {
+        id: 'comp-001',
+        client_id: clientId,
+        client_name: 'John Doe',
+        assessment_date: new Date().toISOString(),
+        compliance_score: 87.5,
+        risk_profile: 'medium',
+        afm_status: 'compliant',
+        overall_status: 'passed',
+        recommendations: [
+          {
+            id: 'rec-1',
+            type: 'approved',
+            title: 'Documentation Complete',
+            description: 'All required documentation has been provided and verified.',
+            risk_level: 'low',
+            afm_requirements: ['Article 86f compliance', 'Client categorization'],
+            recommended_actions: ['Proceed with application'],
+            priority: 'low',
+          }
+        ],
+        product_recommendations: [
+          {
+            id: 'prod-1',
+            lender: 'ING Bank',
+            lender_id: 'ing-001',
+            product_name: 'Green Mortgage Fixed',
+            product_type: 'fixed_rate',
+            interest_rate: 3.25,
+            max_ltv: 90,
+            suitability_score: 92,
+            afm_compliant: true,
+            term_years: 30,
+            nhg_required: false,
+            estimated_monthly_payment: 1250,
+            conditions: ['Minimum income €50,000', 'Energy label A or B required'],
+          }
+        ],
+        compliance_flags: [],
+        regulatory_requirements: {
+          wft_article_86f: true,
+          suitability_assessment: true,
+          product_governance: true,
+          client_categorization: true,
+        },
+      };
+      setComplianceResult(result);
+    } catch (error) {
+      console.error('Failed to load compliance analysis:', error);
+      notifications.show({
+        title: 'Loading Error',
+        message: 'Failed to load compliance analysis',
+        color: 'red',
+        icon: <IconX size={16} />,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleGenerateAdvice = async (values: { topic: string; complexity: string }) => {
-    setGenerating(true);
-
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 4000));
-
-    // Mock compliance result
-    const mockResult: ComplianceResult = {
-      advice_id: "ADV-2025-001",
-      original_advice: values.topic,
-      compliant_advice: `Based on your profile as a ${userProfile.firstTimeBuyer ? 'first-time' : 'experienced'} buyer with an annual income of €${userProfile.income.toLocaleString()}, we recommend considering a fixed-rate mortgage for the next 10-15 years.
-
-Key points to consider:
-• Your debt-to-income ratio is ${((userProfile.mortgageAmount / userProfile.income) * 100).toFixed(1)}%, which is within acceptable limits
-• Interest rates are currently competitive, but consider that rates may rise in the future
-• You should maintain an emergency fund covering 3-6 months of mortgage payments
-
-Important disclosures:
-• Mortgage interest rates can change over time
-• Early repayment penalties may apply if you sell or refinance within the first 10 years
-• Additional costs include property taxes, insurance, and maintenance
-
-This advice is based on current market conditions and your financial profile. We recommend consulting with a mortgage advisor for personalized guidance.`,
-      compliance_score: 95,
-      readability_level: "B1 (Intermediate)",
-      key_requirements: [
-        "Complete cost disclosures",
-        "Risk warnings included",
-        "Plain language used",
-        "Personalized to user profile",
-        "No misleading statements"
-      ],
-      missing_disclosures: [],
-      simplification_suggestions: [
-        {
-          original: "debt-to-income ratio",
-          simplified: "how much of your income goes to debt payments",
-          improvement: "Uses everyday language instead of financial jargon"
-        },
-        {
-          original: "competitive interest rates",
-          simplified: "good interest rates available",
-          improvement: "Simpler vocabulary maintains meaning"
-        }
-      ],
-      explain_back_questions: [
-        {
-          question: "What does it mean that interest rates can change over time?",
-          expected_answer: "Mortgage rates are not guaranteed to stay the same",
-          understood: false
-        },
-        {
-          question: "Why is an emergency fund important for homeownership?",
-          expected_answer: "To cover unexpected expenses like repairs or job loss",
-          understood: false
-        },
-        {
-          question: "What are the main costs of owning a home besides the mortgage payment?",
-          expected_answer: "Property taxes, insurance, maintenance, and utilities",
-          understood: false
-        }
-      ],
-      generated_at: new Date().toISOString()
-    };
-
-    setComplianceResult(mockResult);
-    setGenerating(false);
-    enqueueSnackbar('Compliance advice generated successfully!', { variant: 'success' });
-  };
-
-  const handleExplainBack = () => {
-    setExplainBackDialog(true);
-  };
-
-  const handleAnswerSubmit = (questionIndex: number, answer: string) => {
-    setUserAnswers(prev => ({ ...prev, [questionIndex]: answer }));
-
-    // Simulate understanding check
-    const question = complianceResult?.explain_back_questions[questionIndex];
-    const understood = answer.toLowerCase().includes(question?.expected_answer.toLowerCase().split(' ')[0] || '');
-
-    if (complianceResult) {
-      const updatedQuestions = [...complianceResult.explain_back_questions];
-      updatedQuestions[questionIndex] = {
-        ...updatedQuestions[questionIndex],
-        user_answer: answer,
-        understood
+  const runNewAssessment = async () => {
+    setAnalyzing(true);
+    try {
+      const clientId = searchParams.get('client_id') || 'current_client';
+      const request: ComplianceAssessmentRequest = {
+        client_id: clientId,
+        assessment_type: 'initial',
+        include_product_recommendations: true,
+        priority: 'normal',
       };
 
-      setComplianceResult({
-        ...complianceResult,
-        explain_back_questions: updatedQuestions
+      const response = await complianceApi.requestComplianceAssessment(request);
+      
+      notifications.show({
+        title: 'Assessment Started',
+        message: `New compliance assessment initiated. ID: ${response.assessment_id}`,
+        color: 'blue',
+        icon: <IconGavel size={16} />,
       });
+
+      // Reload after a short delay to get updated results
+      setTimeout(() => {
+        loadComplianceAnalysis();
+      }, 2000);
+    } catch (error) {
+      notifications.show({
+        title: 'Assessment Failed',
+        message: 'Failed to start new compliance assessment',
+        color: 'red',
+        icon: <IconX size={16} />,
+      });
+    } finally {
+      setAnalyzing(false);
     }
   };
 
-  const handleContinue = () => {
-    const allUnderstood = complianceResult?.explain_back_questions.every(q => q.understood) ?? false;
-
-    if (allUnderstood) {
-      enqueueSnackbar('All compliance checks completed successfully!', { variant: 'success' });
-      navigate('/results');
-    } else {
-      enqueueSnackbar('Please answer all understanding questions before proceeding', { variant: 'warning' });
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'passed': case 'compliant': return 'green';
+      case 'conditional_approval': case 'conditional': return 'yellow';
+      case 'requires_review': return 'blue';
+      case 'rejected': case 'non_compliant': return 'red';
+      default: return 'gray';
     }
   };
 
-  const handleBack = () => {
-    navigate('/quality-control');
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'passed': case 'compliant': return <IconCheck size={24} />;
+      case 'conditional_approval': case 'conditional': return <IconAlertTriangle size={24} />;
+      case 'requires_review': return <IconClock size={24} />;
+      case 'rejected': case 'non_compliant': return <IconX size={24} />;
+      default: return <IconInfoCircle size={24} />;
+    }
   };
 
-  if (generating) {
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'low': return 'green';
+      case 'medium': return 'yellow';
+      case 'high': return 'red';
+      default: return 'gray';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'critical': return 'red';
+      case 'high': return 'orange';
+      case 'medium': return 'yellow';
+      case 'low': return 'blue';
+      default: return 'gray';
+    }
+  };
+
+  if (loading || !complianceResult) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2, textAlign: 'center' }}>
-          <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
-            Generating Compliance Advice
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <Psychology sx={{ fontSize: 64, color: 'primary.main' }} />
-            <Typography variant="h6">
-              Our AI advisor is preparing personalized mortgage guidance...
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Ensuring AFM compliance and plain-language requirements
-            </Typography>
-            <CircularProgress size={60} />
-          </Box>
-        </Paper>
+      <Container size="xl" py="xl">
+        <Center style={{ minHeight: '60vh' }}>
+          <Stack align="center" gap="md">
+            <Loader size="xl" />
+            <Title order={3}>Loading Compliance Analysis</Title>
+            <Text c="dimmed">Analyzing AFM compliance requirements...</Text>
+          </Stack>
+        </Center>
       </Container>
     );
   }
 
+  const complianceScore = complianceResult.compliance_score;
+  const riskProfile = complianceResult.risk_profile;
+  const afmStatus = complianceResult.afm_status;
+
   return (
-    <Container maxWidth="lg" sx={{ mt: 8, mb: 8 }}>
-      <Paper elevation={0} sx={{
-        p: 6,
-        borderRadius: 4,
-        background: 'rgba(255, 255, 255, 0.95)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(226, 232, 240, 0.8)',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)',
-      }}>
-        <Box sx={{ textAlign: 'center', mb: 6 }}>
-          <Box sx={{
-            width: 80,
-            height: 80,
-            borderRadius: 4,
-            background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',
-            mb: 4,
-            boxShadow: '0 8px 24px rgba(236, 72, 153, 0.25), 0 4px 12px rgba(0, 0, 0, 0.1)',
-          }}>
-            <Gavel sx={{ color: 'white', fontSize: 40 }} />
-          </Box>
-          <Typography
-            variant="h2"
-            component="h1"
-            gutterBottom
-            align="center"
-            sx={{
-              fontWeight: 700,
-              mb: 3,
-              background: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Compliance & Plain-Language Advisor
-          </Typography>
-          <Typography
-            variant="h6"
-            align="center"
-            color="text.secondary"
-            sx={{ fontWeight: 400, maxWidth: 600, mx: 'auto', lineHeight: 1.6 }}
-          >
-            Get AFM-compliant mortgage advice with AI-powered plain-language explanations
-          </Typography>
-        </Box>
-
-        {/* User Profile Summary */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Your Profile Summary
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h5" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                    €{userProfile.income.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Annual Income
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h5" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                    €{userProfile.mortgageAmount.toLocaleString()}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Mortgage Amount
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h5" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                    {userProfile.age} years
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Age
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Card variant="outlined">
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Typography variant="h5" color="primary.main" sx={{ fontWeight: 'bold' }}>
-                    {userProfile.firstTimeBuyer ? 'First-time' : 'Experienced'}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Buyer Status
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Advice Generation Form */}
-        {!complianceResult && (
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6" gutterBottom>
-              Request Personalized Advice
-            </Typography>
-            <Formik
-              initialValues={{
-                topic: 'mortgage options for first-time buyers',
-                complexity: 'intermediate'
-              }}
-              validationSchema={Yup.object({
-                topic: Yup.string().required('Please specify what advice you need'),
-                complexity: Yup.string().required('Please select complexity level')
-              })}
-              onSubmit={handleGenerateAdvice}
+    <Container size="xl" py="xl">
+      <Stack gap="xl">
+        {/* Header */}
+        <Group justify="space-between">
+          <Group>
+            <ThemeIcon size="xl" radius={0} color="indigo">
+              <IconGavel size={32} />
+            </ThemeIcon>
+            <div>
+              <Title order={1}>AFM Compliance Check</Title>
+              <Text c="dimmed">Client: {complianceResult.client_name}</Text>
+              <Text size="sm" c="dimmed">Assessment ID: {complianceResult.id}</Text>
+            </div>
+          </Group>
+          <Group>
+            <Button 
+              variant="outline" 
+              leftSection={<IconRefresh size={16} />}
+              onClick={runNewAssessment}
+              loading={analyzing}
+              radius={0}
             >
-              {(formik) => (
-                <Form>
-                  <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                      <Field
-                        as={TextField}
-                        fullWidth
-                        name="topic"
-                        label="What mortgage advice do you need?"
-                        placeholder="e.g., mortgage options for first-time buyers, fixed vs variable rates, etc."
-                        variant="outlined"
-                        multiline
-                        rows={3}
-                        error={formik.touched.topic && Boolean(formik.errors.topic)}
-                        helperText={formik.touched.topic && formik.errors.topic}
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth variant="outlined">
-                        <InputLabel>Complexity Level</InputLabel>
-                        <Field
-                          as={Select}
-                          name="complexity"
-                          label="Complexity Level"
-                          error={formik.touched.complexity && Boolean(formik.errors.complexity)}
-                        >
-                          <MenuItem value="basic">Basic - Simple explanations</MenuItem>
-                          <MenuItem value="intermediate">Intermediate - Some detail</MenuItem>
-                          <MenuItem value="advanced">Advanced - Full details</MenuItem>
-                        </Field>
-                        {formik.touched.complexity && formik.errors.complexity && (
-                          <FormHelperText error>{formik.errors.complexity}</FormHelperText>
-                        )}
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={6} sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Button
-                        type="submit"
-                        variant="contained"
-                        startIcon={<Send />}
-                        disabled={formik.isSubmitting}
-                        sx={{ borderRadius: 2, px: 4 }}
-                        fullWidth
-                      >
-                        {formik.isSubmitting ? 'Generating...' : 'Generate Advice'}
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Form>
-              )}
-            </Formik>
-          </Box>
-        )}
+              New Assessment
+            </Button>
+            <Button 
+              leftSection={<IconDownload size={16} />}
+              radius={0}
+            >
+              Export Report
+            </Button>
+          </Group>
+        </Group>
 
-        {/* Compliance Results */}
-        {complianceResult && (
-          <>
-            {/* Compliance Score */}
-            <Box sx={{ mb: 4, textAlign: 'center' }}>
-              <Typography variant="h3" sx={{ fontWeight: 'bold', color: 'success.main' }}>
-                {complianceResult.compliance_score}%
-              </Typography>
-              <Typography variant="h6" gutterBottom>
-                AFM Compliance Score
-              </Typography>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Readability: {complianceResult.readability_level}
-              </Typography>
-              <Chip
-                label="AFM COMPLIANT"
-                color="success"
-                icon={<CheckCircle />}
-                sx={{ fontSize: '1rem', py: 1, px: 2 }}
+        {/* Status Alert */}
+        <Alert 
+          color={getStatusColor(complianceResult.overall_status)} 
+          icon={getStatusIcon(complianceResult.overall_status)}
+          title={`Compliance Status: ${complianceResult.overall_status.replace('_', ' ').toUpperCase()}`}
+          radius={0}
+        >
+          <Text size="sm">
+            Assessment completed on {new Date(complianceResult.assessment_date).toLocaleDateString()}
+            {complianceResult.review_deadline && (
+              <> • Review deadline: {new Date(complianceResult.review_deadline).toLocaleDateString()}</>
+            )}
+          </Text>
+        </Alert>
+
+        {/* Key Metrics Overview */}
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="lg">
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Compliance Score</Text>
+                <Title order={2}>{complianceScore.toFixed(1)}%</Title>
+              </div>
+              <RingProgress
+                size={60}
+                thickness={6}
+                sections={[{ 
+                  value: complianceScore, 
+                  color: complianceScore >= 80 ? 'green' : complianceScore >= 60 ? 'yellow' : 'red' 
+                }]}
               />
-            </Box>
+            </Group>
+            <Progress 
+              value={complianceScore} 
+              color={complianceScore >= 80 ? 'green' : complianceScore >= 60 ? 'yellow' : 'red'}
+              size="sm" 
+              mt="md"
+              radius={0}
+            />
+          </Card>
 
-            <Divider sx={{ my: 4 }} />
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">AFM Status</Text>
+                <Badge 
+                  color={getStatusColor(afmStatus)} 
+                  size="lg"
+                  radius={0}
+                >
+                  {afmStatus.replace('_', ' ').toUpperCase()}
+                </Badge>
+              </div>
+              <ThemeIcon 
+                size="xl" 
+                color={getStatusColor(afmStatus)} 
+                radius={0}
+              >
+                <IconCertificate size={24} />
+              </ThemeIcon>
+            </Group>
+          </Card>
 
-            {/* Compliant Advice */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" gutterBottom>
-                Your Personalized Mortgage Advice
-              </Typography>
-              <Paper variant="outlined" sx={{ p: 3, backgroundColor: 'grey.50' }}>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-line', lineHeight: 1.6 }}>
-                  {complianceResult.compliant_advice}
-                </Typography>
-              </Paper>
-            </Box>
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Risk Profile</Text>
+                <Badge 
+                  color={getRiskColor(riskProfile)} 
+                  size="lg"
+                  radius={0}
+                >
+                  {riskProfile.toUpperCase()}
+                </Badge>
+              </div>
+              <ThemeIcon 
+                size="xl" 
+                color={getRiskColor(riskProfile)} 
+                radius={0}
+              >
+                <IconScale size={24} />
+              </ThemeIcon>
+            </Group>
+              </Card>
 
-            {/* Detailed Analysis */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" gutterBottom>
-                Compliance Analysis
-              </Typography>
+          <Card radius={0} shadow="sm" padding="lg">
+            <Group justify="space-between">
+              <div>
+                <Text size="sm" c="dimmed">Compliance Flags</Text>
+                <Title order={2}>{complianceResult.compliance_flags.length}</Title>
+              </div>
+              <ThemeIcon 
+                size="xl" 
+                color={complianceResult.compliance_flags.length === 0 ? 'green' : 'orange'} 
+                radius={0}
+              >
+                <IconExclamationMark size={24} />
+              </ThemeIcon>
+            </Group>
+              </Card>
+        </SimpleGrid>
 
-              {/* Requirements Met */}
-              <Accordion defaultExpanded sx={{ mb: 2 }}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Gavel color="success" />
-                    <Typography variant="h6">
-                      AFM Requirements Met ({complianceResult.key_requirements.length})
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <List>
-                    {complianceResult.key_requirements.map((req, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <CheckCircle color="success" />
-                        </ListItemIcon>
-                        <ListItemText primary={req} />
-                      </ListItem>
-                    ))}
-                  </List>
-                </AccordionDetails>
-              </Accordion>
+        {/* Detailed Analysis Tabs */}
+        <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'overview')} radius={0}>
+          <Tabs.List>
+            <Tabs.Tab value="overview" leftSection={<IconEye size={16} />}>
+              Overview
+            </Tabs.Tab>
+            <Tabs.Tab value="regulatory" leftSection={<IconGavel size={16} />}>
+              Regulatory Requirements
+            </Tabs.Tab>
+            <Tabs.Tab value="recommendations" leftSection={<IconClipboardCheck size={16} />}>
+              Recommendations
+            </Tabs.Tab>
+            <Tabs.Tab value="products" leftSection={<IconBuildingBank size={16} />}>
+              Product Recommendations
+            </Tabs.Tab>
+            <Tabs.Tab value="flags" leftSection={<IconAlertTriangle size={16} />}>
+              Compliance Flags
+            </Tabs.Tab>
+          </Tabs.List>
 
-              {/* Simplifications Made */}
-              <Accordion sx={{ mb: 2 }}>
-                <AccordionSummary expandIcon={<ExpandMore />}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Lightbulb color="info" />
-                    <Typography variant="h6">
-                      Language Simplifications ({complianceResult.simplification_suggestions.length})
-                    </Typography>
-                  </Box>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <List>
-                    {complianceResult.simplification_suggestions.map((suggestion, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <Lightbulb color="info" />
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={`"${suggestion.original}" → "${suggestion.simplified}"`}
-                          secondary={suggestion.improvement}
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                </AccordionDetails>
-              </Accordion>
-            </Box>
-
-            {/* Explain-Back Validation */}
-            <Box sx={{ mb: 4 }}>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                <Typography variant="body2">
-                  To ensure you understand this advice, please answer the following questions.
-                  This is required by AFM regulations to confirm consumer comprehension.
-                </Typography>
-              </Alert>
-
-              <List>
-                {complianceResult.explain_back_questions.map((question, index) => (
-                  <ListItem key={index} sx={{ border: 1, borderColor: 'divider', borderRadius: 1, mb: 1 }}>
-                    <ListItemIcon>
-                      <Help color="primary" />
-                    </ListItemIcon>
-                    <ListItemText
-                      primary={question.question}
-                      secondary={question.user_answer ? (
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                            Your answer: {question.user_answer}
-                          </Typography>
-                          <Chip
-                            size="small"
-                            label={question.understood ? "UNDERSTOOD" : "NEEDS CLARIFICATION"}
-                            color={question.understood ? "success" : "warning"}
-                            sx={{ mt: 0.5 }}
-                          />
-                        </Box>
-                      ) : "Click to answer"}
+          <Tabs.Panel value="overview" pt="xl">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 8 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Assessment Summary</Title>
+                  <Stack gap="md">
+                    <Group justify="space-between">
+                      <Text>Overall Compliance Score</Text>
+                      <Badge color={getStatusColor(complianceResult.overall_status)} size="lg" radius={0}>
+                        {complianceScore.toFixed(1)}%
+                      </Badge>
+                    </Group>
+                    <Progress 
+                      value={complianceScore} 
+                      color={complianceScore >= 80 ? 'green' : complianceScore >= 60 ? 'yellow' : 'red'}
+                      size="lg"
+                      radius={0}
                     />
-                    {!question.user_answer && (
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => {
-                          const answer = prompt(question.question);
-                          if (answer) {
-                            handleAnswerSubmit(index, answer);
-                          }
-                        }}
-                      >
-                        Answer
-                      </Button>
+                    
+                    <Divider />
+                    
+                    <Group justify="space-between">
+                      <Text>Risk Assessment</Text>
+                      <Badge color={getRiskColor(riskProfile)} radius={0}>
+                        {riskProfile.toUpperCase()} RISK
+                      </Badge>
+                    </Group>
+                    
+                    <Group justify="space-between">
+                      <Text>AFM Compliance Status</Text>
+                      <Badge color={getStatusColor(afmStatus)} radius={0}>
+                        {afmStatus.replace('_', ' ').toUpperCase()}
+                      </Badge>
+                    </Group>
+                    
+                    {complianceResult.advisor_notes && (
+                      <>
+                        <Divider />
+                        <div>
+                          <Text fw={500} mb="xs">Advisor Notes</Text>
+                          <Text size="sm" c="dimmed">{complianceResult.advisor_notes}</Text>
+                        </div>
+                      </>
                     )}
-                  </ListItem>
+                  </Stack>
+              </Card>
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Card radius={0} shadow="sm" padding="lg">
+                  <Title order={3} mb="md">Assessment Details</Title>
+                  <Stack gap="sm">
+                    <Group justify="space-between">
+                      <Text size="sm">Assessment Date</Text>
+                      <Text size="sm" fw={500}>
+                        {new Date(complianceResult.assessment_date).toLocaleDateString()}
+                      </Text>
+                    </Group>
+                    {complianceResult.review_deadline && (
+                      <Group justify="space-between">
+                        <Text size="sm">Review Deadline</Text>
+                        <Text size="sm" fw={500} c="orange">
+                          {new Date(complianceResult.review_deadline).toLocaleDateString()}
+                        </Text>
+                      </Group>
+                    )}
+                    {complianceResult.next_review_date && (
+                      <Group justify="space-between">
+                        <Text size="sm">Next Review</Text>
+                        <Text size="sm" fw={500}>
+                          {new Date(complianceResult.next_review_date).toLocaleDateString()}
+                        </Text>
+                      </Group>
+                    )}
+                    <Divider />
+                    <Group justify="space-between">
+                      <Text size="sm">Total Recommendations</Text>
+                      <Text size="sm" fw={500}>{complianceResult.recommendations.length}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                      <Text size="sm">Product Matches</Text>
+                      <Text size="sm" fw={500}>{complianceResult.product_recommendations.length}</Text>
+                    </Group>
+                  </Stack>
+              </Card>
+              </Grid.Col>
+            </Grid>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="regulatory" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Regulatory Requirements Compliance</Title>
+              <Stack gap="md">
+                <Paper p="md" withBorder radius={0}>
+                  <Group justify="space-between">
+                    <Group>
+                      <ThemeIcon 
+                        color={complianceResult.regulatory_requirements.wft_article_86f ? 'green' : 'red'} 
+                        radius={0}
+                      >
+                        {complianceResult.regulatory_requirements.wft_article_86f ? 
+                          <IconCheck size={16} /> : <IconX size={16} />}
+                      </ThemeIcon>
+                      <div>
+                        <Text fw={500}>Wft Article 86f Compliance</Text>
+                        <Text size="sm" c="dimmed">Suitability and appropriateness assessment</Text>
+                      </div>
+                    </Group>
+                    <Badge 
+                      color={complianceResult.regulatory_requirements.wft_article_86f ? 'green' : 'red'} 
+                      radius={0}
+                    >
+                      {complianceResult.regulatory_requirements.wft_article_86f ? 'Compliant' : 'Non-Compliant'}
+                    </Badge>
+                  </Group>
+                </Paper>
+
+                <Paper p="md" withBorder radius={0}>
+                  <Group justify="space-between">
+                    <Group>
+                      <ThemeIcon 
+                        color={complianceResult.regulatory_requirements.suitability_assessment ? 'green' : 'red'} 
+                        radius={0}
+                      >
+                        {complianceResult.regulatory_requirements.suitability_assessment ? 
+                          <IconCheck size={16} /> : <IconX size={16} />}
+                      </ThemeIcon>
+                      <div>
+                        <Text fw={500}>Suitability Assessment</Text>
+                        <Text size="sm" c="dimmed">Client knowledge and experience evaluation</Text>
+                      </div>
+                    </Group>
+                    <Badge 
+                      color={complianceResult.regulatory_requirements.suitability_assessment ? 'green' : 'red'} 
+                      radius={0}
+                    >
+                      {complianceResult.regulatory_requirements.suitability_assessment ? 'Complete' : 'Incomplete'}
+                    </Badge>
+                  </Group>
+                </Paper>
+
+                <Paper p="md" withBorder radius={0}>
+                  <Group justify="space-between">
+                    <Group>
+                      <ThemeIcon 
+                        color={complianceResult.regulatory_requirements.product_governance ? 'green' : 'red'} 
+                        radius={0}
+                      >
+                        {complianceResult.regulatory_requirements.product_governance ? 
+                          <IconCheck size={16} /> : <IconX size={16} />}
+                      </ThemeIcon>
+                      <div>
+                        <Text fw={500}>Product Governance</Text>
+                        <Text size="sm" c="dimmed">Product oversight and governance requirements</Text>
+                      </div>
+                    </Group>
+                    <Badge 
+                      color={complianceResult.regulatory_requirements.product_governance ? 'green' : 'red'} 
+                      radius={0}
+                    >
+                      {complianceResult.regulatory_requirements.product_governance ? 'Satisfied' : 'Not Satisfied'}
+                    </Badge>
+                  </Group>
+                </Paper>
+
+                <Paper p="md" withBorder radius={0}>
+                  <Group justify="space-between">
+                    <Group>
+                      <ThemeIcon 
+                        color={complianceResult.regulatory_requirements.client_categorization ? 'green' : 'red'} 
+                        radius={0}
+                      >
+                        {complianceResult.regulatory_requirements.client_categorization ? 
+                          <IconCheck size={16} /> : <IconX size={16} />}
+                      </ThemeIcon>
+                      <div>
+                        <Text fw={500}>Client Categorization</Text>
+                        <Text size="sm" c="dimmed">Proper client classification and documentation</Text>
+                      </div>
+                    </Group>
+                    <Badge 
+                      color={complianceResult.regulatory_requirements.client_categorization ? 'green' : 'red'} 
+                      radius={0}
+                    >
+                      {complianceResult.regulatory_requirements.client_categorization ? 'Verified' : 'Pending'}
+                    </Badge>
+                  </Group>
+              </Paper>
+              </Stack>
+            </Card>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="recommendations" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Compliance Recommendations</Title>
+              <Stack gap="md">
+                {complianceResult.recommendations.map((rec, index) => (
+                  <Paper key={index} p="md" withBorder radius={0}>
+                    <Group justify="space-between" mb="sm">
+                      <Group>
+                        <Badge color={getPriorityColor(rec.priority)} radius={0}>
+                          {rec.priority.toUpperCase()}
+                        </Badge>
+                        <Badge color={getStatusColor(rec.type)} radius={0}>
+                          {rec.type.replace('_', ' ').toUpperCase()}
+                        </Badge>
+                      </Group>
+                      <Badge color={getRiskColor(rec.risk_level)} radius={0}>
+                        {rec.risk_level.toUpperCase()} RISK
+                      </Badge>
+                    </Group>
+                    
+                    <Title order={4} mb="xs">{rec.title}</Title>
+                    <Text size="sm" c="dimmed" mb="md">{rec.description}</Text>
+                    
+                    {rec.afm_requirements.length > 0 && (
+                      <div>
+                        <Text size="sm" fw={500} mb="xs">AFM Requirements:</Text>
+                        <List size="sm" spacing="xs">
+                          {rec.afm_requirements.map((req, reqIndex) => (
+                            <List.Item key={reqIndex}>{req}</List.Item>
+                    ))}
+                  </List>
+                      </div>
+                    )}
+                    
+                    {rec.recommended_actions.length > 0 && (
+                      <div>
+                        <Text size="sm" fw={500} mb="xs" mt="md">Recommended Actions:</Text>
+                        <List size="sm" spacing="xs">
+                          {rec.recommended_actions.map((action, actionIndex) => (
+                            <List.Item key={actionIndex} icon={<IconArrowRight size={12} />}>
+                              {action}
+                            </List.Item>
+                    ))}
+                  </List>
+                      </div>
+                    )}
+                    
+                    {rec.deadline && (
+                      <Alert color="orange" icon={<IconClock size={16} />} mt="md" radius={0}>
+                        <Text size="sm">Deadline: {rec.deadline}</Text>
+              </Alert>
+                    )}
+                  </Paper>
+                ))}
+              </Stack>
+            </Card>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="products" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Recommended Products</Title>
+              <Stack gap="md">
+                {complianceResult.product_recommendations.map((product, index) => (
+                  <Paper key={index} p="md" withBorder radius={0}>
+                    <Grid>
+                      <Grid.Col span={{ base: 12, md: 8 }}>
+                        <Group justify="space-between" mb="sm">
+                          <div>
+                            <Text fw={600} size="lg">{product.lender}</Text>
+                            <Text c="dimmed" size="sm">{product.product_name}</Text>
+                          </div>
+                          <Group>
+                            <Badge color="green" size="lg" radius={0}>
+                              {product.suitability_score.toFixed(0)}% Match
+                            </Badge>
+                            <Badge 
+                              color={product.afm_compliant ? 'green' : 'red'} 
+                              radius={0}
+                            >
+                              {product.afm_compliant ? 'AFM Compliant' : 'Non-Compliant'}
+                            </Badge>
+                          </Group>
+                        </Group>
+                        
+                        <SimpleGrid cols={3} spacing="md">
+                          <div>
+                            <Text size="xs" c="dimmed">Interest Rate</Text>
+                            <Text fw={500}>{product.interest_rate.toFixed(2)}%</Text>
+                          </div>
+                          <div>
+                            <Text size="xs" c="dimmed">Max LTV</Text>
+                            <Text fw={500}>{product.max_ltv}%</Text>
+                          </div>
+                          <div>
+                            <Text size="xs" c="dimmed">Term</Text>
+                            <Text fw={500}>{product.term_years} years</Text>
+                          </div>
+                        </SimpleGrid>
+                        
+                        {product.estimated_monthly_payment && (
+                          <Group mt="sm">
+                            <Text size="sm" c="dimmed">Est. Monthly Payment:</Text>
+                            <Text fw={500}>€{product.estimated_monthly_payment.toLocaleString()}</Text>
+                          </Group>
+                        )}
+                      </Grid.Col>
+                      
+                      <Grid.Col span={{ base: 12, md: 4 }}>
+                        {product.conditions && product.conditions.length > 0 && (
+                          <div>
+                            <Text size="sm" fw={500} mb="xs">Conditions:</Text>
+                            <List size="xs">
+                              {product.conditions.map((condition, condIndex) => (
+                                <List.Item key={condIndex}>{condition}</List.Item>
                 ))}
               </List>
-            </Box>
-          </>
-        )}
+                          </div>
+                        )}
+                        
+                        {product.nhg_required && (
+                          <Badge color="blue" mt="xs" radius={0}>NHG Required</Badge>
+                        )}
+                        
+                        {product.energy_efficiency_bonus && (
+                          <Badge color="green" mt="xs" radius={0}>
+                            Green Bonus: {product.energy_efficiency_bonus}%
+                          </Badge>
+                        )}
+                      </Grid.Col>
+                    </Grid>
+                  </Paper>
+                ))}
+              </Stack>
+            </Card>
+          </Tabs.Panel>
+
+          <Tabs.Panel value="flags" pt="xl">
+            <Card radius={0} shadow="sm" padding="lg">
+              <Title order={3} mb="md">Compliance Flags</Title>
+              {complianceResult.compliance_flags.length > 0 ? (
+                <Stack gap="md">
+                  {complianceResult.compliance_flags.map((flag, index) => (
+                    <Alert 
+                      key={index}
+                      color="orange" 
+                      icon={<IconAlertTriangle size={16} />}
+                      title={`Compliance Flag ${index + 1}`}
+                      radius={0}
+                    >
+                      <Text size="sm">{flag}</Text>
+                    </Alert>
+                  ))}
+                </Stack>
+              ) : (
+                <Alert color="green" icon={<IconCheck size={16} />} radius={0}>
+                  No compliance flags identified. All requirements appear to be met.
+                </Alert>
+              )}
+            </Card>
+          </Tabs.Panel>
+        </Tabs>
 
         {/* Action Buttons */}
-        {complianceResult && (
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+        <Group justify="space-between">
+          <Button 
+            variant="outline" 
+            leftSection={<IconArrowLeft size={16} />}
+            onClick={() => navigate(-1)}
+            radius={0}
+          >
+            Back to Application
+          </Button>
+          <Group>
             <Button
-              variant="outlined"
-              onClick={handleBack}
-              startIcon={<NavigateBefore />}
-              sx={{ borderRadius: 2 }}
+              variant="outline"
+              leftSection={<IconDownload size={16} />}
+              radius={0}
             >
-              Back to Quality Control
+              Export Compliance Report
             </Button>
+            {complianceResult.overall_status === 'passed' && (
             <Button
-              variant="contained"
-              onClick={handleContinue}
-              endIcon={<NavigateNext />}
-              disabled={!complianceResult.explain_back_questions.every(q => q.understood)}
-              sx={{ borderRadius: 2, px: 4 }}
-            >
-              View Final Results
+                leftSection={<IconArrowRight size={16} />}
+                onClick={() => navigate('/quality-control')}
+                radius={0}
+              >
+                Proceed to Quality Control
             </Button>
-          </Box>
         )}
-      </Paper>
+          </Group>
+        </Group>
+      </Stack>
     </Container>
   );
 };

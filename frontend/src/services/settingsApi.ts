@@ -115,6 +115,55 @@ class SettingsApiService {
     }
   }
 
+  async getSystemConfig(): Promise<Record<string, any>> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/settings/system-config`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAuthToken()}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`System config error: ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Failed to load system config:', error);
+      this.showError('Failed to load system configuration');
+      throw error;
+    }
+  }
+
+  async validateApiKey(provider: string, apiKey: string) {
+    return this.validateAPIKey(provider, apiKey);
+  }
+
+  async updateAuthRequirement(requireAuth: boolean): Promise<{ success: boolean }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/settings/authentication`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.getAuthToken()}`,
+        },
+        body: JSON.stringify({ require_auth: requireAuth })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Auth update error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return { success: Boolean(data.success) };
+    } catch (error) {
+      console.error('Failed to update authentication requirement:', error);
+      this.showError('Failed to update authentication requirement');
+      throw error;
+    }
+  }
+
   private getAuthToken(): string {
     return localStorage.getItem('auth_token') || '';
   }

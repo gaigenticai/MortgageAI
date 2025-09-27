@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Workflow Monitor User Guide - MortgageAI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .nav-tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 120px;
+        }
+        
+        .nav-tab.active {
+            color: #2a5298;
+            border-bottom-color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+        
+        .nav-tab:hover {
+            color: #2a5298;
+            background: rgba(42, 82, 152, 0.05);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .section {
+            margin-bottom: 35px;
+        }
+        
+        .section h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-left: 4px solid #2a5298;
+            padding-left: 15px;
+        }
+        
+        .section h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            margin-top: 25px;
+            font-size: 1.4em;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #e9ecff 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-card h4 {
+            color: #2a5298;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.5;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .endpoint {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-weight: bold;
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+        }
+        
+        .method {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        
+        .method.get { background: #4CAF50; }
+        .method.post { background: #2196F3; }
+        .method.put { background: #FF9800; }
+        .method.delete { background: #f44336; }
+        
+        .step {
+            background: #f8f9ff;
+            padding: 20px;
+            border-left: 4px solid #2a5298;
+            margin: 15px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .step h4 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+        
+        .warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffc107;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .warning strong {
+            color: #856404;
+        }
+        
+        .info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border: 1px solid #17a2b8;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .info strong {
+            color: #0c5460;
+        }
+        
+        .success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 1px solid #28a745;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .success strong {
+            color: #155724;
+        }
+        
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .parameter-table th,
+        .parameter-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .parameter-table th {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .parameter-table tr:hover {
+            background: #f8f9ff;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #e9ecef;
+            color: #495057;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+        
+        .badge.required {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .badge.optional {
+            background: #6c757d;
+            color: white;
+        }
+        
+        ul {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+            
+            .nav-tab {
+                min-width: auto;
+                flex: 1;
+                text-align: center;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .code-block {
+                font-size: 0.9em;
+            }
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2a5298, #667eea);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Autonomous Workflow Monitor</h1>
+            <p>Real-time Agent Decision Tracking, Learning Pattern Visualization & Performance Analytics</p>
+        </div>
+        
+        <div class="content">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+                <button class="nav-tab" onclick="showTab('monitoring')">Agent Monitoring</button>
+                <button class="nav-tab" onclick="showTab('performance')">Performance Metrics</button>
+                <button class="nav-tab" onclick="showTab('learning')">Learning Patterns</button>
+                <button class="nav-tab" onclick="showTab('optimization')">Optimization</button>
+                <button class="nav-tab" onclick="showTab('alerts')">Alerts & Health</button>
+                <button class="nav-tab" onclick="showTab('api')">API Reference</button>
+            </div>
+            
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-content active">
+                <div class="section">
+                    <h2>🎯 System Overview</h2>
+                    <p>The Autonomous Workflow Monitor provides comprehensive real-time tracking and analysis of AI agent decisions, performance metrics, and learning patterns within your mortgage advisory system. This advanced monitoring solution enables continuous optimization and ensures high-quality decision-making across all automated processes.</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🔍 Real-time Decision Tracking</h4>
+                            <p>Monitor every agent decision with detailed context, confidence scores, and performance metrics in real-time.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📊 Learning Pattern Detection</h4>
+                            <p>Automatically detect and analyze learning patterns, performance trends, and concept drift in agent behavior.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>⚡ Performance Analytics</h4>
+                            <p>Comprehensive performance metrics collection and analysis for continuous system optimization.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🎯 Workflow Optimization</h4>
+                            <p>Intelligent workflow analysis with bottleneck detection and optimization recommendations.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🚨 Smart Alerting</h4>
+                            <p>Advanced alert management with intelligent suppression and escalation capabilities.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📈 System Health Monitoring</h4>
+                            <p>Continuous health monitoring with proactive issue detection and resolution recommendations.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>🎯 Key Features</h2>
+                    
+                    <h3>Agent Decision Tracking</h3>
+                    <ul>
+                        <li><strong>Decision Logging:</strong> Capture all agent decisions with full context and metadata</li>
+                        <li><strong>Confidence Tracking:</strong> Monitor decision confidence scores and accuracy over time</li>
+                        <li><strong>Downstream Impact:</strong> Track the impact of decisions on subsequent workflow steps</li>
+                        <li><strong>Error Analysis:</strong> Detailed analysis of decision errors and retry patterns</li>
+                    </ul>
+                    
+                    <h3>Performance Metrics</h3>
+                    <ul>
+                        <li><strong>Response Time Monitoring:</strong> Track processing times and throughput metrics</li>
+                        <li><strong>Accuracy Metrics:</strong> Precision, recall, F1-score, and custom accuracy measurements</li>
+                        <li><strong>Resource Utilization:</strong> Memory, CPU, and other resource usage patterns</li>
+                        <li><strong>Cost Analysis:</strong> Per-decision cost tracking and optimization insights</li>
+                    </ul>
+                    
+                    <h3>Learning Pattern Detection</h3>
+                    <ul>
+                        <li><strong>Trend Analysis:</strong> Detect improvement, degradation, and plateau patterns</li>
+                        <li><strong>Concept Drift:</strong> Identify when agent behavior shifts over time</li>
+                        <li><strong>Anomaly Detection:</strong> Flag unusual patterns in agent decisions</li>
+                        <li><strong>Seasonal Patterns:</strong> Recognize recurring patterns and cycles</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Agent Monitoring Tab -->
+            <div id="monitoring" class="tab-content">
+                <div class="section">
+                    <h2>🔍 Agent Decision Monitoring</h2>
+                    <p>Track and analyze every decision made by AI agents in your mortgage advisory system with comprehensive monitoring capabilities.</p>
+                    
+                    <h3>Starting a Monitoring Session</h3>
+                    <div class="step">
+                        <h4>Step 1: Create Monitoring Session</h4>
+                        <p>Initialize a new monitoring session to begin tracking agent decisions.</p>
+                        <div class="code-block">
+POST /api/workflow-monitor/sessions
+{
+  "session_name": "AFM Compliance Monitoring",
+  "configuration": {
+    "metrics_collection_interval": 60,
+    "enable_real_time_analysis": true,
+    "enable_pattern_detection": true
+  },
+  "alert_thresholds": {
+    "accuracy": 0.85,
+    "processing_time": 5000
+  }
+}
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <h4>Step 2: Configure Agent Tracking</h4>
+                        <p>Set up specific agents to monitor and define tracking parameters.</p>
+                        <div class="code-block">
+PUT /api/workflow-monitor/sessions/{sessionId}/agents
+{
+  "agents": [
+    {
+      "agent_id": "afm_compliance_agent",
+      "track_decisions": true,
+      "track_performance": true,
+      "decision_types": ["classification", "validation", "recommendation"]
+    }
+  ]
+}
+                        </div>
+                    </div>
+                    
+                    <h3>Decision Logging</h3>
+                    <p>Agent decisions are automatically logged with comprehensive context:</p>
+                    
+                    <table class="parameter-table">
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                        <tr>
+                            <td>decision_id</td>
+                            <td>String</td>
+                            <td>Unique identifier for the decision</td>
+                        </tr>
+                        <tr>
+                            <td>agent_id</td>
+                            <td>String</td>
+                            <td>ID of the agent making the decision</td>
+                        </tr>
+                        <tr>
+                            <td>decision_type</td>
+                            <td>Enum</td>
+                            <td>Type of decision (classification, recommendation, etc.)</td>
+                        </tr>
+                        <tr>
+                            <td>confidence_score</td>
+                            <td>Decimal</td>
+                            <td>Agent's confidence in the decision (0.0-1.0)</td>
+                        </tr>
+                        <tr>
+                            <td>processing_time</td>
+                            <td>Decimal</td>
+                            <td>Time taken to make the decision (seconds)</td>
+                        </tr>
+                        <tr>
+                            <td>input_data</td>
+                            <td>JSON</td>
+                            <td>Input data used for the decision</td>
+                        </tr>
+                        <tr>
+                            <td>output_data</td>
+                            <td>JSON</td>
+                            <td>Decision output and recommendations</td>
+                        </tr>
+                    </table>
+                    
+                    <h3>Real-time Decision Tracking</h3>
+                    <p>Monitor decisions as they happen:</p>
+                    <div class="code-block">
+GET /api/workflow-monitor/sessions/{sessionId}/decisions/live
+# Returns real-time stream of decision events
+                    </div>
+                    
+                    <div class="info">
+                        <strong>Pro Tip:</strong> Use WebSocket connections for real-time decision streaming to build responsive monitoring dashboards.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Performance Metrics Tab -->
+            <div id="performance" class="tab-content">
+                <div class="section">
+                    <h2>📊 Performance Metrics & Analytics</h2>
+                    <p>Comprehensive performance monitoring and analysis capabilities for agent behavior and system efficiency.</p>
+                    
+                    <h3>Metric Types</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📈 Accuracy Metrics</h4>
+                            <p>Precision, recall, F1-score, and custom accuracy measurements</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>⚡ Performance Metrics</h4>
+                            <p>Processing time, throughput, and response latency tracking</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>💰 Cost Metrics</h4>
+                            <p>Per-decision cost analysis and budget optimization insights</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🖥️ Resource Metrics</h4>
+                            <p>Memory, CPU, and infrastructure utilization monitoring</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Collecting Custom Metrics</h3>
+                    <div class="step">
+                        <h4>Submit Performance Metrics</h4>
+                        <div class="code-block">
+POST /api/workflow-monitor/metrics
+{
+  "monitoring_session_id": "session_uuid",
+  "agent_id": "afm_compliance_agent",
+  "metric_type": "accuracy",
+  "metric_value": 0.94,
+  "metric_unit": "percentage",
+  "measurement_context": {
+    "dataset": "afm_test_cases",
+    "model_version": "v2.1.0"
+  },
+  "metric_timestamp": "2024-01-15T14:30:00Z"
+}
+                        </div>
+                    </div>
+                    
+                    <h3>Performance Analytics</h3>
+                    <p>Get comprehensive performance analytics:</p>
+                    <div class="code-block">
+GET /api/workflow-monitor/analytics/performance?agent_id=afm_compliance_agent&period=24h
+# Returns detailed performance analytics including:
+# - Average processing times
+# - Accuracy trends
+# - Throughput metrics
+# - Resource utilization patterns
+                    </div>
+                    
+                    <h3>Metric Aggregation</h3>
+                    <p>Configure automatic metric aggregation:</p>
+                    <div class="code-block">
+POST /api/workflow-monitor/analytics/aggregation
+{
+  "aggregation_rules": [
+    {
+      "metric_type": "processing_time",
+      "aggregation_method": "average",
+      "time_window": "1h",
+      "group_by": ["agent_id", "workflow_id"]
+    }
+  ]
+}
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Important:</strong> Metric collection can impact performance. Configure collection intervals and retention policies based on your monitoring requirements.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Learning Patterns Tab -->
+            <div id="learning" class="tab-content">
+                <div class="section">
+                    <h2>🧠 Learning Pattern Detection</h2>
+                    <p>Advanced pattern detection and analysis to understand agent learning behavior and optimize performance over time.</p>
+                    
+                    <h3>Pattern Types</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>📈 Improvement Trends</h4>
+                            <p>Detect when agents are learning and improving over time</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📉 Performance Degradation</h4>
+                            <p>Identify declining performance patterns and potential issues</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔄 Concept Drift</h4>
+                            <p>Detect when the underlying data patterns change</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🚨 Anomalous Behavior</h4>
+                            <p>Flag unusual decision patterns that require investigation</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Automatic Pattern Detection</h3>
+                    <p>The system automatically analyzes agent performance data to detect patterns:</p>
+                    <div class="code-block">
+GET /api/workflow-monitor/patterns?agent_id=afm_compliance_agent&confidence_min=0.7
+# Returns detected patterns with:
+# - Pattern type and confidence
+# - Start/end timestamps
+# - Statistical significance
+# - Trend characteristics
+# - Recommendations
+                    </div>
+                    
+                    <h3>Pattern Analysis Configuration</h3>
+                    <div class="step">
+                        <h4>Configure Pattern Detection</h4>
+                        <div class="code-block">
+POST /api/workflow-monitor/patterns/configuration
+{
+  "pattern_detection_settings": {
+    "min_confidence": 0.7,
+    "analysis_window": "7d",
+    "enable_trend_analysis": true,
+    "enable_concept_drift_detection": true,
+    "statistical_significance_threshold": 0.05
+  }
+}
+                        </div>
+                    </div>
+                    
+                    <h3>Learning Insights</h3>
+                    <p>Get actionable insights from pattern analysis:</p>
+                    <table class="parameter-table">
+                        <tr>
+                            <th>Insight Type</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                        <tr>
+                            <td>Improvement Trend</td>
+                            <td>Agent performance is steadily improving</td>
+                            <td>Continue current training approach</td>
+                        </tr>
+                        <tr>
+                            <td>Performance Plateau</td>
+                            <td>Performance has stabilized</td>
+                            <td>Consider advanced training techniques</td>
+                        </tr>
+                        <tr>
+                            <td>Concept Drift</td>
+                            <td>Underlying data patterns are changing</td>
+                            <td>Retrain with recent data</td>
+                        </tr>
+                        <tr>
+                            <td>Specialization</td>
+                            <td>Agent is becoming specialized in certain tasks</td>
+                            <td>Optimize task routing</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="success">
+                        <strong>Best Practice:</strong> Regularly review learning patterns to identify training opportunities and potential issues before they impact production performance.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Optimization Tab -->
+            <div id="optimization" class="tab-content">
+                <div class="section">
+                    <h2>⚡ Workflow Optimization</h2>
+                    <p>Intelligent analysis and optimization recommendations to improve workflow efficiency and performance.</p>
+                    
+                    <h3>Optimization Analysis</h3>
+                    <p>Run comprehensive workflow optimization analysis:</p>
+                    <div class="code-block">
+POST /api/workflow-monitor/optimization/analyze
+{
+  "optimization_scope": "comprehensive",
+  "analyzed_workflows": ["afm_compliance", "mortgage_evaluation"],
+  "analysis_options": {
+    "include_bottleneck_analysis": true,
+    "include_resource_optimization": true,
+    "include_predictions": true,
+    "confidence_level": 0.8
+  }
+}
+                    </div>
+                    
+                    <h3>Bottleneck Detection</h3>
+                    <p>Identify performance bottlenecks in your workflows:</p>
+                    <div class="step">
+                        <h4>Get Bottleneck Analysis</h4>
+                        <div class="code-block">
+GET /api/workflow-monitor/optimization/{optimizationId}/bottlenecks
+# Returns identified bottlenecks with:
+# - Bottleneck location and severity
+# - Impact on overall performance
+# - Root cause analysis
+# - Recommended solutions
+                        </div>
+                    </div>
+                    
+                    <h3>Optimization Opportunities</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>🚀 Performance Optimization</h4>
+                            <p>Reduce processing times and improve throughput</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>💰 Cost Optimization</h4>
+                            <p>Minimize operational costs while maintaining quality</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🎯 Quality Optimization</h4>
+                            <p>Improve decision accuracy and reduce errors</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📈 Resource Optimization</h4>
+                            <p>Better utilize system resources and infrastructure</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Implementation Recommendations</h3>
+                    <p>Get prioritized recommendations for optimization:</p>
+                    <div class="code-block">
+GET /api/workflow-monitor/optimization/{optimizationId}/recommendations
+# Returns prioritized recommendations including:
+# - Implementation difficulty
+# - Expected impact
+# - Resource requirements
+# - Implementation timeline
+                    </div>
+                    
+                    <div class="info">
+                        <strong>Note:</strong> Optimization analysis runs periodically in the background. You can also trigger on-demand analysis for specific workflows or time periods.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alerts & Health Tab -->
+            <div id="alerts" class="tab-content">
+                <div class="section">
+                    <h2>🚨 Alerts & System Health</h2>
+                    <p>Comprehensive alerting and health monitoring to ensure system reliability and performance.</p>
+                    
+                    <h3>Alert Types</h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <h4>⚠️ Threshold Violations</h4>
+                            <p>Triggered when metrics exceed predefined thresholds</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔍 Anomaly Detection</h4>
+                            <p>Unusual patterns detected in agent behavior</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>📉 Performance Degradation</h4>
+                            <p>Significant drops in system performance</p>
+                        </div>
+                        <div class="feature-card">
+                            <h4>🔄 Pattern Changes</h4>
+                            <p>Unexpected changes in learning patterns</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Alert Configuration</h3>
+                    <div class="step">
+                        <h4>Set Alert Thresholds</h4>
+                        <div class="code-block">
+POST /api/workflow-monitor/alerts/thresholds
+{
+  "thresholds": [
+    {
+      "metric_type": "accuracy",
+      "threshold_value": 0.85,
+      "threshold_type": "below",
+      "severity": "high",
+      "agent_id": "afm_compliance_agent"
+    },
+    {
+      "metric_type": "processing_time",
+      "threshold_value": 5000,
+      "threshold_type": "above",
+      "severity": "medium"
+    }
+  ]
+}
+                        </div>
+                    </div>
+                    
+                    <h3>Alert Management</h3>
+                    <p>Manage active alerts:</p>
+                    <div class="code-block">
+# Get active alerts
+GET /api/workflow-monitor/alerts?status=active&severity=high
+
+# Acknowledge an alert
+PUT /api/workflow-monitor/alerts/{alertId}/acknowledge
+{
+  "acknowledged_by": "user_id",
+  "notes": "Investigating accuracy drop in AFM compliance agent"
+}
+
+# Resolve an alert
+PUT /api/workflow-monitor/alerts/{alertId}/resolve
+{
+  "resolution_notes": "Issue resolved by retraining agent with updated data"
+}
+                    </div>
+                    
+                    <h3>System Health Monitoring</h3>
+                    <p>Get comprehensive system health status:</p>
+                    <div class="code-block">
+GET /api/workflow-monitor/health/current
+# Returns current system health including:
+# - Overall health score and status
+# - Individual agent health scores
+# - System performance indicators
+# - Health recommendations
+                    </div>
+                    
+                    <h3>Health Snapshots</h3>
+                    <p>Historical health tracking:</p>
+                    <div class="step">
+                        <h4>Health History Analysis</h4>
+                        <div class="code-block">
+GET /api/workflow-monitor/health/history?period=7d
+# Returns health snapshots over time showing:
+# - Health score trends
+# - Performance factor changes
+# - Historical issues and resolutions
+# - System stability patterns
+                        </div>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Alert Fatigue:</strong> Configure intelligent alert suppression to avoid overwhelming operators with duplicate or low-priority alerts.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- API Reference Tab -->
+            <div id="api" class="tab-content">
+                <div class="section">
+                    <h2>🔧 API Reference</h2>
+                    <p>Complete API reference for the Autonomous Workflow Monitor system.</p>
+                    
+                    <h3>Monitoring Sessions</h3>
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Create Monitoring Session</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/sessions</span></p>
+                        <p>Create a new monitoring session to track agent decisions and performance.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> List Monitoring Sessions</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/sessions</span></p>
+                        <p>Retrieve all monitoring sessions with their current status.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Get Session Details</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/sessions/{sessionId}</span></p>
+                        <p>Get detailed information about a specific monitoring session.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method put">PUT</span> Update Session</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/sessions/{sessionId}</span></p>
+                        <p>Update monitoring session configuration and settings.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method delete">DELETE</span> Stop Session</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/sessions/{sessionId}</span></p>
+                        <p>Stop and archive a monitoring session.</p>
+                    </div>
+                    
+                    <h3>Agent Decisions</h3>
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Log Decision</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/decisions</span></p>
+                        <p>Log an agent decision with full context and metadata.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Query Decisions</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/decisions</span></p>
+                        <p>Query agent decisions with filtering and pagination.</p>
+                    </div>
+                    
+                    <h3>Performance Metrics</h3>
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Submit Metrics</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/metrics</span></p>
+                        <p>Submit performance metrics for analysis and monitoring.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Get Metrics</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/metrics</span></p>
+                        <p>Retrieve performance metrics with filtering options.</p>
+                    </div>
+                    
+                    <h3>Learning Patterns</h3>
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Get Patterns</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/patterns</span></p>
+                        <p>Retrieve detected learning patterns and insights.</p>
+                    </div>
+                    
+                    <h3>Workflow Optimization</h3>
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Run Optimization Analysis</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/optimization/analyze</span></p>
+                        <p>Trigger comprehensive workflow optimization analysis.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Get Optimization Results</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/optimization/{optimizationId}</span></p>
+                        <p>Retrieve optimization analysis results and recommendations.</p>
+                    </div>
+                    
+                    <h3>Alerts & Health</h3>
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Get Alerts</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/alerts</span></p>
+                        <p>Retrieve system alerts with filtering by status and severity.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> System Health</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/health/current</span></p>
+                        <p>Get current system health status and scores.</p>
+                    </div>
+                    
+                    <h3>Reports</h3>
+                    <div class="step">
+                        <h4><span class="method post">POST</span> Generate Report</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/reports</span></p>
+                        <p>Generate comprehensive monitoring reports.</p>
+                    </div>
+                    
+                    <div class="step">
+                        <h4><span class="method get">GET</span> Download Report</h4>
+                        <p><span class="endpoint">/api/workflow-monitor/reports/{reportId}/download</span></p>
+                        <p>Download generated reports in various formats.</p>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>Authentication</h2>
+                    <p>All API endpoints require proper authentication when <code>REQUIRE_AUTH=true</code>:</p>
+                    <div class="code-block">
+Authorization: Bearer YOUR_JWT_TOKEN
+Content-Type: application/json
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>Rate Limiting</h2>
+                    <p>API endpoints are rate-limited to ensure system stability:</p>
+                    <ul>
+                        <li><strong>Decision Logging:</strong> 1000 requests per minute</li>
+                        <li><strong>Metrics Submission:</strong> 500 requests per minute</li>
+                        <li><strong>Query Endpoints:</strong> 100 requests per minute</li>
+                        <li><strong>Analysis Endpoints:</strong> 10 requests per minute</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 MortgageAI - Autonomous Workflow Monitor. Built for AFM compliance and optimal mortgage advisory automation.</p>
+            <p>For technical support and advanced configuration, please consult the system administrator.</p>
+        </div>
+    </div>
+    
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Performance Metrics Dashboard - User Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 40px -20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .nav h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .nav a {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: all 0.3s;
+            display: block;
+        }
+
+        .nav a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 1.8em;
+        }
+
+        .section h3 {
+            color: #495057;
+            margin: 25px 0 15px 0;
+            font-size: 1.3em;
+        }
+
+        .section h4 {
+            color: #6c757d;
+            margin: 20px 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+
+        .feature-card h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+            margin: 10px 0;
+        }
+
+        .metric-card h4 {
+            color: #1976d2;
+            margin-bottom: 5px;
+            margin-top: 0;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-size: 0.9em;
+        }
+
+        .code-block.json {
+            background: #2d3748;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 20px;
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #667eea;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .performance-table th,
+        .performance-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .performance-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .performance-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #6c757d;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        .badge.success { background: #28a745; }
+        .badge.warning { background: #ffc107; color: #333; }
+        .badge.error { background: #dc3545; }
+        .badge.info { background: #17a2b8; }
+        .badge.grade-a { background: #28a745; }
+        .badge.grade-b { background: #8bc34a; }
+        .badge.grade-c { background: #ffc107; color: #333; }
+        .badge.grade-d { background: #ff9800; }
+        .badge.grade-f { background: #f44336; }
+
+        .accordion {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+
+        .accordion-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .accordion-header:hover {
+            background: #e9ecef;
+        }
+
+        .accordion-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .accordion.active .accordion-content {
+            display: block;
+        }
+
+        .dashboard-preview {
+            background: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            color: #6c757d;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .chart-container {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #ff9800;
+            text-align: center;
+        }
+
+        .kpi-card h3 {
+            color: #ef6c00;
+            margin: 0 0 10px 0;
+            font-size: 2em;
+        }
+
+        .kpi-card p {
+            color: #bf360c;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding: 30px;
+            background: #343a40;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+
+            .header {
+                padding: 30px 20px;
+                margin: -15px -15px 30px -15px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .section {
+                padding: 20px;
+            }
+
+            .nav ul {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Agent Performance Metrics Dashboard</h1>
+            <p>Comprehensive User Guide for Performance Monitoring, Analytics & Optimization</p>
+        </div>
+
+        <div class="nav">
+            <h3>📋 Quick Navigation</h3>
+            <ul>
+                <li><a href="#overview">Dashboard Overview</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#agents-overview">Agents Overview</a></li>
+                <li><a href="#performance-analysis">Performance Analysis</a></li>
+                <li><a href="#recommendations">Optimization Recommendations</a></li>
+                <li><a href="#alerts">Alerts & Monitoring</a></li>
+                <li><a href="#real-time">Real-time Monitoring</a></li>
+                <li><a href="#analytics">Advanced Analytics</a></li>
+                <li><a href="#api-integration">API Integration</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <div class="section" id="overview">
+            <h2>📖 Dashboard Overview</h2>
+            <p>The Agent Performance Metrics Dashboard provides comprehensive monitoring, analysis, and optimization capabilities for AI agents in the Dutch mortgage advisory platform. It offers real-time insights into agent performance, success rates, quality metrics, and compliance tracking with detailed analytics and actionable optimization recommendations.</p>
+            
+            <div class="highlight success">
+                <strong>🎯 Key Capabilities:</strong>
+                <ul>
+                    <li>Real-time performance monitoring and metrics collection</li>
+                    <li>Comprehensive performance analysis with statistical insights</li>
+                    <li>AI-powered optimization recommendations with ROI analysis</li>
+                    <li>Performance alerting and proactive monitoring</li>
+                    <li>Comparative analysis and benchmarking across agents</li>
+                    <li>AFM compliance performance tracking</li>
+                    <li>Advanced forecasting and trend analysis</li>
+                    <li>Interactive dashboards with customizable visualizations</li>
+                </ul>
+            </div>
+
+            <h3>🏗️ System Architecture</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📊 Metrics Collection Engine</h4>
+                    <p>Automated collection of performance metrics including success rates, quality scores, efficiency metrics, and user satisfaction data.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🧠 Performance Analysis Engine</h4>
+                    <p>Advanced statistical analysis, trend detection, pattern recognition, and performance forecasting using machine learning.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>💡 Optimization Engine</h4>
+                    <p>AI-powered recommendation generation for workflow optimization, resource allocation, and performance improvement.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🚨 Alert Management System</h4>
+                    <p>Proactive monitoring with configurable alerts, escalation management, and automated notification systems.</p>
+                </div>
+            </div>
+
+            <h3>📈 Performance Metrics Overview</h3>
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <h4>Overall Performance Score</h4>
+                    <p>Comprehensive performance rating from 0-100% based on weighted scoring across all performance dimensions.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Success Rate</h4>
+                    <p>Percentage of successfully completed tasks versus total tasks attempted by the agent.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Quality Score</h4>
+                    <p>Assessment of output quality based on accuracy, completeness, consistency, and adherence to standards.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Efficiency Score</h4>
+                    <p>Resource utilization efficiency including processing time, CPU usage, memory consumption, and response time.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Compliance Score</h4>
+                    <p>AFM regulatory compliance rating including adherence to WFT, BGFO, and AVG/GDPR requirements.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>User Satisfaction</h4>
+                    <p>User feedback and satisfaction ratings based on interaction quality and resolution effectiveness.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+            
+            <h3>📋 Prerequisites</h3>
+            <div class="highlight info">
+                <ul>
+                    <li>Access to MortgageAI platform with performance monitoring permissions</li>
+                    <li>One or more active AI agents deployed in the system</li>
+                    <li>Understanding of agent operational context and business objectives</li>
+                    <li>Basic familiarity with performance monitoring concepts</li>
+                </ul>
+            </div>
+
+            <h3>🔧 Initial Setup</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Access the Dashboard</strong>
+                    <p>Navigate to the Agent Performance Metrics section in your MortgageAI dashboard. The interface will automatically detect active agents and begin monitoring.</p>
+                </li>
+                
+                <li>
+                    <strong>Configure Monitoring Parameters</strong>
+                    <p>Set up monitoring preferences including time ranges, refresh intervals, and alert thresholds in the Settings tab.</p>
+                </li>
+                
+                <li>
+                    <strong>Review Initial Data</strong>
+                    <p>Allow the system to collect baseline performance data for at least 24 hours before making optimization decisions.</p>
+                </li>
+                
+                <li>
+                    <strong>Enable Real-time Monitoring</strong>
+                    <p>Activate real-time mode and configure auto-refresh settings for continuous performance tracking.</p>
+                </li>
+            </ol>
+
+            <h3>🎛️ Dashboard Configuration</h3>
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Time Range Settings</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <ul>
+                        <li><strong>Last 7 Days:</strong> Recent performance trends and immediate issues</li>
+                        <li><strong>Last 30 Days:</strong> Monthly performance patterns and medium-term trends</li>
+                        <li><strong>Last 90 Days:</strong> Quarterly performance analysis and seasonal patterns</li>
+                        <li><strong>Last Year:</strong> Annual performance review and long-term trend analysis</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Dashboard Types</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <ul>
+                        <li><strong>Comprehensive:</strong> Full feature dashboard with all metrics, charts, and analytics</li>
+                        <li><strong>Summary:</strong> Condensed view focusing on key performance indicators</li>
+                        <li><strong>Comparative:</strong> Side-by-side agent comparison with ranking and benchmarking</li>
+                        <li><strong>Executive:</strong> High-level overview suitable for management reporting</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="agents-overview">
+            <h2>👥 Agents Overview</h2>
+            
+            <h3>📊 Performance Summary Cards</h3>
+            <p>The dashboard provides at-a-glance KPI cards showing critical performance indicators:</p>
+            
+            <div class="metric-grid">
+                <div class="kpi-card">
+                    <h3>24</h3>
+                    <p>Total Agents</p>
+                </div>
+                
+                <div class="kpi-card">
+                    <h3>87.3%</h3>
+                    <p>Avg Performance</p>
+                </div>
+                
+                <div class="kpi-card">
+                    <h3>Agent-Alpha</h3>
+                    <p>Top Performer</p>
+                </div>
+                
+                <div class="kpi-card">
+                    <h3>3</h3>
+                    <p>Need Improvement</p>
+                </div>
+            </div>
+
+            <h3>📋 Agent Performance Table</h3>
+            <p>The main agents table provides comprehensive performance data with the following columns:</p>
+            
+            <div class="performance-table">
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Description</th>
+                            <th>Value Range</th>
+                            <th>Interpretation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Agent</strong></td>
+                            <td>Agent name, avatar, and ranking position</td>
+                            <td>N/A</td>
+                            <td>Unique identifier and ranking</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overall Score</strong></td>
+                            <td>Composite performance rating</td>
+                            <td>0-100%</td>
+                            <td>>90% Excellent, 80-90% Good, 70-80% Fair, <70% Poor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Grade</strong></td>
+                            <td>Letter grade based on overall score</td>
+                            <td>A+ to F</td>
+                            <td>A+/A: Excellent, B: Good, C: Average, D/F: Poor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Success Rate</strong></td>
+                            <td>Percentage of completed tasks</td>
+                            <td>0-100%</td>
+                            <td>>95% Excellent, 85-95% Good, 75-85% Fair, <75% Poor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Quality</strong></td>
+                            <td>Output quality assessment</td>
+                            <td>0-100%</td>
+                            <td>>90% High, 80-90% Good, 70-80% Average, <70% Low</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Efficiency</strong></td>
+                            <td>Resource utilization efficiency</td>
+                            <td>0-100%</td>
+                            <td>>85% Efficient, 70-85% Moderate, 60-70% Low, <60% Poor</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Compliance</strong></td>
+                            <td>AFM regulatory compliance</td>
+                            <td>0-100%</td>
+                            <td>>98% Excellent, 95-98% Good, 90-95% Fair, <90% Risk</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Trend</strong></td>
+                            <td>Performance direction indicator</td>
+                            <td>↗ ↘ →</td>
+                            <td>↗ Improving, ↘ Declining, → Stable</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>🎯 Performance Actions</h3>
+            <p>Each agent row provides action buttons for immediate operations:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>👁️ View Details</h4>
+                    <p>Open detailed performance dialog with radar charts, statistics, and historical trends for comprehensive analysis.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔄 Collect Metrics</h4>
+                    <p>Trigger immediate metrics collection to update performance data with latest operational information.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 Generate Analysis</h4>
+                    <p>Execute comprehensive performance analysis including forecasting, recommendations, and optimization suggestions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚖️ Compare Agents</h4>
+                    <p>Side-by-side comparison of multiple agents with benchmarking and relative performance analysis.</p>
+                </div>
+            </div>
+
+            <h3>🔍 Filtering and Sorting</h3>
+            <p>Advanced filtering options help you focus on specific agent groups:</p>
+            <ul>
+                <li><strong>Team Filter:</strong> Filter agents by team or department assignment</li>
+                <li><strong>Grade Filter:</strong> Show only agents with specific performance grades</li>
+                <li><strong>Sort Options:</strong> Sort by any performance metric in ascending or descending order</li>
+                <li><strong>Search:</strong> Quick text search across agent names and identifiers</li>
+            </ul>
+        </div>
+
+        <div class="section" id="performance-analysis">
+            <h2>🧠 Performance Analysis</h2>
+            
+            <h3>📈 Analysis Types</h3>
+            <p>The system provides multiple types of performance analysis for comprehensive insights:</p>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Comprehensive Analysis</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Features:</h4>
+                    <ul>
+                        <li>Complete statistical analysis of all performance dimensions</li>
+                        <li>Trend analysis with significance testing</li>
+                        <li>Pattern recognition and anomaly detection</li>
+                        <li>Benchmark comparison against peer agents</li>
+                        <li>Forecasting with confidence intervals</li>
+                        <li>Root cause analysis for performance issues</li>
+                    </ul>
+                    
+                    <h4>Use Cases:</h4>
+                    <ul>
+                        <li>Monthly performance reviews</li>
+                        <li>Agent optimization initiatives</li>
+                        <li>Performance troubleshooting</li>
+                        <li>Strategic planning and capacity planning</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Comparative Analysis</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Features:</h4>
+                    <ul>
+                        <li>Side-by-side agent performance comparison</li>
+                        <li>Statistical significance testing</li>
+                        <li>Performance ranking and percentile analysis</li>
+                        <li>Strengths and weaknesses identification</li>
+                        <li>Best practice identification from top performers</li>
+                    </ul>
+                    
+                    <h4>Comparison Metrics:</h4>
+                    <ul>
+                        <li>Success rates and completion times</li>
+                        <li>Quality scores and accuracy metrics</li>
+                        <li>Resource utilization efficiency</li>
+                        <li>Compliance adherence rates</li>
+                        <li>User satisfaction and feedback scores</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Predictive Analysis</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Forecasting Capabilities:</h4>
+                    <ul>
+                        <li>Performance trend forecasting (7-90 days)</li>
+                        <li>Capacity planning and workload predictions</li>
+                        <li>Risk assessment and failure probability</li>
+                        <li>Seasonal pattern recognition and adjustment</li>
+                        <li>Model confidence intervals and uncertainty quantification</li>
+                    </ul>
+                    
+                    <h4>Machine Learning Models:</h4>
+                    <ul>
+                        <li>Linear regression for trend analysis</li>
+                        <li>Random Forest for complex pattern recognition</li>
+                        <li>Time series analysis for seasonal patterns</li>
+                        <li>Ensemble models for improved accuracy</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>📊 Analysis Results Interpretation</h3>
+            <div class="highlight info">
+                <h4>Key Components of Analysis Results:</h4>
+                <ul>
+                    <li><strong>Overall Grade:</strong> Letter grade summarizing performance (A+ to F)</li>
+                    <li><strong>Key Insights:</strong> Top 3-5 actionable insights derived from data analysis</li>
+                    <li><strong>Strengths:</strong> Areas where the agent excels compared to peers</li>
+                    <li><strong>Improvement Areas:</strong> Specific areas requiring attention and optimization</li>
+                    <li><strong>Recommendations:</strong> Prioritized list of optimization suggestions</li>
+                    <li><strong>Forecasts:</strong> Predicted performance trends with confidence levels</li>
+                    <li><strong>Risk Factors:</strong> Potential issues that could impact future performance</li>
+                </ul>
+            </div>
+
+            <h3>📈 Performance Trend Analysis</h3>
+            <div class="chart-container">
+                <h4>📊 Trend Indicators</h4>
+                <ul>
+                    <li><strong>Improving (↗):</strong> Consistent upward trend in performance metrics over time</li>
+                    <li><strong>Declining (↘):</strong> Downward performance trend requiring immediate attention</li>
+                    <li><strong>Stable (→):</strong> Consistent performance with minimal variation</li>
+                    <li><strong>Volatile (🌊):</strong> High variation with unclear direction</li>
+                </ul>
+                
+                <div class="highlight success">
+                    <strong>💡 Trend Analysis Tips:</strong>
+                    <ul>
+                        <li>Consider trends over at least 30 days for reliable patterns</li>
+                        <li>Look for correlation between different metrics</li>
+                        <li>Account for external factors affecting performance</li>
+                        <li>Use statistical significance testing for trend validation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="recommendations">
+            <h2>💡 Optimization Recommendations</h2>
+            
+            <h3>🎯 Recommendation Categories</h3>
+            <p>The AI-powered recommendation engine generates optimization suggestions across multiple categories:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🔄 Workflow Optimization</h4>
+                    <p>Process improvements, task sequencing optimization, automation opportunities, and workflow streamlining suggestions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>💻 Resource Optimization</h4>
+                    <p>CPU, memory, and I/O optimization, scaling recommendations, and infrastructure efficiency improvements.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🎓 Training Recommendations</h4>
+                    <p>Model retraining suggestions, knowledge base updates, skill gap identification, and learning path optimization.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🤖 Automation Opportunities</h4>
+                    <p>Task automation potential, process automation recommendations, and human-AI collaboration optimization.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>✅ Quality Improvements</h4>
+                    <p>Output quality enhancement suggestions, validation improvements, and accuracy optimization strategies.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚡ Efficiency Enhancements</h4>
+                    <p>Performance optimization, response time improvements, and throughput maximization techniques.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚖️ Compliance Optimization</h4>
+                    <p>AFM compliance improvements, regulatory adherence suggestions, and risk mitigation strategies.</p>
+                </div>
+            </div>
+
+            <h3>📊 Recommendation Prioritization</h3>
+            <div class="performance-table">
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Priority Level</th>
+                            <th>Description</th>
+                            <th>Expected Impact</th>
+                            <th>Implementation Urgency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge error">Critical</span></td>
+                            <td>Immediate action required</td>
+                            <td>Very High (>25%)</td>
+                            <td>Within 24 hours</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge error">High</span></td>
+                            <td>Important improvements</td>
+                            <td>High (15-25%)</td>
+                            <td>Within 1 week</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge warning">Urgent</span></td>
+                            <td>Time-sensitive optimizations</td>
+                            <td>Moderate (10-15%)</td>
+                            <td>Within 2 weeks</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge info">Normal</span></td>
+                            <td>Standard improvements</td>
+                            <td>Moderate (5-10%)</td>
+                            <td>Within 1 month</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge">Low</span></td>
+                            <td>Enhancement opportunities</td>
+                            <td>Low (<5%)</td>
+                            <td>When resources available</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>💰 ROI Analysis</h3>
+            <p>Each recommendation includes comprehensive return on investment analysis:</p>
+            
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <h4>Expected Impact</h4>
+                    <p>Quantified performance improvement percentage with confidence intervals and statistical significance testing.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Implementation Effort</h4>
+                    <p>Resource requirements categorized as Low, Medium, High, or Very High with time and skill estimates.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Estimated ROI</h4>
+                    <p>Return on investment calculation including cost-benefit analysis and payback period estimation.</p>
+                </div>
+                
+                <div class="metric-card">
+                    <h4>Confidence Level</h4>
+                    <p>Statistical confidence in recommendation effectiveness based on historical data and similar implementations.</p>
+                </div>
+            </div>
+
+            <h3>📋 Implementation Planning</h3>
+            <div class="highlight success">
+                <h4>🛠️ Implementation Components:</h4>
+                <ul>
+                    <li><strong>Prerequisites:</strong> Required conditions and dependencies</li>
+                    <li><strong>Implementation Steps:</strong> Detailed step-by-step execution plan</li>
+                    <li><strong>Success Metrics:</strong> KPIs to measure implementation success</li>
+                    <li><strong>Risk Assessment:</strong> Potential risks and mitigation strategies</li>
+                    <li><strong>Timeline:</strong> Estimated implementation duration and milestones</li>
+                    <li><strong>Resources:</strong> Required skills, tools, and budget allocation</li>
+                </ul>
+            </div>
+
+            <h3>📈 Recommendation Tracking</h3>
+            <p>The system provides comprehensive tracking of recommendation implementation:</p>
+            <ul>
+                <li><strong>Implementation Status:</strong> Not Started, In Progress, Testing, Completed, Cancelled</li>
+                <li><strong>Progress Tracking:</strong> Percentage completion with milestone tracking</li>
+                <li><strong>Results Measurement:</strong> Before/after performance comparison</li>
+                <li><strong>ROI Validation:</strong> Actual versus predicted return on investment</li>
+                <li><strong>Lessons Learned:</strong> Documentation of implementation insights</li>
+            </ul>
+        </div>
+
+        <div class="section" id="alerts">
+            <h2>🚨 Alerts & Monitoring</h2>
+            
+            <h3>⚠️ Alert Types</h3>
+            <p>The performance monitoring system generates alerts for various conditions:</p>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Performance Degradation Alerts</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Triggers:</h4>
+                    <ul>
+                        <li>Overall performance score drops below threshold</li>
+                        <li>Success rate declines by specified percentage</li>
+                        <li>Quality metrics fall below acceptable levels</li>
+                        <li>Processing time increases significantly</li>
+                    </ul>
+                    
+                    <h4>Severity Levels:</h4>
+                    <ul>
+                        <li><span class="badge error">Critical:</span> >25% performance drop</li>
+                        <li><span class="badge error">High:</span> 15-25% performance drop</li>
+                        <li><span class="badge warning">Medium:</span> 10-15% performance drop</li>
+                        <li><span class="badge info">Low:</span> 5-10% performance drop</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Resource Utilization Alerts</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Monitored Resources:</h4>
+                    <ul>
+                        <li><strong>CPU Usage:</strong> Alert when usage exceeds 80% for extended periods</li>
+                        <li><strong>Memory Usage:</strong> Alert when memory consumption reaches 85% capacity</li>
+                        <li><strong>Response Time:</strong> Alert when response times exceed 10 seconds</li>
+                        <li><strong>Queue Size:</strong> Alert when task queue reaches capacity limits</li>
+                    </ul>
+                    
+                    <h4>Automatic Actions:</h4>
+                    <ul>
+                        <li>Resource scaling recommendations</li>
+                        <li>Load balancing suggestions</li>
+                        <li>Performance optimization triggers</li>
+                        <li>Capacity planning updates</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Compliance Violation Alerts</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>AFM Compliance Monitoring:</h4>
+                    <ul>
+                        <li>WFT regulation compliance violations</li>
+                        <li>BGFO requirement non-adherence</li>
+                        <li>AVG/GDPR data protection issues</li>
+                        <li>Documentation and disclosure failures</li>
+                    </ul>
+                    
+                    <h4>Violation Severity:</h4>
+                    <ul>
+                        <li><span class="badge error">Critical:</span> Major regulatory violations requiring immediate action</li>
+                        <li><span class="badge error">Major:</span> Significant compliance issues with potential penalties</li>
+                        <li><span class="badge warning">Moderate:</span> Minor violations requiring attention</li>
+                        <li><span class="badge info">Minor:</span> Documentation or procedural improvements needed</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>🔔 Notification Channels</h3>
+            <p>Configure multiple notification channels for different alert types:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📧 Email Notifications</h4>
+                    <p>Configurable email alerts with detailed performance reports and recommended actions sent to specified recipients.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📱 In-App Notifications</h4>
+                    <p>Real-time dashboard notifications with alert summaries and quick action buttons for immediate response.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 Dashboard Widgets</h4>
+                    <p>Alert summary widgets showing active alerts, recent notifications, and alert trend analysis.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔗 Webhook Integration</h4>
+                    <p>API webhooks for integration with external monitoring systems, ticketing systems, and automation tools.</p>
+                </div>
+            </div>
+
+            <h3>📈 Alert Management</h3>
+            <div class="highlight info">
+                <h4>Alert Lifecycle Management:</h4>
+                <ol class="step-list">
+                    <li><strong>Detection:</strong> Automated monitoring detects condition meeting alert criteria</li>
+                    <li><strong>Classification:</strong> Alert severity and category assignment based on impact assessment</li>
+                    <li><strong>Notification:</strong> Multi-channel notification delivery to relevant stakeholders</li>
+                    <li><strong>Acknowledgment:</strong> Manual or automatic acknowledgment with assignee tracking</li>
+                    <li><strong>Investigation:</strong> Root cause analysis and impact assessment</li>
+                    <li><strong>Resolution:</strong> Implementation of corrective actions and verification</li>
+                    <li><strong>Documentation:</strong> Post-incident review and knowledge base updates</li>
+                </ol>
+            </div>
+
+            <h3>🎛️ Alert Configuration</h3>
+            <p>Customize alert thresholds and conditions based on operational requirements:</p>
+            
+            <div class="performance-table">
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Alert Type</th>
+                            <th>Default Threshold</th>
+                            <th>Configurable Range</th>
+                            <th>Recommended Setting</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Performance Drop</td>
+                            <td>10% decline</td>
+                            <td>5% - 25%</td>
+                            <td>10% for production, 15% for development</td>
+                        </tr>
+                        <tr>
+                            <td>Error Rate Spike</td>
+                            <td>5% error rate</td>
+                            <td>1% - 15%</td>
+                            <td>3% for critical agents, 5% for standard</td>
+                        </tr>
+                        <tr>
+                            <td>Response Time</td>
+                            <td>10 seconds</td>
+                            <td>2 - 60 seconds</td>
+                            <td>5s for interactive, 30s for batch</td>
+                        </tr>
+                        <tr>
+                            <td>CPU Usage</td>
+                            <td>80%</td>
+                            <td>50% - 95%</td>
+                            <td>75% sustained, 90% peak</td>
+                        </tr>
+                        <tr>
+                            <td>Compliance Score</td>
+                            <td>90%</td>
+                            <td>80% - 98%</td>
+                            <td>95% for AFM-regulated activities</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="real-time">
+            <h2>⚡ Real-time Monitoring</h2>
+            
+            <h3>🔄 Real-time Features</h3>
+            <p>Enable continuous monitoring and immediate response to performance changes:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📊 Live Metrics Dashboard</h4>
+                    <p>Real-time performance metrics with automatic updates, live charts, and instant change detection.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🚨 Instant Alerts</h4>
+                    <p>Immediate notification of performance issues, threshold violations, and critical events.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📈 Dynamic Charts</h4>
+                    <p>Auto-updating visualizations showing performance trends, resource usage, and comparative analysis.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>⚡ Quick Actions</h4>
+                    <p>Immediate response capabilities including metric collection, analysis generation, and optimization triggers.</p>
+                </div>
+            </div>
+
+            <h3>⚙️ Real-time Configuration</h3>
+            <div class="highlight success">
+                <h4>🔧 Configuration Options:</h4>
+                <ul>
+                    <li><strong>Refresh Interval:</strong> 10 seconds to 5 minutes (default: 30 seconds)</li>
+                    <li><strong>Auto-refresh:</strong> Automatic dashboard updates when enabled</li>
+                    <li><strong>Real-time Scope:</strong> All agents or selected subset</li>
+                    <li><strong>Metric Selection:</strong> Choose which metrics to monitor in real-time</li>
+                    <li><strong>Alert Integration:</strong> Real-time alert display and management</li>
+                    <li><strong>Performance Impact:</strong> Optimized queries to minimize system load</li>
+                </ul>
+            </div>
+
+            <h3>📱 Real-time Interface Elements</h3>
+            <p>The real-time interface includes specialized components for live monitoring:</p>
+            
+            <ul>
+                <li><strong>Live Status Indicators:</strong> Real-time status badges showing current agent states</li>
+                <li><strong>Performance Gauges:</strong> Circular progress indicators for key metrics</li>
+                <li><strong>Trend Sparklines:</strong> Mini-charts showing recent performance trends</li>
+                <li><strong>Alert Counters:</strong> Live counts of active alerts and notifications</li>
+                <li><strong>Activity Feed:</strong> Real-time stream of performance events and changes</li>
+                <li><strong>Quick Action Buttons:</strong> Immediate access to critical functions</li>
+            </ul>
+
+            <h3>🎛️ Real-time Controls</h3>
+            <div class="dashboard-preview">
+                <h4>⚡ Real-time Control Panel</h4>
+                <p><strong>Real-time Mode:</strong> ✅ Enabled | <strong>Auto-refresh:</strong> ✅ On (30s) | <strong>Last Update:</strong> 2 seconds ago</p>
+                <p><strong>Active Monitoring:</strong> 24 agents | <strong>Alerts:</strong> 2 active | <strong>Performance:</strong> Normal</p>
+            </div>
+
+            <h3>📊 Performance Impact Management</h3>
+            <p>Real-time monitoring is optimized to minimize system impact:</p>
+            <ul>
+                <li><strong>Efficient Queries:</strong> Optimized database queries with proper indexing</li>
+                <li><strong>Caching Strategy:</strong> Smart caching to reduce redundant calculations</li>
+                <li><strong>Selective Updates:</strong> Only update changed metrics to reduce load</li>
+                <li><strong>Adaptive Refresh:</strong> Automatic adjustment of refresh rates based on activity</li>
+                <li><strong>Resource Monitoring:</strong> Track real-time monitoring overhead</li>
+            </ul>
+        </div>
+
+        <div class="section" id="analytics">
+            <h2>📈 Advanced Analytics</h2>
+            
+            <h3>🔬 Statistical Analysis</h3>
+            <p>Comprehensive statistical analysis capabilities for performance data:</p>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Descriptive Statistics</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Statistical Measures:</h4>
+                    <ul>
+                        <li><strong>Central Tendency:</strong> Mean, median, mode for performance metrics</li>
+                        <li><strong>Variability:</strong> Standard deviation, variance, coefficient of variation</li>
+                        <li><strong>Distribution:</strong> Skewness, kurtosis, normality testing</li>
+                        <li><strong>Percentiles:</strong> 25th, 50th, 75th, 90th, 95th percentile rankings</li>
+                        <li><strong>Confidence Intervals:</strong> Statistical confidence bounds for estimates</li>
+                    </ul>
+                    
+                    <h4>Applications:</h4>
+                    <ul>
+                        <li>Performance baseline establishment</li>
+                        <li>Benchmark comparison and ranking</li>
+                        <li>Outlier detection and analysis</li>
+                        <li>Quality control and process monitoring</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Correlation Analysis</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Correlation Methods:</h4>
+                    <ul>
+                        <li><strong>Pearson Correlation:</strong> Linear relationships between metrics</li>
+                        <li><strong>Spearman Correlation:</strong> Rank-based correlations for non-linear relationships</li>
+                        <li><strong>Partial Correlation:</strong> Relationships controlling for other variables</li>
+                        <li><strong>Cross-Correlation:</strong> Time-delayed relationships between metrics</li>
+                    </ul>
+                    
+                    <h4>Insights Generated:</h4>
+                    <ul>
+                        <li>Identification of performance drivers</li>
+                        <li>Discovery of metric interdependencies</li>
+                        <li>Optimization opportunity identification</li>
+                        <li>Causal relationship hypothesis generation</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Time Series Analysis</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Analysis Components:</h4>
+                    <ul>
+                        <li><strong>Trend Analysis:</strong> Long-term directional changes in performance</li>
+                        <li><strong>Seasonality Detection:</strong> Recurring patterns and cycles</li>
+                        <li><strong>Change Point Detection:</strong> Identification of significant performance shifts</li>
+                        <li><strong>Anomaly Detection:</strong> Statistical outliers and unusual patterns</li>
+                        <li><strong>Forecasting Models:</strong> ARIMA, exponential smoothing, machine learning</li>
+                    </ul>
+                    
+                    <h4>Forecasting Capabilities:</h4>
+                    <ul>
+                        <li>7-day to 90-day performance predictions</li>
+                        <li>Confidence intervals for predictions</li>
+                        <li>Scenario analysis and what-if modeling</li>
+                        <li>Model accuracy assessment and improvement</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>🤖 Machine Learning Analytics</h3>
+            <p>Advanced machine learning algorithms for pattern recognition and prediction:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🎯 Classification Models</h4>
+                    <p>Agent performance classification, risk categorization, and performance grade prediction using ensemble methods.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 Regression Analysis</h4>
+                    <p>Performance prediction, resource requirement estimation, and optimization impact forecasting.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔍 Anomaly Detection</h4>
+                    <p>Statistical and ML-based anomaly detection using isolation forests, one-class SVM, and autoencoders.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🎭 Clustering Analysis</h4>
+                    <p>Agent grouping based on performance patterns, similarity analysis, and cohort identification.</p>
+                </div>
+            </div>
+
+            <h3>📊 Visualization Options</h3>
+            <div class="chart-container">
+                <h4>📈 Chart Types Available</h4>
+                <ul>
+                    <li><strong>Line Charts:</strong> Performance trends over time with multiple metrics</li>
+                    <li><strong>Bar Charts:</strong> Comparative performance analysis across agents</li>
+                    <li><strong>Scatter Plots:</strong> Correlation analysis and relationship visualization</li>
+                    <li><strong>Box Plots:</strong> Distribution analysis and outlier identification</li>
+                    <li><strong>Heatmaps:</strong> Correlation matrices and pattern visualization</li>
+                    <li><strong>Radar Charts:</strong> Multi-dimensional performance profiles</li>
+                    <li><strong>Gauge Charts:</strong> Current performance status and targets</li>
+                    <li><strong>Sankey Diagrams:</strong> Flow analysis and process visualization</li>
+                </ul>
+            </div>
+
+            <h3>🎨 Custom Analytics</h3>
+            <p>Create custom analytics and reports tailored to specific requirements:</p>
+            <ul>
+                <li><strong>Custom Metrics:</strong> Define organization-specific performance indicators</li>
+                <li><strong>Custom Reports:</strong> Build specialized reports for different stakeholders</li>
+                <li><strong>Dashboard Customization:</strong> Personalize layouts and visualizations</li>
+                <li><strong>Automated Insights:</strong> AI-generated insights and recommendations</li>
+                <li><strong>Export Capabilities:</strong> Multiple export formats for further analysis</li>
+            </ul>
+        </div>
+
+        <div class="section" id="api-integration">
+            <h2>🔌 API Integration</h2>
+            
+            <h3>🌐 API Endpoints Overview</h3>
+            <p>Comprehensive RESTful API for programmatic access to performance metrics and analytics:</p>
+            
+            <div class="code-block">
+Base URL: {API_HOST}/api/performance/
+Authentication: Bearer token required
+Content-Type: application/json
+Rate Limit: 100 requests per minute
+            </div>
+
+            <h3>📊 Metrics Collection API</h3>
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>POST /metrics/collect</strong> - Single Agent Metrics</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Request:</h4>
+                    <div class="code-block json">
+{
+  "agent_id": "agent_001",
+  "time_period": "daily",
+  "include_context": true,
+  "metrics_types": ["basic", "quality", "efficiency", "compliance"]
+}
+                    </div>
+                    
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "data": {
+    "agent_id": "agent_001",
+    "overall_score": 87.5,
+    "success_rate": 0.952,
+    "quality_score": 0.885,
+    "metrics": {...},
+    "collection_timestamp": "2024-01-15T10:30:00Z"
+  }
+}
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>POST /metrics/collect-batch</strong> - Multiple Agents</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Request:</h4>
+                    <div class="code-block json">
+{
+  "agent_ids": ["agent_001", "agent_002", "agent_003"],
+  "time_period": "daily",
+  "include_context": true,
+  "parallel_processing": true
+}
+                    </div>
+                    
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "data": {
+    "successful_collections": 3,
+    "failed_collections": 0,
+    "results": {
+      "agent_001": {...},
+      "agent_002": {...},
+      "agent_003": {...}
+    }
+  }
+}
+                    </div>
+                </div>
+            </div>
+
+            <h3>📈 Analytics API</h3>
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>POST /analysis/performance</strong> - Performance Analysis</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Request:</h4>
+                    <div class="code-block json">
+{
+  "agent_id": "agent_001",
+  "analysis_period": "monthly",
+  "include_forecasting": true,
+  "include_recommendations": true,
+  "focus_areas": ["performance", "quality", "efficiency"]
+}
+                    </div>
+                    
+                    <h4>Response:</h4>
+                    <div class="code-block json">
+{
+  "success": true,
+  "data": {
+    "analysis": {
+      "analysis_id": "analysis_123",
+      "overall_grade": "B+",
+      "key_insights": [...],
+      "recommendations": [...],
+      "forecasts": {...}
+    }
+  }
+}
+                    </div>
+                </div>
+            </div>
+
+            <h3>🎛️ Dashboard API</h3>
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>GET /dashboard/generate</strong> - Dashboard Data</span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Query Parameters:</h4>
+                    <ul>
+                        <li><code>time_range</code>: last_7_days, last_30_days, last_90_days, last_year</li>
+                        <li><code>dashboard_type</code>: comprehensive, summary, comparative, executive</li>
+                        <li><code>agent_ids</code>: Comma-separated list of agent IDs</li>
+                        <li><code>include_forecasts</code>: true/false</li>
+                        <li><code>include_benchmarks</code>: true/false</li>
+                    </ul>
+                    
+                    <h4>Example:</h4>
+                    <div class="code-block">
+GET /api/performance/dashboard/generate?time_range=last_30_days&dashboard_type=comprehensive
+                    </div>
+                </div>
+            </div>
+
+            <h3>🔗 Integration Examples</h3>
+            <p>Common integration patterns and use cases:</p>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📊 Business Intelligence</h4>
+                    <p>Integration with BI tools like Tableau, Power BI, or custom dashboards for executive reporting and analytics.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🚨 Monitoring Systems</h4>
+                    <p>Integration with monitoring tools like Grafana, DataDog, or New Relic for comprehensive infrastructure monitoring.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🤖 Automation Workflows</h4>
+                    <p>API integration with automation tools for triggered analysis, alert handling, and optimization implementation.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📋 Reporting Systems</h4>
+                    <p>Automated report generation and distribution for stakeholders, compliance reporting, and performance reviews.</p>
+                </div>
+            </div>
+
+            <h3>🔐 Authentication & Security</h3>
+            <div class="highlight warning">
+                <h4>🛡️ Security Requirements:</h4>
+                <ul>
+                    <li><strong>Bearer Token:</strong> All API calls require valid authentication token</li>
+                    <li><strong>Role-based Access:</strong> Different endpoints require specific permissions</li>
+                    <li><strong>Rate Limiting:</strong> 100 requests per minute per token</li>
+                    <li><strong>IP Whitelisting:</strong> Optional IP-based access restrictions</li>
+                    <li><strong>Audit Logging:</strong> All API calls are logged for security monitoring</li>
+                    <li><strong>Data Encryption:</strong> All data transmission uses HTTPS/TLS</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="best-practices">
+            <h2>💡 Best Practices</h2>
+            
+            <h3>📊 Performance Monitoring Best Practices</h3>
+            <div class="highlight success">
+                <h4>✅ Monitoring Strategy:</h4>
+                <ul>
+                    <li><strong>Establish Baselines:</strong> Collect at least 30 days of data before setting thresholds</li>
+                    <li><strong>Set Appropriate Thresholds:</strong> Balance sensitivity with false positive rates</li>
+                    <li><strong>Monitor Trends, Not Just Points:</strong> Focus on directional changes over time</li>
+                    <li><strong>Context is Key:</strong> Consider external factors affecting performance</li>
+                    <li><strong>Regular Review Cycles:</strong> Schedule periodic reviews of thresholds and metrics</li>
+                    <li><strong>Stakeholder Alignment:</strong> Ensure metrics align with business objectives</li>
+                </ul>
+            </div>
+
+            <h3>🎯 Performance Optimization Best Practices</h3>
+            <div class="highlight info">
+                <h4>🚀 Optimization Strategy:</h4>
+                <ul>
+                    <li><strong>Prioritize by Impact:</strong> Focus on changes with highest performance impact</li>
+                    <li><strong>Incremental Changes:</strong> Implement changes gradually to isolate effects</li>
+                    <li><strong>Measure Before and After:</strong> Quantify improvement impact</li>
+                    <li><strong>A/B Testing:</strong> Test optimizations with control groups when possible</li>
+                    <li><strong>Document Changes:</strong> Maintain records of optimizations and results</li>
+                    <li><strong>Continuous Monitoring:</strong> Monitor for regression after optimizations</li>
+                </ul>
+            </div>
+
+            <h3>⚠️ Alert Management Best Practices</h3>
+            <div class="highlight warning">
+                <h4>🔔 Alert Configuration:</h4>
+                <ul>
+                    <li><strong>Avoid Alert Fatigue:</strong> Set thresholds to minimize false positives</li>
+                    <li><strong>Escalation Procedures:</strong> Define clear escalation paths and responsibilities</li>
+                    <li><strong>Alert Suppression:</strong> Implement suppression for known maintenance windows</li>
+                    <li><strong>Actionable Alerts:</strong> Ensure every alert has a clear response procedure</li>
+                    <li><strong>Alert Correlation:</strong> Group related alerts to reduce noise</li>
+                    <li><strong>Regular Review:</strong> Periodically review and tune alert configurations</li>
+                </ul>
+            </div>
+
+            <h3>📈 Analytics Best Practices</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>📊 Data Quality</h4>
+                    <p>Ensure data completeness, accuracy, and consistency. Validate data sources and implement quality checks.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🔍 Statistical Rigor</h4>
+                    <p>Use appropriate statistical methods, consider confidence intervals, and validate model assumptions.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🎯 Business Context</h4>
+                    <p>Align analytics with business objectives and ensure insights are actionable and relevant.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📚 Documentation</h4>
+                    <p>Document methodology, assumptions, limitations, and provide clear interpretation guidance.</p>
+                </div>
+            </div>
+
+            <h3>🔄 Continuous Improvement Framework</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Baseline Establishment</strong>
+                    <p>Collect comprehensive baseline performance data across all metrics and agents.</p>
+                </li>
+                
+                <li>
+                    <strong>Gap Analysis</strong>
+                    <p>Identify performance gaps, improvement opportunities, and optimization potential.</p>
+                </li>
+                
+                <li>
+                    <strong>Improvement Planning</strong>
+                    <p>Prioritize improvements based on impact, effort, and strategic alignment.</p>
+                </li>
+                
+                <li>
+                    <strong>Implementation</strong>
+                    <p>Execute improvements with proper change management and monitoring.</p>
+                </li>
+                
+                <li>
+                    <strong>Measurement & Validation</strong>
+                    <p>Measure improvement impact and validate against expected outcomes.</p>
+                </li>
+                
+                <li>
+                    <strong>Knowledge Capture</strong>
+                    <p>Document lessons learned, best practices, and successful optimization strategies.</p>
+                </li>
+                
+                <li>
+                    <strong>Cycle Repetition</strong>
+                    <p>Continue the improvement cycle with updated baselines and refined strategies.</p>
+                </li>
+            </ol>
+
+            <h3>🎨 Dashboard Design Best Practices</h3>
+            <ul>
+                <li><strong>Information Hierarchy:</strong> Organize information by importance and frequency of use</li>
+                <li><strong>Visual Consistency:</strong> Use consistent colors, fonts, and layouts across dashboards</li>
+                <li><strong>Progressive Disclosure:</strong> Show summary first, allow drill-down for details</li>
+                <li><strong>Real-time Balance:</strong> Balance real-time needs with system performance</li>
+                <li><strong>Mobile Responsiveness:</strong> Ensure dashboards work across different devices</li>
+                <li><strong>User Feedback:</strong> Regularly collect and incorporate user feedback</li>
+            </ul>
+        </div>
+
+        <div class="section" id="troubleshooting">
+            <h2>🛠️ Troubleshooting</h2>
+            
+            <h3>🚫 Common Issues</h3>
+            
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Dashboard Loading Issues</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Symptoms:</h4>
+                    <ul>
+                        <li>Dashboard takes too long to load</li>
+                        <li>Partial data display or missing metrics</li>
+                        <li>Real-time updates not working</li>
+                        <li>Charts not rendering properly</li>
+                    </ul>
+                    
+                    <h4>Solutions:</h4>
+                    <ul>
+                        <li>Check browser console for JavaScript errors</li>
+                        <li>Verify network connectivity and API endpoint availability</li>
+                        <li>Clear browser cache and cookies</li>
+                        <li>Reduce time range or number of agents being monitored</li>
+                        <li>Disable real-time mode temporarily</li>
+                        <li>Check system resource utilization</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Metrics Collection Problems</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Symptoms:</h4>
+                    <ul>
+                        <li>Missing or incomplete performance data</li>
+                        <li>Stale metrics not updating</li>
+                        <li>Inconsistent data between agents</li>
+                        <li>Collection errors or failures</li>
+                    </ul>
+                    
+                    <h4>Solutions:</h4>
+                    <ul>
+                        <li>Verify agent connectivity and health status</li>
+                        <li>Check database connectivity and performance</li>
+                        <li>Review collection service logs for errors</li>
+                        <li>Validate agent configuration and permissions</li>
+                        <li>Restart collection services if necessary</li>
+                        <li>Verify storage capacity and database indexes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Alert System Issues</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Common Problems:</h4>
+                    <ul>
+                        <li>Alerts not triggering when expected</li>
+                        <li>Too many false positive alerts</li>
+                        <li>Email notifications not being delivered</li>
+                        <li>Alert acknowledgment not working</li>
+                    </ul>
+                    
+                    <h4>Solutions:</h4>
+                    <ul>
+                        <li>Review alert threshold configurations</li>
+                        <li>Check email server configuration and deliverability</li>
+                        <li>Verify alert rules and conditions</li>
+                        <li>Test notification channels manually</li>
+                        <li>Review alert suppression rules</li>
+                        <li>Check alert service logs and status</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="accordion">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span><strong>Performance Analysis Failures</strong></span>
+                    <span>▼</span>
+                </div>
+                <div class="accordion-content">
+                    <h4>Issues:</h4>
+                    <ul>
+                        <li>Analysis jobs timing out or failing</li>
+                        <li>Incomplete or inaccurate analysis results</li>
+                        <li>Forecasting models producing poor predictions</li>
+                        <li>Recommendation generation failures</li>
+                    </ul>
+                    
+                    <h4>Troubleshooting:</h4>
+                    <ul>
+                        <li>Check data quality and completeness</li>
+                        <li>Verify sufficient historical data is available</li>
+                        <li>Review analysis service resource utilization</li>
+                        <li>Validate model configurations and parameters</li>
+                        <li>Check for data anomalies or outliers</li>
+                        <li>Review analysis logs for specific error messages</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>🔍 Diagnostic Tools</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🏥 Health Check</h4>
+                    <p>Use the built-in health check endpoint to verify system status and component connectivity.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📊 System Metrics</h4>
+                    <p>Monitor system performance metrics including API response times, database performance, and resource usage.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>📝 Log Analysis</h4>
+                    <p>Review application logs, API logs, and error logs for detailed troubleshooting information.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>🧪 Test Endpoints</h4>
+                    <p>Use API test endpoints to validate functionality and isolate issues to specific components.</p>
+                </div>
+            </div>
+
+            <h3>📞 Support Resources</h3>
+            <div class="highlight info">
+                <h4>Getting Help:</h4>
+                <ul>
+                    <li><strong>System Health Dashboard:</strong> Monitor overall system health and component status</li>
+                    <li><strong>API Documentation:</strong> Comprehensive API reference for integration troubleshooting</li>
+                    <li><strong>Log Analysis Tools:</strong> Built-in log viewers and analysis capabilities</li>
+                    <li><strong>Performance Diagnostics:</strong> Tools for diagnosing performance bottlenecks</li>
+                    <li><strong>Configuration Validation:</strong> Utilities for validating system configuration</li>
+                </ul>
+            </div>
+
+            <h3>🔧 Performance Optimization</h3>
+            <div class="performance-table">
+                <table class="performance-table">
+                    <thead>
+                        <tr>
+                            <th>Performance Issue</th>
+                            <th>Likely Cause</th>
+                            <th>Resolution</th>
+                            <th>Prevention</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Slow Dashboard Loading</td>
+                            <td>Too much data, complex queries</td>
+                            <td>Reduce time range, enable caching</td>
+                            <td>Optimize queries, implement pagination</td>
+                        </tr>
+                        <tr>
+                            <td>High Memory Usage</td>
+                            <td>Large datasets in memory</td>
+                            <td>Increase memory, optimize data structures</td>
+                            <td>Implement data streaming, garbage collection tuning</td>
+                        </tr>
+                        <tr>
+                            <td>API Timeouts</td>
+                            <td>Long-running queries, high load</td>
+                            <td>Increase timeouts, optimize queries</td>
+                            <td>Implement query optimization, load balancing</td>
+                        </tr>
+                        <tr>
+                            <td>Real-time Lag</td>
+                            <td>Network latency, processing delays</td>
+                            <td>Reduce refresh frequency, optimize updates</td>
+                            <td>Implement efficient delta updates</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <h3>📊 Agent Performance Metrics Dashboard</h3>
+            <p><strong>MortgageAI Platform</strong> | Advanced Performance Monitoring & Analytics</p>
+            <p>This user guide covers the comprehensive agent performance monitoring system designed for Dutch mortgage advisory platforms with real-time analytics, optimization recommendations, and AFM compliance tracking.</p>
+            <p><em>Last updated: January 2024 | Version 1.0.0</em></p>
+        </div>
+    </div>
+
+    <script>
+        function toggleAccordion(header) {
+            const accordion = header.parentElement;
+            const isActive = accordion.classList.contains('active');
+            
+            // Close all accordions
+            document.querySelectorAll('.accordion').forEach(acc => {
+                acc.classList.remove('active');
+                acc.querySelector('.accordion-header span:last-child').textContent = '▼';
+            });
+            
+            // Open clicked accordion if it wasn't active
+            if (!isActive) {
+                accordion.classList.add('active');
+                header.querySelector('span:last-child').textContent = '▲';
+            }
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add loading animation to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                this.style.opacity = '0.7';
+                setTimeout(() => {
+                    this.style.opacity = '1';
+                }, 200);
+            });
+        });
+
+        // Simulate real-time updates for demo
+        function updateRealTimeDemo() {
+            const demoElements = document.querySelectorAll('.dashboard-preview p');
+            if (demoElements.length > 0) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                demoElements[0].innerHTML = demoElements[0].innerHTML.replace(
+                    /Last Update:.*?\|/,
+                    `Last Update: ${Math.floor(Math.random() * 30)} seconds ago |`
+                );
+            }
+        }
+
+        // Update demo every 5 seconds
+        setInterval(updateRealTimeDemo, 5000);
+    </script>
+</body>
+</html>
