@@ -5969,3 +5969,536 @@ INSERT INTO risk_appetite_config (
 ('operational_risk', 'incident_rate', 'warning', 0.02, 'Warning threshold for operational incidents', CURRENT_TIMESTAMP, 'system'),
 ('compliance_risk', 'compliance_score', 'limit', 0.95, 'Minimum compliance score requirement', CURRENT_TIMESTAMP, 'system')
 ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- DOCUMENT AUTHENTICITY CHECKER SCHEMA
+-- =============================================
+
+-- Document verification results table
+CREATE TABLE IF NOT EXISTS document_authenticity_verifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL UNIQUE,
+    verification_id UUID NOT NULL UNIQUE,
+    document_type VARCHAR(100) NOT NULL,
+    authenticity_status VARCHAR(50) NOT NULL,
+    confidence_score DECIMAL(5,4) NOT NULL,
+    fraud_indicators JSONB DEFAULT '[]',
+    verification_methods JSONB NOT NULL,
+    file_name VARCHAR(500),
+    file_size BIGINT,
+    file_type VARCHAR(100),
+    mime_type VARCHAR(200),
+    document_hash_md5 VARCHAR(32),
+    document_hash_sha256 VARCHAR(64) NOT NULL,
+    document_hash_sha512 VARCHAR(128),
+    processing_time_ms INTEGER,
+    verification_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    analyst_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document metadata analysis table
+CREATE TABLE IF NOT EXISTS document_metadata_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    creation_date TIMESTAMP WITH TIME ZONE,
+    modification_date TIMESTAMP WITH TIME ZONE,
+    author VARCHAR(500),
+    software VARCHAR(500),
+    camera_info JSONB,
+    gps_coordinates POINT,
+    digital_signature TEXT,
+    certificate_chain JSONB,
+    encryption_status BOOLEAN DEFAULT false,
+    compression_info JSONB,
+    metadata_integrity_score DECIMAL(3,2),
+    suspicious_metadata_flags JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- OCR analysis results table
+CREATE TABLE IF NOT EXISTS document_ocr_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    extracted_text TEXT,
+    confidence_score DECIMAL(5,4),
+    language_detected VARCHAR(50),
+    text_regions JSONB,
+    font_analysis JSONB,
+    layout_analysis JSONB,
+    suspicious_patterns JSONB DEFAULT '[]',
+    validation_errors JSONB DEFAULT '[]',
+    structured_data_extraction JSONB,
+    ocr_processing_time_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Image forensics analysis table
+CREATE TABLE IF NOT EXISTS document_image_forensics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    ela_analysis JSONB,
+    copy_move_detection JSONB,
+    noise_analysis JSONB,
+    compression_analysis JSONB,
+    color_analysis JSONB,
+    edge_analysis JSONB,
+    texture_analysis JSONB,
+    geometric_analysis JSONB,
+    tampering_indicators JSONB DEFAULT '[]',
+    authenticity_score DECIMAL(5,4),
+    forensics_processing_time_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Biometric analysis results table
+CREATE TABLE IF NOT EXISTS document_biometric_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    face_detection JSONB,
+    face_recognition JSONB,
+    signature_analysis JSONB,
+    handwriting_analysis JSONB,
+    biometric_consistency DECIMAL(3,2),
+    identity_verification JSONB,
+    biometric_processing_time_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Blockchain verification table
+CREATE TABLE IF NOT EXISTS document_blockchain_verification (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    blockchain_hash VARCHAR(64) NOT NULL,
+    transaction_id VARCHAR(66),
+    block_number BIGINT,
+    smart_contract_address VARCHAR(42),
+    gas_used INTEGER,
+    confirmations INTEGER DEFAULT 0,
+    ipfs_hash VARCHAR(100),
+    verification_status BOOLEAN NOT NULL,
+    blockchain_timestamp TIMESTAMP WITH TIME ZONE,
+    registration_cost DECIMAL(18,8),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Digital signature verification table
+CREATE TABLE IF NOT EXISTS document_digital_signatures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    signature_algorithm VARCHAR(100),
+    signature_value TEXT,
+    certificate_subject VARCHAR(500),
+    certificate_issuer VARCHAR(500),
+    certificate_serial_number VARCHAR(100),
+    certificate_valid_from TIMESTAMP WITH TIME ZONE,
+    certificate_valid_to TIMESTAMP WITH TIME ZONE,
+    signature_valid BOOLEAN NOT NULL,
+    certificate_valid BOOLEAN NOT NULL,
+    certificate_chain_valid BOOLEAN NOT NULL,
+    revocation_status VARCHAR(50),
+    trust_level VARCHAR(50),
+    verification_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Fraud detection analysis table
+CREATE TABLE IF NOT EXISTS document_fraud_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    fraud_classification VARCHAR(50) NOT NULL,
+    overall_fraud_probability DECIMAL(5,4) NOT NULL,
+    structure_fraud_score DECIMAL(5,4),
+    content_fraud_score DECIMAL(5,4),
+    technical_fraud_score DECIMAL(5,4),
+    ml_fraud_score DECIMAL(5,4),
+    fraud_indicators JSONB DEFAULT '[]',
+    confidence_scores JSONB,
+    recommended_actions JSONB DEFAULT '[]',
+    false_positive_probability DECIMAL(5,4),
+    fraud_analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document verification audit trail
+CREATE TABLE IF NOT EXISTS document_verification_audit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    audit_action VARCHAR(100) NOT NULL,
+    performed_by VARCHAR(255),
+    action_details JSONB,
+    previous_status VARCHAR(50),
+    new_status VARCHAR(50),
+    reason TEXT,
+    supporting_evidence JSONB,
+    audit_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document template database for comparison
+CREATE TABLE IF NOT EXISTS document_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id UUID NOT NULL UNIQUE,
+    template_name VARCHAR(300) NOT NULL,
+    document_type VARCHAR(100) NOT NULL,
+    issuing_authority VARCHAR(300),
+    template_version VARCHAR(50),
+    valid_from TIMESTAMP WITH TIME ZONE NOT NULL,
+    valid_to TIMESTAMP WITH TIME ZONE,
+    template_features JSONB NOT NULL,
+    security_features JSONB,
+    layout_specifications JSONB,
+    font_specifications JSONB,
+    color_specifications JSONB,
+    template_hash VARCHAR(64),
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Known fraud patterns database
+CREATE TABLE IF NOT EXISTS fraud_patterns (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pattern_id UUID NOT NULL UNIQUE,
+    pattern_name VARCHAR(300) NOT NULL,
+    pattern_type VARCHAR(100) NOT NULL,
+    fraud_category VARCHAR(100) NOT NULL,
+    pattern_description TEXT NOT NULL,
+    detection_algorithm VARCHAR(200),
+    pattern_indicators JSONB NOT NULL,
+    confidence_threshold DECIMAL(3,2) DEFAULT 0.7,
+    false_positive_rate DECIMAL(5,4),
+    pattern_effectiveness DECIMAL(3,2),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document verification statistics
+CREATE TABLE IF NOT EXISTS document_verification_stats (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stat_date DATE NOT NULL,
+    document_type VARCHAR(100),
+    total_verifications INTEGER NOT NULL DEFAULT 0,
+    authentic_documents INTEGER NOT NULL DEFAULT 0,
+    suspicious_documents INTEGER NOT NULL DEFAULT 0,
+    fraudulent_documents INTEGER NOT NULL DEFAULT 0,
+    inconclusive_documents INTEGER NOT NULL DEFAULT 0,
+    avg_processing_time_ms INTEGER,
+    avg_confidence_score DECIMAL(5,4),
+    fraud_detection_rate DECIMAL(5,4),
+    false_positive_rate DECIMAL(5,4),
+    blockchain_verifications INTEGER DEFAULT 0,
+    manual_reviews_required INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(stat_date, document_type)
+);
+
+-- Document verification machine learning models
+CREATE TABLE IF NOT EXISTS document_ml_models (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_id UUID NOT NULL UNIQUE,
+    model_name VARCHAR(300) NOT NULL,
+    model_type VARCHAR(100) NOT NULL,
+    model_version VARCHAR(50) NOT NULL,
+    training_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    training_samples INTEGER NOT NULL,
+    validation_samples INTEGER NOT NULL,
+    test_samples INTEGER NOT NULL,
+    accuracy DECIMAL(5,4),
+    precision DECIMAL(5,4),
+    recall DECIMAL(5,4),
+    f1_score DECIMAL(5,4),
+    auc_score DECIMAL(5,4),
+    feature_importance JSONB,
+    hyperparameters JSONB,
+    model_file_path VARCHAR(1000),
+    model_size_bytes BIGINT,
+    inference_time_ms INTEGER,
+    is_active BOOLEAN DEFAULT true,
+    deployment_date TIMESTAMP WITH TIME ZONE,
+    performance_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document verification alerts
+CREATE TABLE IF NOT EXISTS document_verification_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    fraud_probability DECIMAL(5,4),
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(50) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    escalation_level INTEGER DEFAULT 1,
+    notification_sent BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_document_type ON document_authenticity_verifications(document_type);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_authenticity_status ON document_authenticity_verifications(authenticity_status);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_verification_timestamp ON document_authenticity_verifications(verification_timestamp);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_confidence_score ON document_authenticity_verifications(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_hash ON document_authenticity_verifications(document_hash_sha256);
+
+CREATE INDEX IF NOT EXISTS idx_document_metadata_analysis_document_id ON document_metadata_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_metadata_analysis_creation_date ON document_metadata_analysis(creation_date);
+CREATE INDEX IF NOT EXISTS idx_document_metadata_analysis_software ON document_metadata_analysis(software);
+
+CREATE INDEX IF NOT EXISTS idx_document_ocr_analysis_document_id ON document_ocr_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_ocr_analysis_confidence_score ON document_ocr_analysis(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_document_ocr_analysis_language ON document_ocr_analysis(language_detected);
+
+CREATE INDEX IF NOT EXISTS idx_document_image_forensics_document_id ON document_image_forensics(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_image_forensics_authenticity_score ON document_image_forensics(authenticity_score);
+
+CREATE INDEX IF NOT EXISTS idx_document_biometric_analysis_document_id ON document_biometric_analysis(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_blockchain_verification_document_id ON document_blockchain_verification(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_blockchain_verification_blockchain_hash ON document_blockchain_verification(blockchain_hash);
+CREATE INDEX IF NOT EXISTS idx_document_blockchain_verification_transaction_id ON document_blockchain_verification(transaction_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_digital_signatures_document_id ON document_digital_signatures(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_digital_signatures_signature_valid ON document_digital_signatures(signature_valid);
+CREATE INDEX IF NOT EXISTS idx_document_digital_signatures_certificate_valid ON document_digital_signatures(certificate_valid);
+
+CREATE INDEX IF NOT EXISTS idx_document_fraud_analysis_document_id ON document_fraud_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_fraud_analysis_fraud_classification ON document_fraud_analysis(fraud_classification);
+CREATE INDEX IF NOT EXISTS idx_document_fraud_analysis_fraud_probability ON document_fraud_analysis(overall_fraud_probability);
+
+CREATE INDEX IF NOT EXISTS idx_document_verification_audit_document_id ON document_verification_audit(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_verification_audit_timestamp ON document_verification_audit(audit_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_document_templates_document_type ON document_templates(document_type);
+CREATE INDEX IF NOT EXISTS idx_document_templates_issuing_authority ON document_templates(issuing_authority);
+CREATE INDEX IF NOT EXISTS idx_document_templates_is_active ON document_templates(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_fraud_patterns_pattern_type ON fraud_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_fraud_patterns_fraud_category ON fraud_patterns(fraud_category);
+CREATE INDEX IF NOT EXISTS idx_fraud_patterns_is_active ON fraud_patterns(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_document_verification_stats_stat_date ON document_verification_stats(stat_date);
+CREATE INDEX IF NOT EXISTS idx_document_verification_stats_document_type ON document_verification_stats(document_type);
+
+CREATE INDEX IF NOT EXISTS idx_document_ml_models_model_type ON document_ml_models(model_type);
+CREATE INDEX IF NOT EXISTS idx_document_ml_models_is_active ON document_ml_models(is_active);
+CREATE INDEX IF NOT EXISTS idx_document_ml_models_training_date ON document_ml_models(training_date);
+
+CREATE INDEX IF NOT EXISTS idx_document_verification_alerts_document_id ON document_verification_alerts(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_verification_alerts_severity ON document_verification_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_document_verification_alerts_alert_status ON document_verification_alerts(alert_status);
+
+-- Full-text search index for extracted text
+CREATE INDEX IF NOT EXISTS idx_document_ocr_text_gin ON document_ocr_analysis USING gin(to_tsvector('english', extracted_text));
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_document_templates_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER document_templates_update_timestamp
+    BEFORE UPDATE ON document_templates
+    FOR EACH ROW EXECUTE FUNCTION update_document_templates_timestamp();
+
+-- Function to calculate daily verification statistics
+CREATE OR REPLACE FUNCTION calculate_document_verification_stats()
+RETURNS VOID AS $$
+DECLARE
+    stat_date DATE := CURRENT_DATE;
+    doc_type_record RECORD;
+BEGIN
+    -- Calculate stats for each document type
+    FOR doc_type_record IN 
+        SELECT DISTINCT document_type FROM document_authenticity_verifications
+        WHERE DATE(verification_timestamp) = stat_date
+    LOOP
+        INSERT INTO document_verification_stats (
+            stat_date, document_type, total_verifications, authentic_documents,
+            suspicious_documents, fraudulent_documents, inconclusive_documents,
+            avg_processing_time_ms, avg_confidence_score, fraud_detection_rate
+        )
+        SELECT 
+            stat_date,
+            doc_type_record.document_type,
+            COUNT(*) as total_verifications,
+            COUNT(CASE WHEN authenticity_status = 'authentic' THEN 1 END) as authentic_documents,
+            COUNT(CASE WHEN authenticity_status = 'suspicious' THEN 1 END) as suspicious_documents,
+            COUNT(CASE WHEN authenticity_status = 'fraudulent' THEN 1 END) as fraudulent_documents,
+            COUNT(CASE WHEN authenticity_status = 'inconclusive' THEN 1 END) as inconclusive_documents,
+            AVG(processing_time_ms)::INTEGER as avg_processing_time_ms,
+            AVG(confidence_score) as avg_confidence_score,
+            (COUNT(CASE WHEN authenticity_status IN ('suspicious', 'fraudulent') THEN 1 END)::DECIMAL / COUNT(*)) as fraud_detection_rate
+        FROM document_authenticity_verifications
+        WHERE DATE(verification_timestamp) = stat_date
+        AND document_type = doc_type_record.document_type
+        ON CONFLICT (stat_date, document_type) DO UPDATE SET
+            total_verifications = EXCLUDED.total_verifications,
+            authentic_documents = EXCLUDED.authentic_documents,
+            suspicious_documents = EXCLUDED.suspicious_documents,
+            fraudulent_documents = EXCLUDED.fraudulent_documents,
+            inconclusive_documents = EXCLUDED.inconclusive_documents,
+            avg_processing_time_ms = EXCLUDED.avg_processing_time_ms,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            fraud_detection_rate = EXCLUDED.fraud_detection_rate;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate document verification alerts
+CREATE OR REPLACE FUNCTION generate_document_verification_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    verification_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for high-risk documents without alerts
+    FOR verification_record IN 
+        SELECT dav.document_id, dav.authenticity_status, dav.confidence_score, dfa.overall_fraud_probability
+        FROM document_authenticity_verifications dav
+        LEFT JOIN document_fraud_analysis dfa ON dav.document_id = dfa.document_id
+        LEFT JOIN document_verification_alerts dva ON dav.document_id = dva.document_id AND dva.alert_status = 'active'
+        WHERE (dav.authenticity_status IN ('suspicious', 'fraudulent') 
+               OR dfa.overall_fraud_probability > 0.7)
+        AND dav.verification_timestamp > NOW() - INTERVAL '24 hours'
+        AND dva.document_id IS NULL
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO document_verification_alerts (
+            alert_id, document_id, alert_type, severity, title, description,
+            fraud_probability, recommended_actions, escalation_level
+        ) VALUES (
+            alert_id, verification_record.document_id, 'fraud_detection', 
+            CASE WHEN verification_record.authenticity_status = 'fraudulent' THEN 'critical'
+                 WHEN verification_record.overall_fraud_probability > 0.8 THEN 'high'
+                 ELSE 'medium' END,
+            'Document Fraud Alert',
+            'Document verification detected potential fraud or authenticity issues',
+            verification_record.overall_fraud_probability,
+            '["Manual review required", "Verify with issuing authority", "Request additional documentation"]',
+            CASE WHEN verification_record.authenticity_status = 'fraudulent' THEN 3
+                 WHEN verification_record.overall_fraud_probability > 0.8 THEN 2
+                 ELSE 1 END
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common document verification queries
+CREATE OR REPLACE VIEW document_verification_summary AS
+SELECT 
+    DATE(verification_timestamp) as verification_date,
+    document_type,
+    authenticity_status,
+    COUNT(*) as document_count,
+    AVG(confidence_score) as avg_confidence,
+    AVG(processing_time_ms) as avg_processing_time,
+    COUNT(CASE WHEN jsonb_array_length(fraud_indicators) > 0 THEN 1 END) as documents_with_fraud_indicators
+FROM document_authenticity_verifications
+WHERE verification_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(verification_timestamp), document_type, authenticity_status
+ORDER BY verification_date DESC, document_type, authenticity_status;
+
+CREATE OR REPLACE VIEW active_document_alerts AS
+SELECT 
+    dva.*,
+    dav.document_type,
+    dav.authenticity_status,
+    dav.verification_timestamp
+FROM document_verification_alerts dva
+JOIN document_authenticity_verifications dav ON dva.document_id = dav.document_id
+WHERE dva.alert_status = 'active'
+AND dva.resolved_at IS NULL
+ORDER BY dva.severity DESC, dva.created_at DESC;
+
+CREATE OR REPLACE VIEW document_fraud_trends AS
+SELECT 
+    DATE_TRUNC('week', verification_timestamp) as week_start,
+    document_type,
+    COUNT(*) as total_documents,
+    COUNT(CASE WHEN authenticity_status IN ('suspicious', 'fraudulent') THEN 1 END) as fraud_documents,
+    (COUNT(CASE WHEN authenticity_status IN ('suspicious', 'fraudulent') THEN 1 END)::DECIMAL / COUNT(*)) * 100 as fraud_rate,
+    AVG(confidence_score) as avg_confidence
+FROM document_authenticity_verifications
+WHERE verification_timestamp >= CURRENT_DATE - INTERVAL '12 weeks'
+GROUP BY DATE_TRUNC('week', verification_timestamp), document_type
+ORDER BY week_start DESC, document_type;
+
+-- Insert default fraud patterns
+INSERT INTO fraud_patterns (
+    pattern_id, pattern_name, pattern_type, fraud_category, pattern_description,
+    detection_algorithm, pattern_indicators, confidence_threshold, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Copy-Move Forgery Pattern', 'image_manipulation', 'forgery',
+    'Detection of copy-move forgery where parts of an image are copied and pasted elsewhere',
+    'block_matching_correlation', 
+    '{"correlation_threshold": 0.8, "min_block_pairs": 5, "block_size": 16}',
+    0.8, 'system'
+),
+(
+    gen_random_uuid(), 'Font Inconsistency Pattern', 'text_manipulation', 'alteration',
+    'Detection of inconsistent fonts indicating text replacement or modification',
+    'font_analysis_variance',
+    '{"font_size_variance_threshold": 25, "font_type_consistency": true}',
+    0.7, 'system'
+),
+(
+    gen_random_uuid(), 'Metadata Manipulation Pattern', 'metadata_tampering', 'fabrication',
+    'Detection of manipulated or inconsistent document metadata',
+    'metadata_consistency_analysis',
+    '{"creation_modification_order": true, "software_whitelist": ["Word", "Excel", "PDF"]}',
+    0.75, 'system'
+),
+(
+    gen_random_uuid(), 'Template Fraud Pattern', 'document_structure', 'template_fraud',
+    'Detection of documents generated from fraudulent templates',
+    'template_matching_analysis',
+    '{"template_similarity_threshold": 0.9, "structure_variance_threshold": 0.1}',
+    0.85, 'system'
+) ON CONFLICT DO NOTHING;
+
+-- Insert default document templates (Dutch government documents)
+INSERT INTO document_templates (
+    template_id, template_name, document_type, issuing_authority, template_version,
+    valid_from, template_features, security_features, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Dutch Passport', 'identity_document', 'Government of Netherlands', '2021.1',
+    '2021-01-01', 
+    '{"page_count": 32, "dimensions": {"width": 125, "height": 88}, "color_scheme": "burgundy"}',
+    '{"hologram": true, "rfid_chip": true, "biometric_data": true, "security_thread": true}',
+    'system'
+),
+(
+    gen_random_uuid(), 'Dutch ID Card', 'identity_document', 'Government of Netherlands', '2021.1',
+    '2021-01-01',
+    '{"page_count": 1, "dimensions": {"width": 85.6, "height": 54}, "color_scheme": "blue_white"}',
+    '{"hologram": true, "rfid_chip": true, "biometric_photo": true, "security_features": true}',
+    'system'
+),
+(
+    gen_random_uuid(), 'Bank Statement Template', 'financial_statement', 'Dutch Banks', '2024.1',
+    '2024-01-01',
+    '{"format": "A4", "logo_position": "top_left", "account_info_section": "header"}',
+    '{"watermark": true, "digital_signature": true, "security_code": true}',
+    'system'
+) ON CONFLICT DO NOTHING;

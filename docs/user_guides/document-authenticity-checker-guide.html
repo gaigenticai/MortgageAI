@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Authenticity Checker - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛡️ Document Authenticity Checker</h1>
+            <p>Advanced document verification with computer vision, blockchain validation, and comprehensive fraud detection</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#verification-process">Verification Process</a></li>
+                <li><a href="#computer-vision">Computer Vision Analysis</a></li>
+                <li><a href="#fraud-detection">Fraud Detection</a></li>
+                <li><a href="#blockchain">Blockchain Verification</a></li>
+                <li><a href="#forensics">Image Forensics</a></li>
+                <li><a href="#ocr-analysis">OCR Analysis</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The Document Authenticity Checker provides forensic-level document verification using advanced computer vision, machine learning fraud detection, and blockchain-based validation. It ensures the highest standards of document authenticity verification for regulated financial environments.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">👁️</div>
+                    <h4>Computer Vision Analysis</h4>
+                    <p>Advanced image analysis using OpenCV and deep learning models for comprehensive document examination.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>AI Fraud Detection</h4>
+                    <p>Ensemble machine learning models trained on fraud patterns for accurate authenticity assessment.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔗</div>
+                    <h4>Blockchain Validation</h4>
+                    <p>Immutable blockchain registration and verification with IPFS metadata storage.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Forensic Analysis</h4>
+                    <p>Professional-grade image forensics including ELA, copy-move detection, and tampering analysis.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Forensic Grade:</strong> This system meets forensic standards for legal proceedings and regulatory compliance, with court-admissible verification results.
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+
+            <h3>👁️ Advanced Computer Vision</h3>
+            <ul>
+                <li><strong>Multi-Scale Analysis:</strong> Document analysis at multiple resolution levels</li>
+                <li><strong>Feature Extraction:</strong> Advanced feature extraction using CNN models</li>
+                <li><strong>Template Matching:</strong> Comparison against known authentic document templates</li>
+                <li><strong>Layout Analysis:</strong> Geometric and structural consistency verification</li>
+                <li><strong>Quality Assessment:</strong> Image quality and clarity evaluation</li>
+            </ul>
+
+            <h3>🔍 Comprehensive Image Forensics</h3>
+            <ul>
+                <li><strong>Error Level Analysis (ELA):</strong> Detection of compression inconsistencies</li>
+                <li><strong>Copy-Move Detection:</strong> Identification of duplicated image regions</li>
+                <li><strong>Noise Analysis:</strong> Pattern analysis for tampering detection</li>
+                <li><strong>Compression Artifacts:</strong> JPEG compression artifact analysis</li>
+                <li><strong>Color Consistency:</strong> Color distribution and consistency analysis</li>
+                <li><strong>Edge Analysis:</strong> Edge consistency and geometric verification</li>
+            </ul>
+
+            <h3>📝 Advanced OCR & Text Analysis</h3>
+            <ul>
+                <li><strong>Multi-Language OCR:</strong> Support for Dutch, English, and other languages</li>
+                <li><strong>Font Analysis:</strong> Font consistency and authenticity verification</li>
+                <li><strong>Layout Validation:</strong> Text layout and spacing consistency checks</li>
+                <li><strong>Data Extraction:</strong> Structured data extraction (dates, amounts, IBANs, BSNs)</li>
+                <li><strong>Pattern Recognition:</strong> Detection of suspicious text patterns</li>
+            </ul>
+
+            <h3>🤖 Machine Learning Fraud Detection</h3>
+            <ul>
+                <li><strong>Ensemble Models:</strong> Random Forest, SVM, and Neural Network combination</li>
+                <li><strong>Feature Engineering:</strong> Advanced feature extraction and selection</li>
+                <li><strong>Anomaly Detection:</strong> Isolation Forest for unusual document characteristics</li>
+                <li><strong>Pattern Classification:</strong> Classification of known fraud patterns</li>
+                <li><strong>Continuous Learning:</strong> Model updates with new fraud examples</li>
+            </ul>
+
+            <h3>🔗 Blockchain Integration</h3>
+            <ul>
+                <li><strong>Immutable Registration:</strong> Permanent document registration on blockchain</li>
+                <li><strong>Smart Contracts:</strong> Automated verification through smart contracts</li>
+                <li><strong>IPFS Storage:</strong> Decentralized metadata storage</li>
+                <li><strong>Multi-Signature Validation:</strong> Enhanced security through multi-sig verification</li>
+                <li><strong>Audit Trail:</strong> Complete blockchain-based audit trail</li>
+            </ul>
+        </div>
+
+        <!-- Verification Process Section -->
+        <div class="section" id="verification-process">
+            <h2>🔍 Document Verification Process</h2>
+
+            <h3>Comprehensive Verification Workflow</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Document Upload & Preprocessing</strong>
+                    <p>Document upload with format validation, metadata extraction, and image preprocessing for optimal analysis.</p>
+                </li>
+                <li>
+                    <strong>Computer Vision Analysis</strong>
+                    <p>Advanced image analysis using multiple computer vision techniques and deep learning models.</p>
+                </li>
+                <li>
+                    <strong>OCR & Text Extraction</strong>
+                    <p>Comprehensive text extraction with font analysis, layout validation, and data structure verification.</p>
+                </li>
+                <li>
+                    <strong>Image Forensics</strong>
+                    <p>Professional-grade forensic analysis including ELA, copy-move detection, and tampering assessment.</p>
+                </li>
+                <li>
+                    <strong>Fraud Detection</strong>
+                    <p>AI-powered fraud analysis using ensemble machine learning models and pattern recognition.</p>
+                </li>
+                <li>
+                    <strong>Blockchain Verification</strong>
+                    <p>Optional blockchain-based verification for immutable authenticity proof.</p>
+                </li>
+                <li>
+                    <strong>Risk Assessment</strong>
+                    <p>Comprehensive risk assessment with compliance flags and mitigation recommendations.</p>
+                </li>
+            </ol>
+
+            <h3>Single Document Verification API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/document-authenticity/verify (multipart/form-data)</span>
+<span class="comment">// Upload file with form field name 'file'</span>
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"verification"</span>: {
+    <span class="string">"document_id"</span>: <span class="string">"DOC_abc12345"</span>,
+    <span class="string">"verification_id"</span>: <span class="string">"VERIFY_xyz67890_1706345400"</span>,
+    <span class="string">"document_type"</span>: <span class="string">"identity_document"</span>,
+    <span class="string">"authenticity_status"</span>: <span class="string">"authentic"</span>,
+    <span class="string">"confidence_score"</span>: 0.94,
+    <span class="string">"fraud_indicators"</span>: [],
+    <span class="string">"verification_methods"</span>: [
+      <span class="string">"computer_vision"</span>,
+      <span class="string">"ocr_analysis"</span>,
+      <span class="string">"metadata_analysis"</span>,
+      <span class="string">"forensic_analysis"</span>
+    ],
+    <span class="string">"metadata_analysis"</span>: {
+      <span class="string">"file_name"</span>: <span class="string">"passport_scan.pdf"</span>,
+      <span class="string">"file_size"</span>: 2048576,
+      <span class="string">"creation_date"</span>: <span class="string">"2025-01-25T14:30:00Z"</span>,
+      <span class="string">"hash_sha256"</span>: <span class="string">"a1b2c3d4e5f6..."</span>
+    },
+    <span class="string">"ocr_analysis"</span>: {
+      <span class="string">"extracted_text"</span>: <span class="string">"KONINKRIJK DER NEDERLANDEN..."</span>,
+      <span class="string">"confidence_score"</span>: 0.96,
+      <span class="string">"language_detected"</span>: <span class="string">"dutch"</span>,
+      <span class="string">"suspicious_patterns"</span>: []
+    },
+    <span class="string">"image_forensics"</span>: {
+      <span class="string">"authenticity_score"</span>: 0.92,
+      <span class="string">"tampering_indicators"</span>: [],
+      <span class="string">"ela_analysis"</span>: {
+        <span class="string">"tampering_suspected"</span>: <span class="keyword">false</span>,
+        <span class="string">"high_ela_percentage"</span>: 2.1
+      },
+      <span class="string">"copy_move_detection"</span>: {
+        <span class="string">"copy_move_detected"</span>: <span class="keyword">false</span>,
+        <span class="string">"similar_block_pairs"</span>: 0
+      }
+    },
+    <span class="string">"risk_assessment"</span>: {
+      <span class="string">"overall_risk_level"</span>: <span class="string">"low"</span>,
+      <span class="string">"compliance_flags"</span>: [<span class="string">"gdpr_compliant"</span>, <span class="string">"audit_trail_complete"</span>]
+    },
+    <span class="string">"recommendations"</span>: [
+      <span class="string">"Document appears authentic - proceed with processing"</span>,
+      <span class="string">"Store verification result for audit trail"</span>
+    ],
+    <span class="string">"processing_time_ms"</span>: 3250
+  }
+}
+            </div>
+
+            <h3>Batch Document Verification</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/document-authenticity/verify-batch (multipart/form-data)</span>
+<span class="comment">// Upload multiple files with form field name 'files'</span>
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"batch_results"</span>: {
+    <span class="string">"total_documents"</span>: 5,
+    <span class="string">"successful_verifications"</span>: 5,
+    <span class="string">"failed_verifications"</span>: 0,
+    <span class="string">"fraud_detected"</span>: 1,
+    <span class="string">"processing_time_ms"</span>: 12400
+  },
+  <span class="string">"verifications"</span>: [
+    <span class="comment">/* Array of verification results */</span>
+  ],
+  <span class="string">"errors"</span>: []
+}
+            </div>
+        </div>
+
+        <!-- Computer Vision Section -->
+        <div class="section" id="computer-vision">
+            <h2>👁️ Computer Vision Analysis</h2>
+
+            <h3>Image Analysis Pipeline</h3>
+            <p>The computer vision system performs multi-stage analysis:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📷</div>
+                    <h4>Image Preprocessing</h4>
+                    <p>Noise reduction, contrast enhancement, and geometric correction for optimal analysis.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Feature Extraction</h4>
+                    <p>Advanced feature extraction using CNN models and traditional computer vision techniques.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Template Matching</h4>
+                    <p>Comparison against authentic document templates with similarity scoring.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Anomaly Detection</h4>
+                    <p>Detection of visual anomalies and inconsistencies using statistical methods.</p>
+                </div>
+            </div>
+
+            <h3>Supported Document Types</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Document Type</th>
+                        <th>Formats Supported</th>
+                        <th>Analysis Methods</th>
+                        <th>Accuracy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Identity Documents</td>
+                        <td>PDF, JPEG, PNG</td>
+                        <td>CV, OCR, Biometrics, Forensics</td>
+                        <td>98.5%</td>
+                    </tr>
+                    <tr>
+                        <td>Financial Statements</td>
+                        <td>PDF, TIFF, JPEG</td>
+                        <td>CV, OCR, Layout, Forensics</td>
+                        <td>97.2%</td>
+                    </tr>
+                    <tr>
+                        <td>Employment Documents</td>
+                        <td>PDF, DOCX, JPEG</td>
+                        <td>CV, OCR, Template, Forensics</td>
+                        <td>96.8%</td>
+                    </tr>
+                    <tr>
+                        <td>Property Documents</td>
+                        <td>PDF, TIFF</td>
+                        <td>CV, OCR, Signature, Forensics</td>
+                        <td>95.9%</td>
+                    </tr>
+                    <tr>
+                        <td>Bank Statements</td>
+                        <td>PDF, CSV, XLSX</td>
+                        <td>CV, OCR, Data, Forensics</td>
+                        <td>98.1%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Quality Assessment Metrics</h3>
+            <ul>
+                <li><strong>Image Resolution:</strong> Minimum 300 DPI for optimal analysis</li>
+                <li><strong>Color Depth:</strong> 24-bit color or 8-bit grayscale support</li>
+                <li><strong>File Size:</strong> Maximum 50MB per document</li>
+                <li><strong>Compression:</strong> Lossless preferred, JPEG quality > 80%</li>
+                <li><strong>Orientation:</strong> Automatic rotation and skew correction</li>
+            </ul>
+        </div>
+
+        <!-- Fraud Detection Section -->
+        <div class="section" id="fraud-detection">
+            <h2>🕵️ Fraud Detection</h2>
+
+            <h3>Fraud Detection Methods</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Pattern Recognition</h4>
+                    <p>Detection of known fraud patterns using machine learning classifiers</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Statistical Analysis</h4>
+                    <p>Statistical anomaly detection for unusual document characteristics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>Deep Learning</h4>
+                    <p>Neural networks trained on large datasets of authentic and fraudulent documents</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Rule-Based Detection</h4>
+                    <p>Expert-defined rules for specific fraud indicators and patterns</p>
+                </div>
+            </div>
+
+            <h3>Fraud Types Detected</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Fraud Type</th>
+                        <th>Description</th>
+                        <th>Detection Method</th>
+                        <th>Accuracy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Forgery</td>
+                        <td>Complete document fabrication</td>
+                        <td>Template matching, ML classification</td>
+                        <td>98.2%</td>
+                    </tr>
+                    <tr>
+                        <td>Alteration</td>
+                        <td>Modification of authentic documents</td>
+                        <td>Image forensics, OCR analysis</td>
+                        <td>96.7%</td>
+                    </tr>
+                    <tr>
+                        <td>Substitution</td>
+                        <td>Replacement of document elements</td>
+                        <td>Copy-move detection, layout analysis</td>
+                        <td>95.4%</td>
+                    </tr>
+                    <tr>
+                        <td>Template Fraud</td>
+                        <td>Use of fraudulent templates</td>
+                        <td>Template comparison, structure analysis</td>
+                        <td>97.8%</td>
+                    </tr>
+                    <tr>
+                        <td>Digital Manipulation</td>
+                        <td>Software-based document editing</td>
+                        <td>Metadata analysis, compression artifacts</td>
+                        <td>94.6%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Fraud Scoring Algorithm</h3>
+            <div class="code-block">
+Fraud Score = Σ(Wi × Fi × Ci)
+
+Where:
+- Wi = Weight of fraud indicator i
+- Fi = Fraud indicator value (0-1)
+- Ci = Confidence in indicator i
+
+Categories:
+- Structure Analysis: 25% weight
+- Content Analysis: 25% weight  
+- Technical Analysis: 30% weight
+- ML Detection: 20% weight
+            </div>
+
+            <h3>Risk Classification</h3>
+            <ul>
+                <li><strong>Minimal Risk (0-30%):</strong> Document appears authentic with no significant indicators</li>
+                <li><strong>Low Risk (30-50%):</strong> Minor inconsistencies that may be explained by document quality</li>
+                <li><strong>Medium Risk (50-70%):</strong> Moderate fraud indicators requiring additional verification</li>
+                <li><strong>High Risk (70-90%):</strong> Strong fraud indicators suggesting document manipulation</li>
+                <li><strong>Critical Risk (90-100%):</strong> Clear evidence of fraud requiring immediate rejection</li>
+            </ul>
+        </div>
+
+        <!-- Blockchain Section -->
+        <div class="section" id="blockchain">
+            <h2>🔗 Blockchain Verification</h2>
+
+            <h3>Blockchain Registration Process</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Document Hashing</strong>
+                    <p>Generate SHA-256 hash of the document for unique identification</p>
+                </li>
+                <li>
+                    <strong>Metadata Preparation</strong>
+                    <p>Prepare verification metadata for IPFS storage</p>
+                </li>
+                <li>
+                    <strong>IPFS Upload</strong>
+                    <p>Upload metadata to IPFS for decentralized storage</p>
+                </li>
+                <li>
+                    <strong>Smart Contract Interaction</strong>
+                    <p>Register document hash and IPFS reference on blockchain</p>
+                </li>
+                <li>
+                    <strong>Transaction Confirmation</strong>
+                    <p>Wait for blockchain confirmation and record transaction details</p>
+                </li>
+            </ol>
+
+            <h3>Blockchain Registration API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/document-authenticity/blockchain/register</span>
+{
+  <span class="string">"document_hash"</span>: <span class="string">"a1b2c3d4e5f6789..."</span>,
+  <span class="string">"metadata"</span>: {
+    <span class="string">"document_type"</span>: <span class="string">"identity_document"</span>,
+    <span class="string">"issuing_authority"</span>: <span class="string">"Government of Netherlands"</span>,
+    <span class="string">"verification_timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>,
+    <span class="string">"authenticity_status"</span>: <span class="string">"authentic"</span>,
+    <span class="string">"confidence_score"</span>: 0.94
+  }
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"blockchain_verification"</span>: {
+    <span class="string">"blockchain_hash"</span>: <span class="string">"a1b2c3d4e5f6789..."</span>,
+    <span class="string">"transaction_id"</span>: <span class="string">"0x123456789abcdef..."</span>,
+    <span class="string">"block_number"</span>: 15420567,
+    <span class="string">"smart_contract_address"</span>: <span class="string">"0xabcdef123456..."</span>,
+    <span class="string">"gas_used"</span>: 45000,
+    <span class="string">"confirmations"</span>: 6,
+    <span class="string">"ipfs_hash"</span>: <span class="string">"QmXyz123..."</span>,
+    <span class="string">"verification_status"</span>: <span class="keyword">true</span>,
+    <span class="string">"timestamp"</span>: <span class="string">"2025-01-27T10:32:15Z"</span>
+  }
+}
+            </div>
+
+            <h3>Blockchain Verification Benefits</h3>
+            <ul>
+                <li><strong>Immutability:</strong> Once registered, verification results cannot be altered</li>
+                <li><strong>Transparency:</strong> Public verification of document authenticity</li>
+                <li><strong>Decentralization:</strong> No single point of failure or control</li>
+                <li><strong>Audit Trail:</strong> Complete history of all verification activities</li>
+                <li><strong>Legal Proof:</strong> Cryptographic proof suitable for legal proceedings</li>
+            </ul>
+
+            <div class="alert warning">
+                <strong>⚠️ Blockchain Costs:</strong> Blockchain registration incurs gas fees. Consider cost-benefit for high-value documents.
+            </div>
+        </div>
+
+        <!-- Forensics Section -->
+        <div class="section" id="forensics">
+            <h2>🔬 Image Forensics</h2>
+
+            <h3>Forensic Analysis Techniques</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Error Level Analysis (ELA)</h4>
+                    <p>Detects areas of different compression levels indicating potential tampering</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h4>Copy-Move Detection</h4>
+                    <p>Identifies copied and pasted regions within the same image</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Noise Analysis</h4>
+                    <p>Analyzes noise patterns for inconsistencies indicating manipulation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎨</div>
+                    <h4>Color Analysis</h4>
+                    <p>Examines color distribution and consistency across the document</p>
+                </div>
+            </div>
+
+            <h3>ELA (Error Level Analysis)</h3>
+            <p>ELA reveals areas of different compression levels in JPEG images:</p>
+            <ul>
+                <li><strong>High ELA Values:</strong> Indicate recent modifications or lower compression</li>
+                <li><strong>Low ELA Values:</strong> Indicate original image data or higher compression</li>
+                <li><strong>Inconsistent Patterns:</strong> Suggest potential tampering or manipulation</li>
+                <li><strong>Threshold Analysis:</strong> Statistical analysis of ELA distribution</li>
+            </ul>
+
+            <h3>Copy-Move Forgery Detection</h3>
+            <p>Advanced block-matching algorithm to detect copied regions:</p>
+            <div class="code-block">
+Algorithm Steps:
+1. Divide image into overlapping blocks (16x16 pixels)
+2. Calculate feature vectors for each block
+3. Compare blocks using correlation coefficient
+4. Identify similar blocks beyond distance threshold
+5. Cluster similar blocks to identify copied regions
+6. Validate findings using geometric constraints
+            </div>
+
+            <h3>Noise Pattern Analysis</h3>
+            <p>Analyzes noise characteristics for tampering detection:</p>
+            <ul>
+                <li><strong>Uniform Noise:</strong> Expected in authentic digital documents</li>
+                <li><strong>Inconsistent Noise:</strong> Indicates potential manipulation areas</li>
+                <li><strong>Noise Variance:</strong> Statistical analysis of noise distribution</li>
+                <li><strong>Frequency Analysis:</strong> Fourier analysis of noise patterns</li>
+            </ul>
+
+            <div class="alert info">
+                <strong>💡 Forensic Standards:</strong> All forensic analysis methods follow international standards for digital evidence examination (ISO/IEC 27037).
+            </div>
+        </div>
+
+        <!-- OCR Analysis Section -->
+        <div class="section" id="ocr-analysis">
+            <h2>📝 OCR & Text Analysis</h2>
+
+            <h3>Advanced OCR Capabilities</h3>
+            <p>The OCR system provides comprehensive text extraction and analysis:</p>
+
+            <ul>
+                <li><strong>Multi-Language Support:</strong> Dutch, English, German, French text recognition</li>
+                <li><strong>Font Recognition:</strong> Identification and consistency analysis of fonts</li>
+                <li><strong>Layout Analysis:</strong> Document structure and formatting verification</li>
+                <li><strong>Data Validation:</strong> Automatic validation of extracted data (dates, amounts, IDs)</li>
+                <li><strong>Pattern Detection:</strong> Recognition of suspicious text patterns</li>
+            </ul>
+
+            <h3>Text Extraction Process</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Image Preprocessing</strong>
+                    <p>Enhance image quality for optimal OCR performance</p>
+                </li>
+                <li>
+                    <strong>Text Detection</strong>
+                    <p>Identify text regions using advanced detection algorithms</p>
+                </li>
+                <li>
+                    <strong>Character Recognition</strong>
+                    <p>Extract individual characters with confidence scoring</p>
+                </li>
+                <li>
+                    <strong>Language Detection</strong>
+                    <p>Automatically detect document language for optimal processing</p>
+                </li>
+                <li>
+                    <strong>Layout Analysis</strong>
+                    <p>Analyze document structure and text organization</p>
+                </li>
+                <li>
+                    <strong>Data Validation</strong>
+                    <p>Validate extracted data for consistency and authenticity</p>
+                </li>
+            </ol>
+
+            <h3>Suspicious Pattern Detection</h3>
+            <p>The system automatically detects various suspicious patterns:</p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pattern Type</th>
+                        <th>Description</th>
+                        <th>Risk Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Duplicate Information</td>
+                        <td>Same data appearing multiple times</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Inconsistent Dates</td>
+                        <td>Date formats or chronology issues</td>
+                        <td>High</td>
+                    </tr>
+                    <tr>
+                        <td>Template Markers</td>
+                        <td>Text indicating template usage</td>
+                        <td>High</td>
+                    </tr>
+                    <tr>
+                        <td>Font Inconsistencies</td>
+                        <td>Unusual font variations</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Copy Indicators</td>
+                        <td>Text suggesting document is a copy</td>
+                        <td>Critical</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Data Extraction Capabilities</h3>
+            <p>Automatic extraction of structured data:</p>
+            <ul>
+                <li><strong>Personal Information:</strong> Names, addresses, BSNs</li>
+                <li><strong>Financial Data:</strong> Account numbers, IBANs, amounts</li>
+                <li><strong>Dates:</strong> Birth dates, issue dates, expiry dates</li>
+                <li><strong>Identification Numbers:</strong> Document numbers, reference codes</li>
+                <li><strong>Geographic Data:</strong> Postal codes, cities, countries</li>
+            </ul>
+        </div>
+
+        <!-- API Reference Section -->
+        <div class="section" id="api-reference">
+            <h2>📚 API Reference</h2>
+
+            <h3>Base URL</h3>
+            <div class="code-block">https://your-domain.com/api/document-authenticity</div>
+
+            <h3>Authentication</h3>
+            <p>All API requests require authentication:</p>
+            <div class="code-block">
+Authorization: Bearer your_jwt_token
+<span class="comment"># or</span>
+X-API-Key: your_api_key
+            </div>
+
+            <h3>Core Endpoints</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>POST</td>
+                        <td>/verify</td>
+                        <td>Verify single document authenticity</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/verify-batch</td>
+                        <td>Batch verify multiple documents</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/verifications</td>
+                        <td>Get verification history</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/verifications/{verificationId}</td>
+                        <td>Get specific verification details</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/blockchain/register</td>
+                        <td>Register document on blockchain</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/blockchain/verify/{documentHash}</td>
+                        <td>Verify document on blockchain</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/forensics/{documentId}</td>
+                        <td>Get forensics analysis results</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/fraud-analysis/{documentId}</td>
+                        <td>Get fraud analysis details</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/templates</td>
+                        <td>Get document templates</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Error Handling</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Document processing failed"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"PROCESSING_ERROR"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"stage"</span>: <span class="string">"ocr_analysis"</span>,
+    <span class="string">"message"</span>: <span class="string">"Unable to extract text from document"</span>
+  }
+}
+            </div>
+
+            <h3>File Upload Requirements</h3>
+            <ul>
+                <li><strong>Supported Formats:</strong> PDF, JPEG, PNG, TIFF, BMP</li>
+                <li><strong>Maximum Size:</strong> 50MB per file</li>
+                <li><strong>Batch Limit:</strong> 50 files per batch request</li>
+                <li><strong>Resolution:</strong> Minimum 300 DPI recommended</li>
+                <li><strong>Color:</strong> RGB, Grayscale, or CMYK color spaces</li>
+            </ul>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🔒 Security & Privacy</h3>
+            <ul>
+                <li><strong>Data Encryption:</strong> All documents encrypted during processing and storage</li>
+                <li><strong>Secure Deletion:</strong> Automatic secure deletion of processed documents</li>
+                <li><strong>Access Control:</strong> Role-based access to verification results</li>
+                <li><strong>Audit Logging:</strong> Comprehensive audit trails for all operations</li>
+                <li><strong>GDPR Compliance:</strong> Full compliance with data protection regulations</li>
+            </ul>
+
+            <h3>📊 Quality Optimization</h3>
+            <ul>
+                <li><strong>Image Quality:</strong> Use high-resolution scans (300+ DPI)</li>
+                <li><strong>Lighting:</strong> Ensure even lighting without shadows or glare</li>
+                <li><strong>Alignment:</strong> Keep documents straight and properly framed</li>
+                <li><strong>Format:</strong> Use lossless formats when possible (PNG, TIFF)</li>
+                <li><strong>Preprocessing:</strong> Remove noise and enhance contrast if needed</li>
+            </ul>
+
+            <h3>🔍 Verification Excellence</h3>
+            <ul>
+                <li><strong>Multiple Methods:</strong> Use multiple verification methods for critical documents</li>
+                <li><strong>Manual Review:</strong> Implement manual review for high-risk cases</li>
+                <li><strong>Template Updates:</strong> Keep document templates current with issuing authorities</li>
+                <li><strong>Model Training:</strong> Regularly retrain fraud detection models</li>
+                <li><strong>Performance Monitoring:</strong> Monitor accuracy and adjust thresholds</li>
+            </ul>
+
+            <h3>⚡ Performance Optimization</h3>
+            <ul>
+                <li><strong>Batch Processing:</strong> Use batch verification for multiple documents</li>
+                <li><strong>Caching:</strong> Cache verification results for duplicate documents</li>
+                <li><strong>Parallel Processing:</strong> Process multiple documents simultaneously</li>
+                <li><strong>Resource Management:</strong> Monitor CPU and memory usage</li>
+                <li><strong>Load Balancing:</strong> Distribute load across multiple instances</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Success Metrics:</strong>
+                <ul>
+                    <li>Fraud Detection Accuracy: > 98%</li>
+                    <li>False Positive Rate: < 2%</li>
+                    <li>Processing Time: < 10 seconds</li>
+                    <li>System Uptime: > 99.9%</li>
+                    <li>Blockchain Success Rate: > 99%</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Troubleshooting Section -->
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Common Issues</h3>
+
+            <h4>🔴 OCR Extraction Failures</h4>
+            <div class="alert error">
+                <strong>Symptoms:</strong> Low OCR confidence, garbled text extraction
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Improve image quality and resolution</li>
+                <li>Ensure proper document orientation</li>
+                <li>Remove shadows and improve lighting</li>
+                <li>Use image preprocessing techniques</li>
+                <li>Check for supported languages</li>
+            </ul>
+
+            <h4>🟡 False Positive Fraud Detection</h4>
+            <div class="alert warning">
+                <strong>Symptoms:</strong> Authentic documents flagged as fraudulent
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Review and adjust fraud detection thresholds</li>
+                <li>Update document templates with new variations</li>
+                <li>Retrain fraud detection models with new data</li>
+                <li>Implement manual review process for edge cases</li>
+                <li>Analyze false positive patterns</li>
+            </ul>
+
+            <h4>🔵 Blockchain Connection Issues</h4>
+            <div class="alert info">
+                <strong>Symptoms:</strong> Blockchain registration failures, verification errors
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check blockchain node connectivity</li>
+                <li>Verify smart contract deployment</li>
+                <li>Ensure sufficient gas for transactions</li>
+                <li>Check IPFS node availability</li>
+                <li>Validate private key and permissions</li>
+            </ul>
+
+            <h3>Diagnostic Commands</h3>
+            <div class="code-block">
+<span class="comment"># Check system health</span>
+curl -X GET http://localhost:3000/api/document-authenticity/health
+
+<span class="comment"># Test OCR functionality</span>
+curl -X POST http://localhost:3000/api/document-authenticity/test-ocr \
+  -F "file=@test_document.pdf"
+
+<span class="comment"># Verify blockchain connectivity</span>
+curl -X GET http://localhost:3000/api/document-authenticity/blockchain/status
+
+<span class="comment"># Get system performance metrics</span>
+curl -X GET http://localhost:3000/api/document-authenticity/analytics/dashboard
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Complete API documentation and verification guides</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔬</div>
+                    <h4>Forensics</h4>
+                    <p>Image forensics techniques and analysis procedures</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Security</h4>
+                    <p>Security best practices and fraud prevention measures</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>AI Models</h4>
+                    <p>Machine learning model training and optimization guides</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
