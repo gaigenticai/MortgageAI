@@ -4407,3 +4407,180 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_implementation_progress_trigger
     BEFORE UPDATE ON recommendation_implementations
     FOR EACH ROW EXECUTE FUNCTION update_implementation_progress();
+
+-- =============================================
+-- ADVANCED LENDER INTEGRATION MANAGER SCHEMA
+-- =============================================
+
+-- Advanced Lender Integration Manager Tables
+CREATE TABLE IF NOT EXISTS lender_configurations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    api_url TEXT NOT NULL,
+    api_key_encrypted TEXT NOT NULL,
+    backup_api_url TEXT,
+    backup_api_key_encrypted TEXT,
+    supported_products JSONB NOT NULL DEFAULT '[]',
+    max_loan_amount DECIMAL(12,2) NOT NULL,
+    min_loan_amount DECIMAL(12,2) NOT NULL,
+    max_ltv DECIMAL(5,2) NOT NULL,
+    min_income DECIMAL(10,2) NOT NULL,
+    processing_time_days INTEGER NOT NULL,
+    rate_limit_per_hour INTEGER NOT NULL DEFAULT 100,
+    timeout_seconds INTEGER NOT NULL DEFAULT 60,
+    retry_attempts INTEGER NOT NULL DEFAULT 3,
+    circuit_breaker_threshold INTEGER NOT NULL DEFAULT 5,
+    priority_score INTEGER NOT NULL DEFAULT 5,
+    fees JSONB NOT NULL DEFAULT '{}',
+    requirements JSONB NOT NULL DEFAULT '{}',
+    validation_rules JSONB NOT NULL DEFAULT '[]',
+    approval_criteria JSONB NOT NULL DEFAULT '{}',
+    document_requirements JSONB NOT NULL DEFAULT '[]',
+    notification_webhooks JSONB NOT NULL DEFAULT '[]',
+    ssl_verify BOOLEAN NOT NULL DEFAULT true,
+    custom_headers JSONB NOT NULL DEFAULT '{}',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_submissions_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    application_data JSONB NOT NULL,
+    submission_result JSONB,
+    validation_results JSONB,
+    approval_prediction JSONB,
+    lender_reference VARCHAR(255),
+    status VARCHAR(50) NOT NULL,
+    error_message TEXT,
+    response_time_ms INTEGER,
+    retry_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_health_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    response_time_ms DECIMAL(8,2),
+    success_rate DECIMAL(5,4),
+    error_rate DECIMAL(5,4),
+    consecutive_failures INTEGER DEFAULT 0,
+    uptime_percentage DECIMAL(5,2),
+    rate_limit_remaining INTEGER,
+    circuit_breaker_open BOOLEAN DEFAULT false,
+    last_check TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS validation_rules_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    field VARCHAR(100) NOT NULL,
+    rule_type VARCHAR(50) NOT NULL,
+    parameters JSONB NOT NULL DEFAULT '{}',
+    severity VARCHAR(20) NOT NULL,
+    error_message TEXT NOT NULL,
+    correction_suggestion TEXT,
+    conditions JSONB DEFAULT '[]',
+    priority INTEGER DEFAULT 1,
+    lender_specific VARCHAR(100),
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS validation_results_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    submission_id UUID REFERENCES lender_submissions_advanced(id),
+    field VARCHAR(100) NOT NULL,
+    rule_id VARCHAR(100) NOT NULL,
+    is_valid BOOLEAN NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    message TEXT NOT NULL,
+    suggestion TEXT,
+    confidence DECIMAL(3,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS approval_predictions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    submission_id UUID REFERENCES lender_submissions_advanced(id),
+    lender_name VARCHAR(100) NOT NULL,
+    probability DECIMAL(5,4) NOT NULL,
+    confidence_interval_lower DECIMAL(5,4),
+    confidence_interval_upper DECIMAL(5,4),
+    risk_factors JSONB DEFAULT '[]',
+    positive_factors JSONB DEFAULT '[]',
+    recommendation TEXT,
+    model_version VARCHAR(50),
+    feature_importance JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_training_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    application_features JSONB NOT NULL,
+    approved BOOLEAN NOT NULL,
+    rejection_reason VARCHAR(500),
+    processing_time_days INTEGER,
+    final_interest_rate DECIMAL(5,4),
+    loan_amount DECIMAL(12,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type VARCHAR(100) NOT NULL,
+    data JSONB NOT NULL,
+    recipient VARCHAR(255),
+    channel VARCHAR(50) DEFAULT 'database',
+    status VARCHAR(20) DEFAULT 'pending',
+    sent_at TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_api_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    endpoint VARCHAR(500) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    request_headers JSONB,
+    request_body JSONB,
+    response_status INTEGER,
+    response_headers JSONB,
+    response_body JSONB,
+    response_time_ms INTEGER,
+    success BOOLEAN,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS circuit_breaker_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    event_type VARCHAR(20) NOT NULL, -- 'opened', 'closed', 'half_opened'
+    failure_count INTEGER,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_lender_submissions_advanced_lender_name ON lender_submissions_advanced(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_submissions_advanced_status ON lender_submissions_advanced(status);
+CREATE INDEX IF NOT EXISTS idx_lender_submissions_advanced_created_at ON lender_submissions_advanced(created_at);
+CREATE INDEX IF NOT EXISTS idx_lender_health_metrics_lender_name ON lender_health_metrics(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_health_metrics_last_check ON lender_health_metrics(last_check);
+CREATE INDEX IF NOT EXISTS idx_validation_rules_advanced_field ON validation_rules_advanced(field);
+CREATE INDEX IF NOT EXISTS idx_validation_rules_advanced_lender_specific ON validation_rules_advanced(lender_specific);
+CREATE INDEX IF NOT EXISTS idx_validation_results_advanced_submission_id ON validation_results_advanced(submission_id);
+CREATE INDEX IF NOT EXISTS idx_approval_predictions_lender_name ON approval_predictions(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_training_data_lender_name ON lender_training_data(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_api_logs_lender_name ON lender_api_logs(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_api_logs_created_at ON lender_api_logs(created_at);
