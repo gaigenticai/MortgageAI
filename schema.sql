@@ -5450,3 +5450,522 @@ GROUP BY ci.investigation_id, ci.title, ci.description, ci.investigation_type,
          ci.actions_taken, ci.timeline, ci.stakeholders, ci.confidentiality_level,
          ci.tags, ci.created_at, ci.updated_at
 ORDER BY ci.created_timestamp DESC;
+
+-- =============================================
+-- ADVANCED RISK ASSESSMENT ENGINE SCHEMA
+-- =============================================
+
+-- Advanced risk assessments table
+CREATE TABLE IF NOT EXISTS risk_assessments_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    entity_id VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    overall_risk_score DECIMAL(5,4) NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    confidence_interval_lower DECIMAL(5,4),
+    confidence_interval_upper DECIMAL(5,4),
+    risk_factors JSONB NOT NULL,
+    category_scores JSONB NOT NULL,
+    predicted_default_probability DECIMAL(8,6),
+    expected_loss DECIMAL(15,2),
+    value_at_risk DECIMAL(15,2),
+    stress_test_results JSONB,
+    mitigation_recommendations JSONB DEFAULT '[]',
+    monitoring_alerts JSONB DEFAULT '[]',
+    model_version VARCHAR(50),
+    data_quality_score DECIMAL(3,2),
+    risk_appetite_alignment VARCHAR(50),
+    regulatory_capital_impact DECIMAL(15,2),
+    next_review_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk factors historical tracking
+CREATE TABLE IF NOT EXISTS risk_factors_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    factor_id VARCHAR(100) NOT NULL,
+    factor_name VARCHAR(200) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    weight DECIMAL(5,4) NOT NULL,
+    raw_value DECIMAL(12,4),
+    normalized_value DECIMAL(5,4) NOT NULL,
+    confidence DECIMAL(3,2) NOT NULL,
+    data_quality DECIMAL(3,2) NOT NULL,
+    source VARCHAR(100),
+    methodology VARCHAR(100),
+    benchmark DECIMAL(12,4),
+    threshold_low DECIMAL(12,4),
+    threshold_high DECIMAL(12,4),
+    calculation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk mitigation strategies table
+CREATE TABLE IF NOT EXISTS risk_mitigation_strategies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    strategy_id UUID NOT NULL,
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    risk_category VARCHAR(50) NOT NULL,
+    strategy_type VARCHAR(100) NOT NULL,
+    name VARCHAR(300) NOT NULL,
+    description TEXT NOT NULL,
+    implementation_cost DECIMAL(12,2),
+    expected_risk_reduction DECIMAL(5,4),
+    implementation_time_weeks INTEGER,
+    effectiveness_score DECIMAL(3,2),
+    prerequisites JSONB DEFAULT '[]',
+    success_metrics JSONB DEFAULT '[]',
+    monitoring_requirements JSONB DEFAULT '[]',
+    implementation_status VARCHAR(50) DEFAULT 'recommended',
+    implementation_start_date TIMESTAMP WITH TIME ZONE,
+    implementation_completion_date TIMESTAMP WITH TIME ZONE,
+    actual_risk_reduction DECIMAL(5,4),
+    cost_effectiveness_ratio DECIMAL(8,4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Stress testing scenarios table
+CREATE TABLE IF NOT EXISTS stress_test_scenarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scenario_id UUID NOT NULL UNIQUE,
+    name VARCHAR(300) NOT NULL,
+    description TEXT NOT NULL,
+    scenario_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(50) NOT NULL,
+    probability DECIMAL(5,4) NOT NULL,
+    parameters JSONB NOT NULL,
+    impact_factors JSONB NOT NULL,
+    duration_months INTEGER NOT NULL,
+    recovery_assumptions JSONB,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Stress testing results table
+CREATE TABLE IF NOT EXISTS stress_test_results (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    test_id UUID NOT NULL,
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    scenario_id UUID REFERENCES stress_test_scenarios(scenario_id),
+    baseline_risk_score DECIMAL(5,4) NOT NULL,
+    stressed_risk_score DECIMAL(5,4) NOT NULL,
+    risk_impact DECIMAL(5,4) NOT NULL,
+    baseline_default_probability DECIMAL(8,6),
+    stressed_default_probability DECIMAL(8,6),
+    expected_loss_baseline DECIMAL(15,2),
+    expected_loss_stressed DECIMAL(15,2),
+    capital_impact DECIMAL(15,2),
+    test_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    test_duration_ms INTEGER,
+    model_version VARCHAR(50)
+);
+
+-- Risk model performance tracking
+CREATE TABLE IF NOT EXISTS risk_model_performance (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_type VARCHAR(100) NOT NULL,
+    model_version VARCHAR(50) NOT NULL,
+    training_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    training_samples INTEGER NOT NULL,
+    validation_samples INTEGER NOT NULL,
+    mse DECIMAL(8,6),
+    mae DECIMAL(8,6),
+    r2_score DECIMAL(5,4),
+    rmse DECIMAL(8,6),
+    feature_importance JSONB,
+    hyperparameters JSONB,
+    cross_validation_scores JSONB,
+    model_file_path VARCHAR(1000),
+    is_active BOOLEAN DEFAULT true,
+    performance_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk appetite and thresholds configuration
+CREATE TABLE IF NOT EXISTS risk_appetite_config (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    risk_category VARCHAR(50) NOT NULL,
+    risk_metric VARCHAR(100) NOT NULL,
+    threshold_type VARCHAR(50) NOT NULL, -- 'warning', 'limit', 'ceiling'
+    threshold_value DECIMAL(8,4) NOT NULL,
+    threshold_description TEXT,
+    business_justification TEXT,
+    approval_level VARCHAR(100),
+    review_frequency_days INTEGER DEFAULT 90,
+    escalation_procedures JSONB,
+    effective_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    approved_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk correlation matrix table
+CREATE TABLE IF NOT EXISTS risk_correlation_matrix (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    factor1_id VARCHAR(100) NOT NULL,
+    factor2_id VARCHAR(100) NOT NULL,
+    correlation_coefficient DECIMAL(6,4) NOT NULL,
+    correlation_strength VARCHAR(20), -- 'weak', 'moderate', 'strong'
+    statistical_significance DECIMAL(5,4),
+    sample_size INTEGER,
+    calculation_method VARCHAR(100),
+    calculation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_current BOOLEAN DEFAULT true
+);
+
+-- Risk assessment historical data for model training
+CREATE TABLE IF NOT EXISTS risk_assessment_historical_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_id VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    assessment_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    credit_score INTEGER,
+    debt_to_income_ratio DECIMAL(5,2),
+    loan_to_value_ratio DECIMAL(5,2),
+    employment_stability DECIMAL(4,1),
+    payment_history DECIMAL(5,2),
+    property_value_volatility DECIMAL(5,2),
+    interest_rate_sensitivity DECIMAL(5,2),
+    regulatory_compliance_score DECIMAL(5,2),
+    liquidity_coverage_ratio DECIMAL(6,2),
+    concentration_risk_score DECIMAL(5,2),
+    operational_risk_incidents INTEGER,
+    fraud_indicators DECIMAL(5,2),
+    data_quality_score DECIMAL(5,2),
+    customer_satisfaction DECIMAL(5,2),
+    regulatory_changes_impact DECIMAL(5,2),
+    actual_default_occurred BOOLEAN,
+    default_date TIMESTAMP WITH TIME ZONE,
+    actual_loss_amount DECIMAL(15,2),
+    recovery_amount DECIMAL(15,2),
+    recovery_rate DECIMAL(5,4),
+    loan_amount DECIMAL(15,2),
+    property_value DECIMAL(15,2),
+    final_outcome VARCHAR(100),
+    data_source VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk monitoring alerts table
+CREATE TABLE IF NOT EXISTS risk_monitoring_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    risk_factor_id VARCHAR(100),
+    threshold_breached DECIMAL(8,4),
+    current_value DECIMAL(8,4),
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(50) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    escalation_level INTEGER DEFAULT 1,
+    notification_sent BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk portfolio aggregation table
+CREATE TABLE IF NOT EXISTS risk_portfolio_aggregation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    portfolio_id UUID NOT NULL,
+    portfolio_name VARCHAR(300) NOT NULL,
+    aggregation_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    total_exposure DECIMAL(18,2) NOT NULL,
+    weighted_average_risk_score DECIMAL(5,4) NOT NULL,
+    portfolio_default_probability DECIMAL(8,6),
+    portfolio_expected_loss DECIMAL(18,2),
+    portfolio_var_99 DECIMAL(18,2),
+    concentration_metrics JSONB,
+    correlation_adjustments JSONB,
+    diversification_benefit DECIMAL(8,4),
+    stress_test_summary JSONB,
+    capital_requirement DECIMAL(18,2),
+    risk_appetite_utilization DECIMAL(5,4),
+    number_of_exposures INTEGER,
+    largest_exposure_percentage DECIMAL(5,2),
+    top_10_exposure_percentage DECIMAL(5,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk factor benchmarks and calibration
+CREATE TABLE IF NOT EXISTS risk_factor_benchmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    factor_id VARCHAR(100) NOT NULL,
+    benchmark_type VARCHAR(50) NOT NULL, -- 'industry', 'peer', 'regulatory', 'internal'
+    benchmark_value DECIMAL(12,4) NOT NULL,
+    benchmark_source VARCHAR(200),
+    confidence_level DECIMAL(3,2),
+    sample_size INTEGER,
+    calculation_methodology TEXT,
+    effective_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    is_current BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk assessment audit trail
+CREATE TABLE IF NOT EXISTS risk_assessment_audit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    audit_action VARCHAR(100) NOT NULL,
+    previous_values JSONB,
+    new_values JSONB,
+    changed_by VARCHAR(255),
+    change_reason TEXT,
+    approval_required BOOLEAN DEFAULT false,
+    approved_by VARCHAR(255),
+    approved_at TIMESTAMP WITH TIME ZONE,
+    audit_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_entity ON risk_assessments_advanced(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_risk_level ON risk_assessments_advanced(risk_level);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_risk_score ON risk_assessments_advanced(overall_risk_score);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_created_at ON risk_assessments_advanced(created_at);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_next_review ON risk_assessments_advanced(next_review_date);
+
+CREATE INDEX IF NOT EXISTS idx_risk_factors_history_assessment_id ON risk_factors_history(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_factors_history_factor_id ON risk_factors_history(factor_id);
+CREATE INDEX IF NOT EXISTS idx_risk_factors_history_category ON risk_factors_history(category);
+
+CREATE INDEX IF NOT EXISTS idx_risk_mitigation_strategies_assessment_id ON risk_mitigation_strategies(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_mitigation_strategies_category ON risk_mitigation_strategies(risk_category);
+CREATE INDEX IF NOT EXISTS idx_risk_mitigation_strategies_status ON risk_mitigation_strategies(implementation_status);
+
+CREATE INDEX IF NOT EXISTS idx_stress_test_scenarios_scenario_type ON stress_test_scenarios(scenario_type);
+CREATE INDEX IF NOT EXISTS idx_stress_test_scenarios_severity ON stress_test_scenarios(severity);
+CREATE INDEX IF NOT EXISTS idx_stress_test_scenarios_is_active ON stress_test_scenarios(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_stress_test_results_assessment_id ON stress_test_results(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_stress_test_results_scenario_id ON stress_test_results(scenario_id);
+CREATE INDEX IF NOT EXISTS idx_stress_test_results_test_timestamp ON stress_test_results(test_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_risk_model_performance_model_type ON risk_model_performance(model_type);
+CREATE INDEX IF NOT EXISTS idx_risk_model_performance_is_active ON risk_model_performance(is_active);
+CREATE INDEX IF NOT EXISTS idx_risk_model_performance_training_date ON risk_model_performance(training_date);
+
+CREATE INDEX IF NOT EXISTS idx_risk_appetite_config_category ON risk_appetite_config(risk_category);
+CREATE INDEX IF NOT EXISTS idx_risk_appetite_config_effective_date ON risk_appetite_config(effective_date);
+CREATE INDEX IF NOT EXISTS idx_risk_appetite_config_is_active ON risk_appetite_config(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_risk_correlation_matrix_factors ON risk_correlation_matrix(factor1_id, factor2_id);
+CREATE INDEX IF NOT EXISTS idx_risk_correlation_matrix_is_current ON risk_correlation_matrix(is_current);
+
+CREATE INDEX IF NOT EXISTS idx_risk_historical_data_entity ON risk_assessment_historical_data(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_risk_historical_data_assessment_date ON risk_assessment_historical_data(assessment_date);
+CREATE INDEX IF NOT EXISTS idx_risk_historical_data_default_occurred ON risk_assessment_historical_data(actual_default_occurred);
+
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_assessment_id ON risk_monitoring_alerts(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_severity ON risk_monitoring_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_status ON risk_monitoring_alerts(alert_status);
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_created_at ON risk_monitoring_alerts(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_risk_portfolio_aggregation_portfolio_id ON risk_portfolio_aggregation(portfolio_id);
+CREATE INDEX IF NOT EXISTS idx_risk_portfolio_aggregation_date ON risk_portfolio_aggregation(aggregation_date);
+
+CREATE INDEX IF NOT EXISTS idx_risk_factor_benchmarks_factor_id ON risk_factor_benchmarks(factor_id);
+CREATE INDEX IF NOT EXISTS idx_risk_factor_benchmarks_is_current ON risk_factor_benchmarks(is_current);
+
+CREATE INDEX IF NOT EXISTS idx_risk_assessment_audit_assessment_id ON risk_assessment_audit(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_assessment_audit_timestamp ON risk_assessment_audit(audit_timestamp);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_risk_assessments_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER risk_assessments_update_timestamp
+    BEFORE UPDATE ON risk_assessments_advanced
+    FOR EACH ROW EXECUTE FUNCTION update_risk_assessments_timestamp();
+
+CREATE OR REPLACE FUNCTION update_risk_mitigation_strategies_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER risk_mitigation_strategies_update_timestamp
+    BEFORE UPDATE ON risk_mitigation_strategies
+    FOR EACH ROW EXECUTE FUNCTION update_risk_mitigation_strategies_timestamp();
+
+-- Function to calculate portfolio risk metrics
+CREATE OR REPLACE FUNCTION calculate_portfolio_risk_metrics(portfolio_id_param UUID)
+RETURNS TABLE(
+    total_exposure DECIMAL(18,2),
+    weighted_avg_risk DECIMAL(5,4),
+    portfolio_var DECIMAL(18,2),
+    concentration_risk DECIMAL(5,4)
+) AS $$
+DECLARE
+    total_exp DECIMAL(18,2) := 0;
+    weighted_risk DECIMAL(5,4) := 0;
+    var_99 DECIMAL(18,2) := 0;
+    concentration DECIMAL(5,4) := 0;
+BEGIN
+    -- Calculate total exposure and weighted average risk
+    SELECT 
+        COALESCE(SUM(CAST(rf.details->>'loan_amount' AS DECIMAL)), 0),
+        COALESCE(AVG(ra.overall_risk_score), 0)
+    INTO total_exp, weighted_risk
+    FROM risk_assessments_advanced ra
+    JOIN LATERAL jsonb_array_elements(ra.risk_factors) AS rf(details) ON true
+    WHERE ra.entity_id = portfolio_id_param::TEXT;
+    
+    -- Calculate portfolio VaR (simplified)
+    var_99 := total_exp * weighted_risk * 2.33 * 0.1;
+    
+    -- Calculate concentration risk (largest exposure as percentage)
+    SELECT COALESCE(MAX(CAST(rf.details->>'loan_amount' AS DECIMAL)) / NULLIF(total_exp, 0), 0)
+    INTO concentration
+    FROM risk_assessments_advanced ra
+    JOIN LATERAL jsonb_array_elements(ra.risk_factors) AS rf(details) ON true
+    WHERE ra.entity_id = portfolio_id_param::TEXT;
+    
+    RETURN QUERY SELECT total_exp, weighted_risk, var_99, concentration;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function for automated risk alert generation
+CREATE OR REPLACE FUNCTION generate_risk_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    risk_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for high-risk assessments without alerts
+    FOR risk_record IN 
+        SELECT ra.assessment_id, ra.entity_id, ra.overall_risk_score, ra.risk_level
+        FROM risk_assessments_advanced ra
+        LEFT JOIN risk_monitoring_alerts rma ON ra.assessment_id = rma.assessment_id AND rma.alert_status = 'active'
+        WHERE ra.overall_risk_score > 0.7 
+        AND ra.created_at > NOW() - INTERVAL '24 hours'
+        AND rma.assessment_id IS NULL
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO risk_monitoring_alerts (
+            alert_id, assessment_id, alert_type, severity, title, description,
+            threshold_breached, current_value, recommended_actions, escalation_level
+        ) VALUES (
+            alert_id, risk_record.assessment_id, 'high_risk_score', 'high',
+            'High Risk Score Detected',
+            'Risk assessment shows elevated risk level requiring attention',
+            0.7, risk_record.overall_risk_score,
+            '["Review risk factors", "Implement mitigation strategies", "Enhanced monitoring"]',
+            CASE WHEN risk_record.overall_risk_score > 0.9 THEN 3
+                 WHEN risk_record.overall_risk_score > 0.8 THEN 2
+                 ELSE 1 END
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common risk queries
+CREATE OR REPLACE VIEW risk_dashboard_summary AS
+SELECT 
+    DATE(created_at) as assessment_date,
+    risk_level,
+    COUNT(*) as assessment_count,
+    AVG(overall_risk_score) as avg_risk_score,
+    AVG(predicted_default_probability) as avg_default_probability,
+    AVG(expected_loss) as avg_expected_loss,
+    AVG(data_quality_score) as avg_data_quality
+FROM risk_assessments_advanced
+WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(created_at), risk_level
+ORDER BY assessment_date DESC, risk_level;
+
+CREATE OR REPLACE VIEW active_risk_alerts AS
+SELECT 
+    rma.*,
+    ra.entity_id,
+    ra.entity_type,
+    ra.overall_risk_score,
+    ra.risk_level
+FROM risk_monitoring_alerts rma
+JOIN risk_assessments_advanced ra ON rma.assessment_id = ra.assessment_id
+WHERE rma.alert_status = 'active'
+AND rma.resolved_at IS NULL
+ORDER BY rma.severity DESC, rma.created_at DESC;
+
+CREATE OR REPLACE VIEW risk_mitigation_effectiveness AS
+SELECT 
+    rms.risk_category,
+    rms.strategy_type,
+    COUNT(*) as strategies_implemented,
+    AVG(rms.expected_risk_reduction) as avg_expected_reduction,
+    AVG(rms.actual_risk_reduction) as avg_actual_reduction,
+    AVG(rms.cost_effectiveness_ratio) as avg_cost_effectiveness,
+    COUNT(CASE WHEN rms.implementation_status = 'completed' THEN 1 END) as completed_strategies
+FROM risk_mitigation_strategies rms
+WHERE rms.implementation_start_date IS NOT NULL
+GROUP BY rms.risk_category, rms.strategy_type
+ORDER BY avg_cost_effectiveness DESC;
+
+-- Insert default stress test scenarios
+INSERT INTO stress_test_scenarios (
+    scenario_id, name, description, scenario_type, severity, probability,
+    parameters, impact_factors, duration_months, recovery_assumptions, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Severe Economic Downturn', 
+    'GDP decline of 5%, unemployment increase to 12%', 
+    'macroeconomic', 'severe', 0.05,
+    '{"gdp_decline": -5.0, "unemployment_rate": 12.0}',
+    '{"credit_score": 1.3, "debt_to_income_ratio": 1.4, "employment_stability": 1.6, "property_value_volatility": 2.0}',
+    18, '{"recovery_time_months": 36, "recovery_shape": "U"}', 'system'
+),
+(
+    gen_random_uuid(), 'Interest Rate Shock',
+    'Interest rates increase by 300 basis points',
+    'market', 'moderate', 0.15,
+    '{"interest_rate_increase": 3.0}',
+    '{"interest_rate_sensitivity": 2.5, "debt_to_income_ratio": 1.2, "property_value_volatility": 1.4}',
+    12, '{"recovery_time_months": 24, "recovery_shape": "V"}', 'system'
+),
+(
+    gen_random_uuid(), 'Property Market Crash',
+    'Property values decline by 25%',
+    'market', 'severe', 0.08,
+    '{"property_value_decline": -25.0}',
+    '{"loan_to_value_ratio": 1.8, "property_value_volatility": 3.0, "liquidity_coverage_ratio": 1.3}',
+    24, '{"recovery_time_months": 60, "recovery_shape": "L"}', 'system'
+) ON CONFLICT DO NOTHING;
+
+-- Insert default risk appetite thresholds
+INSERT INTO risk_appetite_config (
+    risk_category, risk_metric, threshold_type, threshold_value,
+    threshold_description, effective_date, created_by
+) VALUES 
+('credit_risk', 'overall_risk_score', 'warning', 0.6, 'Warning threshold for credit risk', CURRENT_TIMESTAMP, 'system'),
+('credit_risk', 'overall_risk_score', 'limit', 0.8, 'Maximum acceptable credit risk', CURRENT_TIMESTAMP, 'system'),
+('market_risk', 'value_at_risk', 'limit', 0.05, 'Maximum VaR as percentage of portfolio', CURRENT_TIMESTAMP, 'system'),
+('operational_risk', 'incident_rate', 'warning', 0.02, 'Warning threshold for operational incidents', CURRENT_TIMESTAMP, 'system'),
+('compliance_risk', 'compliance_score', 'limit', 0.95, 'Minimum compliance score requirement', CURRENT_TIMESTAMP, 'system')
+ON CONFLICT DO NOTHING;

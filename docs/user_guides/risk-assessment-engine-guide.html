@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Risk Assessment Engine - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .risk-matrix {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .risk-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .risk-very-low { background: #dcfce7; color: #166534; }
+        .risk-low { background: #dbeafe; color: #1e40af; }
+        .risk-medium { background: #fef3c7; color: #92400e; }
+        .risk-high { background: #fed7d7; color: #b91c1c; }
+        .risk-critical { background: #fecaca; color: #991b1b; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛡️ Advanced Risk Assessment Engine</h1>
+            <p>Sophisticated multi-factor risk analysis with predictive modeling and comprehensive mitigation strategies</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#risk-factors">Risk Factors</a></li>
+                <li><a href="#assessment-process">Assessment Process</a></li>
+                <li><a href="#stress-testing">Stress Testing</a></li>
+                <li><a href="#mitigation">Risk Mitigation</a></li>
+                <li><a href="#portfolio-risk">Portfolio Risk</a></li>
+                <li><a href="#model-management">Model Management</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The Advanced Risk Assessment Engine provides comprehensive, multi-dimensional risk analysis using sophisticated machine learning models, stress testing capabilities, and intelligent mitigation recommendations for Dutch mortgage lending.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🧮</div>
+                    <h4>Multi-Factor Analysis</h4>
+                    <p>Comprehensive analysis of 15+ risk factors across credit, market, operational, and compliance dimensions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>Predictive Modeling</h4>
+                    <p>Ensemble machine learning models for accurate default probability prediction and risk forecasting.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Stress Testing</h4>
+                    <p>Advanced scenario analysis and stress testing capabilities for regulatory compliance and risk management.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💡</div>
+                    <h4>Smart Mitigation</h4>
+                    <p>AI-powered mitigation strategy recommendations with cost-benefit analysis and implementation guidance.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Enterprise Grade:</strong> This system meets Basel III, IFRS 9, and Dutch AFM requirements for risk management and capital adequacy assessment.
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+
+            <h3>🧮 Multi-Dimensional Risk Analysis</h3>
+            <ul>
+                <li><strong>Credit Risk Factors:</strong> Credit score, DTI ratio, LTV ratio, employment stability, payment history</li>
+                <li><strong>Market Risk Factors:</strong> Property value volatility, interest rate sensitivity, market concentration</li>
+                <li><strong>Operational Risk Factors:</strong> Process incidents, fraud indicators, data quality metrics</li>
+                <li><strong>Compliance Risk Factors:</strong> Regulatory compliance score, policy adherence, audit findings</li>
+                <li><strong>Liquidity Risk Factors:</strong> Liquidity coverage ratio, funding stability, cash flow analysis</li>
+            </ul>
+
+            <h3>🤖 Advanced Predictive Modeling</h3>
+            <ul>
+                <li><strong>Ensemble Models:</strong> Random Forest, Gradient Boosting, and Ridge Regression combination</li>
+                <li><strong>Cross-Validation:</strong> Robust model validation with k-fold cross-validation</li>
+                <li><strong>Feature Engineering:</strong> Automated feature selection and importance ranking</li>
+                <li><strong>Model Monitoring:</strong> Continuous performance tracking and drift detection</li>
+                <li><strong>Hyperparameter Optimization:</strong> Grid search and Bayesian optimization</li>
+            </ul>
+
+            <h3>🎯 Comprehensive Stress Testing</h3>
+            <ul>
+                <li><strong>Macroeconomic Scenarios:</strong> GDP decline, unemployment, inflation stress tests</li>
+                <li><strong>Market Scenarios:</strong> Interest rate shocks, property market crashes, liquidity crises</li>
+                <li><strong>Idiosyncratic Scenarios:</strong> Operational failures, regulatory changes, reputational events</li>
+                <li><strong>Custom Scenarios:</strong> User-defined stress test scenarios with flexible parameters</li>
+                <li><strong>Portfolio Impact:</strong> Aggregated portfolio-level stress testing and correlation analysis</li>
+            </ul>
+
+            <h3>💡 Intelligent Risk Mitigation</h3>
+            <ul>
+                <li><strong>Strategy Optimization:</strong> Cost-benefit optimized mitigation strategy selection</li>
+                <li><strong>Implementation Planning:</strong> Detailed implementation timelines and resource requirements</li>
+                <li><strong>Effectiveness Tracking:</strong> Monitoring and measurement of mitigation effectiveness</li>
+                <li><strong>ROI Analysis:</strong> Return on investment calculation for mitigation strategies</li>
+                <li><strong>Continuous Improvement:</strong> Machine learning-based strategy effectiveness optimization</li>
+            </ul>
+        </div>
+
+        <!-- Risk Factors Section -->
+        <div class="section" id="risk-factors">
+            <h2>📊 Risk Factors</h2>
+
+            <h3>Risk Factor Categories</h3>
+            <p>The system analyzes 15+ risk factors across multiple dimensions:</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Risk Factor</th>
+                        <th>Category</th>
+                        <th>Weight</th>
+                        <th>Optimal Range</th>
+                        <th>Data Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Credit Score</td>
+                        <td>Credit Risk</td>
+                        <td>25%</td>
+                        <td>700-850</td>
+                        <td>BKR/Credit Bureau</td>
+                    </tr>
+                    <tr>
+                        <td>Debt-to-Income Ratio</td>
+                        <td>Credit Risk</td>
+                        <td>20%</td>
+                        <td>0-36%</td>
+                        <td>Financial Statements</td>
+                    </tr>
+                    <tr>
+                        <td>Loan-to-Value Ratio</td>
+                        <td>Credit Risk</td>
+                        <td>18%</td>
+                        <td>0-80%</td>
+                        <td>Property Valuation</td>
+                    </tr>
+                    <tr>
+                        <td>Employment Stability</td>
+                        <td>Credit Risk</td>
+                        <td>12%</td>
+                        <td>5+ years</td>
+                        <td>Employment Records</td>
+                    </tr>
+                    <tr>
+                        <td>Payment History</td>
+                        <td>Credit Risk</td>
+                        <td>15%</td>
+                        <td>95-100%</td>
+                        <td>BKR/Payment Records</td>
+                    </tr>
+                    <tr>
+                        <td>Property Value Volatility</td>
+                        <td>Market Risk</td>
+                        <td>10%</td>
+                        <td>0-15%</td>
+                        <td>Market Data</td>
+                    </tr>
+                    <tr>
+                        <td>Interest Rate Sensitivity</td>
+                        <td>Market Risk</td>
+                        <td>8%</td>
+                        <td>0-30%</td>
+                        <td>Loan Structure</td>
+                    </tr>
+                    <tr>
+                        <td>Regulatory Compliance</td>
+                        <td>Compliance Risk</td>
+                        <td>12%</td>
+                        <td>95-100%</td>
+                        <td>Compliance System</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Risk Scoring Methodology</h3>
+            <p>The risk scoring process involves multiple sophisticated steps:</p>
+
+            <ol>
+                <li><strong>Data Collection:</strong> Gather data from multiple sources (BKR, NHG, internal systems)</li>
+                <li><strong>Data Quality Assessment:</strong> Evaluate completeness, accuracy, and timeliness</li>
+                <li><strong>Factor Calculation:</strong> Calculate individual risk factor values and normalize to 0-1 scale</li>
+                <li><strong>Confidence Weighting:</strong> Apply confidence weights based on data quality and source reliability</li>
+                <li><strong>Category Aggregation:</strong> Aggregate factors within each risk category using weighted averages</li>
+                <li><strong>Overall Score Calculation:</strong> Combine category scores using sophisticated aggregation methods</li>
+                <li><strong>Non-linear Adjustment:</strong> Apply non-linear transformations for extreme risk scenarios</li>
+            </ol>
+
+            <h3>Risk Level Classification</h3>
+            <div class="risk-matrix">
+                <div class="risk-cell risk-very-low">Very Low<br>0-10%</div>
+                <div class="risk-cell risk-low">Low<br>10-30%</div>
+                <div class="risk-cell risk-medium">Medium<br>30-60%</div>
+                <div class="risk-cell risk-high">High<br>60-80%</div>
+                <div class="risk-cell risk-critical">Critical<br>80-100%</div>
+            </div>
+        </div>
+
+        <!-- Assessment Process Section -->
+        <div class="section" id="assessment-process">
+            <h2>🔍 Risk Assessment Process</h2>
+
+            <h3>Comprehensive Assessment API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/risk-assessment/assess</span>
+{
+  <span class="string">"entity_id"</span>: <span class="string">"customer_12345"</span>,
+  <span class="string">"entity_type"</span>: <span class="string">"mortgage_application"</span>,
+  <span class="string">"input_data"</span>: {
+    <span class="string">"credit_score"</span>: 720,
+    <span class="string">"loan_amount"</span>: 300000,
+    <span class="string">"property_value"</span>: 400000,
+    <span class="string">"net_monthly_income"</span>: 5000,
+    <span class="string">"monthly_debt_payments"</span>: 800,
+    <span class="string">"employment_years"</span>: 8,
+    <span class="string">"on_time_payment_percentage"</span>: 96,
+    <span class="string">"liquid_assets"</span>: 150000,
+    <span class="string">"property_volatility"</span>: 12,
+    <span class="string">"compliance_score"</span>: 97,
+    <span class="string">"fraud_score"</span>: 2,
+    <span class="string">"data_completeness"</span>: 95
+  }
+}
+            </div>
+
+            <h3>Assessment Response</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"assessment"</span>: {
+    <span class="string">"assessment_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+    <span class="string">"entity_id"</span>: <span class="string">"customer_12345"</span>,
+    <span class="string">"overall_risk_score"</span>: 0.35,
+    <span class="string">"risk_level"</span>: <span class="string">"medium"</span>,
+    <span class="string">"confidence_interval"</span>: [0.28, 0.42],
+    <span class="string">"predicted_default_probability"</span>: 0.045,
+    <span class="string">"expected_loss"</span>: 6750.00,
+    <span class="string">"value_at_risk"</span>: 15800.00,
+    <span class="string">"category_scores"</span>: {
+      <span class="string">"credit_risk"</span>: 0.32,
+      <span class="string">"market_risk"</span>: 0.28,
+      <span class="string">"operational_risk"</span>: 0.15,
+      <span class="string">"compliance_risk"</span>: 0.08
+    },
+    <span class="string">"risk_factors"</span>: [
+      {
+        <span class="string">"factor_id"</span>: <span class="string">"credit_score"</span>,
+        <span class="string">"value"</span>: 720,
+        <span class="string">"normalized_value"</span>: 0.25,
+        <span class="string">"weight"</span>: 0.25,
+        <span class="string">"confidence"</span>: 0.95
+      }
+    ],
+    <span class="string">"mitigation_recommendations"</span>: [
+      <span class="string">"Consider additional collateral to reduce LTV ratio"</span>,
+      <span class="string">"Implement enhanced income verification"</span>,
+      <span class="string">"Monitor employment stability closely"</span>
+    ],
+    <span class="string">"monitoring_alerts"</span>: [
+      <span class="string">"Monthly income verification required"</span>,
+      <span class="string">"Property value monitoring recommended"</span>
+    ],
+    <span class="string">"data_quality_score"</span>: 0.94,
+    <span class="string">"risk_appetite_alignment"</span>: <span class="string">"within_appetite"</span>,
+    <span class="string">"next_review_date"</span>: <span class="string">"2025-04-27T10:30:00Z"</span>
+  },
+  <span class="string">"processing_time_ms"</span>: 2850
+}
+            </div>
+
+            <h3>Risk Factor Details</h3>
+            <p>Each risk factor includes comprehensive metadata:</p>
+            <ul>
+                <li><strong>Raw Value:</strong> Original input value</li>
+                <li><strong>Normalized Value:</strong> 0-1 scale where 0 is best, 1 is worst</li>
+                <li><strong>Confidence Score:</strong> Data quality and reliability assessment</li>
+                <li><strong>Weight:</strong> Relative importance in overall risk calculation</li>
+                <li><strong>Benchmark:</strong> Industry or regulatory benchmark for comparison</li>
+                <li><strong>Source:</strong> Data source and collection method</li>
+                <li><strong>Last Updated:</strong> Timestamp of last data update</li>
+            </ul>
+        </div>
+
+        <!-- Stress Testing Section -->
+        <div class="section" id="stress-testing">
+            <h2>🎯 Stress Testing</h2>
+
+            <h3>Stress Test Scenarios</h3>
+            <p>The system includes comprehensive stress testing scenarios:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📉</div>
+                    <h4>Economic Downturn</h4>
+                    <p><strong>Severity:</strong> Severe<br>
+                    <strong>Probability:</strong> 5%<br>
+                    <strong>Impact:</strong> GDP -5%, Unemployment +12%</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h4>Interest Rate Shock</h4>
+                    <p><strong>Severity:</strong> Moderate<br>
+                    <strong>Probability:</strong> 15%<br>
+                    <strong>Impact:</strong> +300 basis points</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🏠</div>
+                    <h4>Property Market Crash</h4>
+                    <p><strong>Severity:</strong> Severe<br>
+                    <strong>Probability:</strong> 8%<br>
+                    <strong>Impact:</strong> Property values -25%</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Operational Crisis</h4>
+                    <p><strong>Severity:</strong> High<br>
+                    <strong>Probability:</strong> 12%<br>
+                    <strong>Impact:</strong> System failures, fraud events</p>
+                </div>
+            </div>
+
+            <h3>Executing Stress Tests</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/risk-assessment/stress-test</span>
+{
+  <span class="string">"assessment_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="string">"scenario_ids"</span>: [
+    <span class="string">"economic_downturn"</span>,
+    <span class="string">"interest_rate_shock"</span>,
+    <span class="string">"property_market_crash"</span>
+  ],
+  <span class="string">"custom_scenarios"</span>: [
+    {
+      <span class="string">"name"</span>: <span class="string">"Custom Scenario"</span>,
+      <span class="string">"parameters"</span>: {<span class="string">"unemployment_rate"</span>: 15.0},
+      <span class="string">"impact_factors"</span>: {<span class="string">"employment_stability"</span>: 2.0}
+    }
+  ]
+}
+            </div>
+
+            <h3>Stress Test Results</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"stress_test_results"</span>: [
+    {
+      <span class="string">"scenario_id"</span>: <span class="string">"economic_downturn"</span>,
+      <span class="string">"baseline_risk_score"</span>: 0.35,
+      <span class="string">"stressed_risk_score"</span>: 0.58,
+      <span class="string">"risk_impact"</span>: 0.23,
+      <span class="string">"baseline_default_probability"</span>: 0.045,
+      <span class="string">"stressed_default_probability"</span>: 0.089,
+      <span class="string">"expected_loss_baseline"</span>: 6750.00,
+      <span class="string">"expected_loss_stressed"</span>: 13350.00,
+      <span class="string">"capital_impact"</span>: 8500.00
+    }
+  ],
+  <span class="string">"scenarios_tested"</span>: 3,
+  <span class="string">"processing_time_ms"</span>: 4200
+}
+            </div>
+
+            <h3>Stress Test Interpretation</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Impact Level</th>
+                        <th>Risk Increase</th>
+                        <th>Interpretation</th>
+                        <th>Action Required</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Low</td>
+                        <td>0-10%</td>
+                        <td>Resilient to stress</td>
+                        <td>Continue monitoring</td>
+                    </tr>
+                    <tr>
+                        <td>Moderate</td>
+                        <td>10-25%</td>
+                        <td>Some vulnerability</td>
+                        <td>Consider mitigation</td>
+                    </tr>
+                    <tr>
+                        <td>High</td>
+                        <td>25-50%</td>
+                        <td>Significant vulnerability</td>
+                        <td>Implement mitigation</td>
+                    </tr>
+                    <tr>
+                        <td>Severe</td>
+                        <td>50%+</td>
+                        <td>High vulnerability</td>
+                        <td>Immediate action required</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mitigation Section -->
+        <div class="section" id="mitigation">
+            <h2>💡 Risk Mitigation Strategies</h2>
+
+            <h3>Mitigation Strategy Types</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Credit Enhancement</h4>
+                    <p>Improve creditworthiness through counseling, co-signers, or additional collateral.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔄</div>
+                    <h4>Risk Transfer</h4>
+                    <p>Transfer risk through insurance, guarantees, or securitization.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Risk Diversification</h4>
+                    <p>Spread risk across different segments, geographies, or products.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Risk Avoidance</h4>
+                    <p>Avoid high-risk segments or activities entirely.</p>
+                </div>
+            </div>
+
+            <h3>Strategy Selection Process</h3>
+            <ol>
+                <li><strong>Risk Analysis:</strong> Identify primary risk drivers and categories</li>
+                <li><strong>Strategy Matching:</strong> Match appropriate strategies to identified risks</li>
+                <li><strong>Cost-Benefit Analysis:</strong> Evaluate implementation costs vs. risk reduction benefits</li>
+                <li><strong>Resource Assessment:</strong> Consider available resources and implementation capacity</li>
+                <li><strong>Timeline Planning:</strong> Develop realistic implementation timelines</li>
+                <li><strong>Effectiveness Monitoring:</strong> Establish metrics for measuring strategy effectiveness</li>
+            </ol>
+
+            <h3>Mitigation Effectiveness Tracking</h3>
+            <div class="code-block">
+<span class="comment">// PUT /api/risk-assessment/mitigation/{strategyId}</span>
+{
+  <span class="string">"implementation_status"</span>: <span class="string">"completed"</span>,
+  <span class="string">"implementation_start_date"</span>: <span class="string">"2025-01-15T00:00:00Z"</span>,
+  <span class="string">"implementation_completion_date"</span>: <span class="string">"2025-04-15T00:00:00Z"</span>,
+  <span class="string">"actual_risk_reduction"</span>: 0.18,
+  <span class="string">"cost_effectiveness_ratio"</span>: 3.6
+}
+            </div>
+
+            <h3>ROI Calculation</h3>
+            <p>Return on Investment for mitigation strategies is calculated as:</p>
+            <div class="code-block">
+ROI = (Risk Reduction Value - Implementation Cost) / Implementation Cost
+
+Where:
+- Risk Reduction Value = Expected Loss Reduction × Probability × Time Horizon
+- Implementation Cost = Direct costs + Opportunity costs + Ongoing costs
+            </div>
+        </div>
+
+        <!-- Portfolio Risk Section -->
+        <div class="section" id="portfolio-risk">
+            <h2>📊 Portfolio Risk Management</h2>
+
+            <h3>Portfolio Risk Aggregation</h3>
+            <p>The system provides sophisticated portfolio-level risk analysis:</p>
+
+            <ul>
+                <li><strong>Weighted Average Risk:</strong> Portfolio risk weighted by exposure amounts</li>
+                <li><strong>Correlation Adjustments:</strong> Account for risk factor correlations</li>
+                <li><strong>Concentration Risk:</strong> Identify and measure concentration in specific segments</li>
+                <li><strong>Diversification Benefits:</strong> Quantify risk reduction from diversification</li>
+                <li><strong>Capital Allocation:</strong> Optimize capital allocation across risk categories</li>
+            </ul>
+
+            <h3>Portfolio Risk API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/risk-assessment/portfolio-risk</span>
+{
+  <span class="string">"portfolio_id"</span>: <span class="string">"portfolio_001"</span>,
+  <span class="string">"entity_ids"</span>: [
+    <span class="string">"customer_001"</span>,
+    <span class="string">"customer_002"</span>,
+    <span class="string">"customer_003"</span>
+  ],
+  <span class="string">"aggregation_method"</span>: <span class="string">"weighted_average"</span>,
+  <span class="string">"include_correlations"</span>: <span class="keyword">true</span>
+}
+            </div>
+
+            <h3>Concentration Risk Metrics</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Description</th>
+                        <th>Threshold</th>
+                        <th>Current Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Single Name Concentration</td>
+                        <td>Largest exposure as % of portfolio</td>
+                        <td>&lt; 5%</td>
+                        <td>3.2%</td>
+                    </tr>
+                    <tr>
+                        <td>Top 10 Concentration</td>
+                        <td>Top 10 exposures as % of portfolio</td>
+                        <td>&lt; 25%</td>
+                        <td>18.5%</td>
+                    </tr>
+                    <tr>
+                        <td>Geographic Concentration</td>
+                        <td>Single region exposure</td>
+                        <td>&lt; 30%</td>
+                        <td>22.1%</td>
+                    </tr>
+                    <tr>
+                        <td>Sector Concentration</td>
+                        <td>Single sector exposure</td>
+                        <td>&lt; 20%</td>
+                        <td>15.8%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Model Management Section -->
+        <div class="section" id="model-management">
+            <h2>🤖 Model Management</h2>
+
+            <h3>Model Training Process</h3>
+            <ol>
+                <li><strong>Data Preparation:</strong> Clean and prepare historical data for training</li>
+                <li><strong>Feature Engineering:</strong> Create and select optimal features</li>
+                <li><strong>Model Selection:</strong> Choose appropriate algorithms and ensemble methods</li>
+                <li><strong>Hyperparameter Tuning:</strong> Optimize model parameters using grid search</li>
+                <li><strong>Cross-Validation:</strong> Validate model performance using k-fold cross-validation</li>
+                <li><strong>Model Evaluation:</strong> Assess performance using multiple metrics</li>
+                <li><strong>Model Deployment:</strong> Deploy trained models to production environment</li>
+            </ol>
+
+            <h3>Training Models API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/risk-assessment/train-models</span>
+{
+  <span class="string">"model_types"</span>: [
+    <span class="string">"credit_scoring"</span>,
+    <span class="string">"default_probability"</span>,
+    <span class="string">"loss_given_default"</span>
+  ],
+  <span class="string">"training_parameters"</span>: {
+    <span class="string">"test_size"</span>: 0.2,
+    <span class="string">"random_state"</span>: 42,
+    <span class="string">"cross_validation_folds"</span>: 5,
+    <span class="string">"hyperparameter_tuning"</span>: <span class="keyword">true</span>
+  }
+}
+            </div>
+
+            <h3>Model Performance Metrics</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Description</th>
+                        <th>Target Value</th>
+                        <th>Current Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>R² Score</td>
+                        <td>Coefficient of determination</td>
+                        <td>&gt; 0.80</td>
+                        <td>0.87</td>
+                    </tr>
+                    <tr>
+                        <td>Mean Absolute Error</td>
+                        <td>Average prediction error</td>
+                        <td>&lt; 0.05</td>
+                        <td>0.032</td>
+                    </tr>
+                    <tr>
+                        <td>Root Mean Square Error</td>
+                        <td>Root mean square error</td>
+                        <td>&lt; 0.08</td>
+                        <td>0.045</td>
+                    </tr>
+                    <tr>
+                        <td>Cross-Validation Score</td>
+                        <td>Average CV performance</td>
+                        <td>&gt; 0.75</td>
+                        <td>0.84</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Model Monitoring</h3>
+            <p>Continuous model monitoring includes:</p>
+            <ul>
+                <li><strong>Performance Drift:</strong> Monitor for degradation in model accuracy</li>
+                <li><strong>Data Drift:</strong> Detect changes in input data distributions</li>
+                <li><strong>Concept Drift:</strong> Identify changes in underlying relationships</li>
+                <li><strong>Feature Importance:</strong> Track changes in feature importance over time</li>
+                <li><strong>Prediction Distribution:</strong> Monitor distribution of model predictions</li>
+            </ul>
+
+            <div class="alert warning">
+                <strong>⚠️ Model Retraining:</strong> Models should be retrained monthly with new data to maintain accuracy and relevance.
+            </div>
+        </div>
+
+        <!-- API Reference Section -->
+        <div class="section" id="api-reference">
+            <h2>📚 API Reference</h2>
+
+            <h3>Base URL</h3>
+            <div class="code-block">https://your-domain.com/api/risk-assessment</div>
+
+            <h3>Core Endpoints</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>POST</td>
+                        <td>/assess</td>
+                        <td>Perform comprehensive risk assessment</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/assessments</td>
+                        <td>Retrieve risk assessments with filtering</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/assessments/{assessmentId}</td>
+                        <td>Get specific assessment details</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/stress-test</td>
+                        <td>Execute stress testing scenarios</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/stress-scenarios</td>
+                        <td>Get available stress test scenarios</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/mitigation/{assessmentId}</td>
+                        <td>Get mitigation recommendations</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/portfolio-risk</td>
+                        <td>Calculate portfolio risk metrics</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/train-models</td>
+                        <td>Train risk prediction models</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/alerts</td>
+                        <td>Get risk monitoring alerts</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Error Handling</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Invalid input data"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"VALIDATION_ERROR"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"field"</span>: <span class="string">"credit_score"</span>,
+    <span class="string">"message"</span>: <span class="string">"Credit score must be between 300 and 850"</span>
+  }
+}
+            </div>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🎯 Risk Assessment Excellence</h3>
+            <ul>
+                <li><strong>Data Quality:</strong> Ensure high-quality, complete, and current input data</li>
+                <li><strong>Regular Reviews:</strong> Conduct risk assessments at appropriate intervals</li>
+                <li><strong>Model Validation:</strong> Regularly validate and update predictive models</li>
+                <li><strong>Stress Testing:</strong> Perform comprehensive stress testing quarterly</li>
+                <li><strong>Documentation:</strong> Maintain detailed documentation of methodologies and assumptions</li>
+            </ul>
+
+            <h3>🔄 Continuous Improvement</h3>
+            <ul>
+                <li><strong>Performance Monitoring:</strong> Continuously monitor model and system performance</li>
+                <li><strong>Feedback Loops:</strong> Implement feedback mechanisms for model improvement</li>
+                <li><strong>Benchmark Updates:</strong> Regularly update industry benchmarks and thresholds</li>
+                <li><strong>Regulatory Compliance:</strong> Stay current with regulatory requirements and guidelines</li>
+                <li><strong>Technology Updates:</strong> Keep machine learning libraries and algorithms current</li>
+            </ul>
+
+            <h3>⚡ Performance Optimization</h3>
+            <ul>
+                <li><strong>Caching:</strong> Implement intelligent caching for frequently accessed assessments</li>
+                <li><strong>Parallel Processing:</strong> Use parallel processing for portfolio-level calculations</li>
+                <li><strong>Model Optimization:</strong> Optimize models for both accuracy and performance</li>
+                <li><strong>Data Pipeline:</strong> Implement efficient data pipelines for real-time updates</li>
+                <li><strong>Resource Management:</strong> Monitor and optimize computational resource usage</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Success Metrics:</strong>
+                <ul>
+                    <li>Model Accuracy (R²): &gt; 85%</li>
+                    <li>Assessment Time: &lt; 5 seconds</li>
+                    <li>Data Quality Score: &gt; 90%</li>
+                    <li>Alert Response Time: &lt; 1 hour</li>
+                    <li>Mitigation Effectiveness: &gt; 80%</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Complete API documentation and risk management guides</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎓</div>
+                    <h4>Training</h4>
+                    <p>Risk assessment training and certification programs</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛠️</div>
+                    <h4>Support</h4>
+                    <p>Technical support and risk management consulting</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Analytics</h4>
+                    <p>Advanced analytics and custom reporting services</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
