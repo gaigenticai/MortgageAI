@@ -6502,3 +6502,389 @@ INSERT INTO document_templates (
     '{"watermark": true, "digital_signature": true, "security_code": true}',
     'system'
 ) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- NLP CONTENT ANALYZER SCHEMA
+-- =============================================
+
+-- Main NLP content analysis table
+CREATE TABLE IF NOT EXISTS nlp_content_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL UNIQUE,
+    document_id VARCHAR(255) NOT NULL,
+    text_content_sample TEXT,
+    language_detected VARCHAR(20) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    confidence_score DECIMAL(5,4) NOT NULL,
+    processing_time_ms INTEGER,
+    model_versions JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Named entities extraction table
+CREATE TABLE IF NOT EXISTS nlp_named_entities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    entity_text VARCHAR(500) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    start_position INTEGER NOT NULL,
+    end_position INTEGER NOT NULL,
+    confidence DECIMAL(5,4) NOT NULL,
+    context TEXT,
+    normalized_value VARCHAR(500),
+    validation_status BOOLEAN DEFAULT true,
+    source_sentence TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Semantic analysis results table
+CREATE TABLE IF NOT EXISTS nlp_semantic_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    key_topics JSONB DEFAULT '[]',
+    semantic_similarity_scores JSONB DEFAULT '{}',
+    content_coherence DECIMAL(5,4),
+    readability_score DECIMAL(5,4),
+    complexity_score DECIMAL(5,4),
+    formality_score DECIMAL(5,4),
+    technical_terminology_ratio DECIMAL(5,4),
+    sentence_structures JSONB DEFAULT '{}',
+    paragraph_analysis JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Sentiment analysis results table
+CREATE TABLE IF NOT EXISTS nlp_sentiment_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    overall_sentiment VARCHAR(50) NOT NULL,
+    sentiment_score DECIMAL(5,4),
+    confidence DECIMAL(5,4),
+    sentence_sentiments JSONB DEFAULT '[]',
+    emotional_indicators JSONB DEFAULT '[]',
+    stress_indicators JSONB DEFAULT '[]',
+    positive_indicators JSONB DEFAULT '[]',
+    neutral_indicators JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk indicator analysis table
+CREATE TABLE IF NOT EXISTS nlp_risk_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    risk_indicators JSONB DEFAULT '[]',
+    risk_phrases JSONB DEFAULT '[]',
+    risk_score DECIMAL(5,4) NOT NULL,
+    confidence DECIMAL(5,4),
+    context_analysis JSONB DEFAULT '{}',
+    mitigation_suggestions JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Content validation results table
+CREATE TABLE IF NOT EXISTS nlp_content_validation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    is_valid BOOLEAN NOT NULL,
+    validation_errors JSONB DEFAULT '[]',
+    consistency_score DECIMAL(5,4),
+    completeness_score DECIMAL(5,4),
+    accuracy_indicators JSONB DEFAULT '[]',
+    suspicious_patterns JSONB DEFAULT '[]',
+    regulatory_compliance JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Topic modeling results table
+CREATE TABLE IF NOT EXISTS nlp_topic_modeling (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    topics JSONB NOT NULL,
+    topic_distribution JSONB,
+    coherence_score DECIMAL(5,4),
+    perplexity_score DECIMAL(8,4),
+    num_topics INTEGER,
+    modeling_algorithm VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Relationship extraction table
+CREATE TABLE IF NOT EXISTS nlp_relationship_extraction (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    entity1_text VARCHAR(500) NOT NULL,
+    entity1_type VARCHAR(50) NOT NULL,
+    entity2_text VARCHAR(500) NOT NULL,
+    entity2_type VARCHAR(50) NOT NULL,
+    relationship_type VARCHAR(100) NOT NULL,
+    confidence DECIMAL(5,4),
+    context TEXT,
+    distance INTEGER,
+    validation_status BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NLP model performance tracking
+CREATE TABLE IF NOT EXISTS nlp_model_performance (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_name VARCHAR(200) NOT NULL,
+    model_type VARCHAR(100) NOT NULL,
+    model_version VARCHAR(50) NOT NULL,
+    language VARCHAR(20) NOT NULL,
+    task_type VARCHAR(100) NOT NULL,
+    accuracy DECIMAL(5,4),
+    precision DECIMAL(5,4),
+    recall DECIMAL(5,4),
+    f1_score DECIMAL(5,4),
+    processing_speed_ms INTEGER,
+    memory_usage_mb INTEGER,
+    training_date TIMESTAMP WITH TIME ZONE,
+    evaluation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    test_samples INTEGER,
+    is_active BOOLEAN DEFAULT true,
+    performance_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Text classification rules and patterns
+CREATE TABLE IF NOT EXISTS nlp_classification_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id UUID NOT NULL UNIQUE,
+    rule_name VARCHAR(300) NOT NULL,
+    classification_type VARCHAR(100) NOT NULL,
+    target_class VARCHAR(100) NOT NULL,
+    rule_pattern TEXT NOT NULL,
+    rule_type VARCHAR(50) NOT NULL, -- 'regex', 'keyword', 'ml_model'
+    confidence_threshold DECIMAL(3,2) DEFAULT 0.7,
+    priority INTEGER DEFAULT 1,
+    language VARCHAR(20),
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NLP analysis statistics
+CREATE TABLE IF NOT EXISTS nlp_analysis_statistics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stat_date DATE NOT NULL,
+    language VARCHAR(20),
+    content_type VARCHAR(100),
+    total_analyses INTEGER NOT NULL DEFAULT 0,
+    successful_analyses INTEGER NOT NULL DEFAULT 0,
+    failed_analyses INTEGER NOT NULL DEFAULT 0,
+    avg_processing_time_ms INTEGER,
+    avg_confidence_score DECIMAL(5,4),
+    avg_entities_extracted DECIMAL(6,2),
+    risk_indicators_detected INTEGER DEFAULT 0,
+    compliance_issues_found INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(stat_date, language, content_type)
+);
+
+-- NLP alerts and notifications
+CREATE TABLE IF NOT EXISTS nlp_analysis_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    risk_score DECIMAL(5,4),
+    entities_involved JSONB DEFAULT '[]',
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(50) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_document_id ON nlp_content_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_language ON nlp_content_analysis(language_detected);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_content_type ON nlp_content_analysis(content_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_created_at ON nlp_content_analysis(created_at);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_confidence ON nlp_content_analysis(confidence_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_analysis_id ON nlp_named_entities(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_entity_type ON nlp_named_entities(entity_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_validation_status ON nlp_named_entities(validation_status);
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_normalized_value ON nlp_named_entities(normalized_value);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_semantic_analysis_analysis_id ON nlp_semantic_analysis(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_semantic_analysis_coherence ON nlp_semantic_analysis(content_coherence);
+CREATE INDEX IF NOT EXISTS idx_nlp_semantic_analysis_readability ON nlp_semantic_analysis(readability_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_sentiment_analysis_analysis_id ON nlp_sentiment_analysis(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_sentiment_analysis_sentiment ON nlp_sentiment_analysis(overall_sentiment);
+CREATE INDEX IF NOT EXISTS idx_nlp_sentiment_analysis_score ON nlp_sentiment_analysis(sentiment_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_risk_analysis_analysis_id ON nlp_risk_analysis(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_risk_analysis_risk_score ON nlp_risk_analysis(risk_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_content_validation_analysis_id ON nlp_content_validation(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_validation_is_valid ON nlp_content_validation(is_valid);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_topic_modeling_analysis_id ON nlp_topic_modeling(analysis_id);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_relationship_extraction_analysis_id ON nlp_relationship_extraction(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_relationship_extraction_type ON nlp_relationship_extraction(relationship_type);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_model_performance_model_name ON nlp_model_performance(model_name);
+CREATE INDEX IF NOT EXISTS idx_nlp_model_performance_task_type ON nlp_model_performance(task_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_model_performance_is_active ON nlp_model_performance(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_classification_rules_classification_type ON nlp_classification_rules(classification_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_classification_rules_is_active ON nlp_classification_rules(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_statistics_stat_date ON nlp_analysis_statistics(stat_date);
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_statistics_language ON nlp_analysis_statistics(language);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_alerts_analysis_id ON nlp_analysis_alerts(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_alerts_severity ON nlp_analysis_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_alerts_status ON nlp_analysis_alerts(alert_status);
+
+-- Full-text search indexes
+CREATE INDEX IF NOT EXISTS idx_nlp_content_text_gin ON nlp_content_analysis USING gin(to_tsvector('english', text_content_sample));
+CREATE INDEX IF NOT EXISTS idx_nlp_entities_text_gin ON nlp_named_entities USING gin(to_tsvector('english', entity_text));
+
+-- Function to calculate daily NLP statistics
+CREATE OR REPLACE FUNCTION calculate_nlp_analysis_stats()
+RETURNS VOID AS $$
+DECLARE
+    stat_date DATE := CURRENT_DATE;
+    lang_type_record RECORD;
+BEGIN
+    -- Calculate stats for each language and content type combination
+    FOR lang_type_record IN 
+        SELECT DISTINCT language_detected, content_type 
+        FROM nlp_content_analysis
+        WHERE DATE(created_at) = stat_date
+    LOOP
+        INSERT INTO nlp_analysis_statistics (
+            stat_date, language, content_type, total_analyses, successful_analyses,
+            failed_analyses, avg_processing_time_ms, avg_confidence_score, avg_entities_extracted
+        )
+        SELECT 
+            stat_date,
+            lang_type_record.language_detected,
+            lang_type_record.content_type,
+            COUNT(*) as total_analyses,
+            COUNT(CASE WHEN confidence_score > 0.5 THEN 1 END) as successful_analyses,
+            COUNT(CASE WHEN confidence_score <= 0.5 THEN 1 END) as failed_analyses,
+            AVG(processing_time_ms)::INTEGER as avg_processing_time_ms,
+            AVG(confidence_score) as avg_confidence_score,
+            (SELECT AVG(entity_count) FROM (
+                SELECT COUNT(*) as entity_count
+                FROM nlp_named_entities ne
+                WHERE ne.analysis_id IN (
+                    SELECT nca.analysis_id FROM nlp_content_analysis nca
+                    WHERE DATE(nca.created_at) = stat_date
+                    AND nca.language_detected = lang_type_record.language_detected
+                    AND nca.content_type = lang_type_record.content_type
+                )
+                GROUP BY ne.analysis_id
+            ) entity_counts) as avg_entities_extracted
+        FROM nlp_content_analysis
+        WHERE DATE(created_at) = stat_date
+        AND language_detected = lang_type_record.language_detected
+        AND content_type = lang_type_record.content_type
+        ON CONFLICT (stat_date, language, content_type) DO UPDATE SET
+            total_analyses = EXCLUDED.total_analyses,
+            successful_analyses = EXCLUDED.successful_analyses,
+            failed_analyses = EXCLUDED.failed_analyses,
+            avg_processing_time_ms = EXCLUDED.avg_processing_time_ms,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            avg_entities_extracted = EXCLUDED.avg_entities_extracted;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate NLP alerts
+CREATE OR REPLACE FUNCTION generate_nlp_analysis_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    analysis_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for high-risk analyses without alerts
+    FOR analysis_record IN 
+        SELECT nca.analysis_id, nca.document_id, nra.risk_score, nca.confidence_score
+        FROM nlp_content_analysis nca
+        JOIN nlp_risk_analysis nra ON nca.analysis_id = nra.analysis_id
+        LEFT JOIN nlp_analysis_alerts naa ON nca.analysis_id = naa.analysis_id AND naa.alert_status = 'active'
+        WHERE nra.risk_score > 0.6
+        AND nca.created_at > NOW() - INTERVAL '24 hours'
+        AND naa.analysis_id IS NULL
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO nlp_analysis_alerts (
+            alert_id, analysis_id, alert_type, severity, title, description,
+            risk_score, recommended_actions
+        ) VALUES (
+            alert_id, analysis_record.analysis_id, 'high_risk_content', 
+            CASE WHEN analysis_record.risk_score > 0.8 THEN 'high'
+                 WHEN analysis_record.risk_score > 0.6 THEN 'medium'
+                 ELSE 'low' END,
+            'High Risk Content Detected',
+            'NLP analysis detected high-risk indicators in document content',
+            analysis_record.risk_score,
+            '["Manual content review required", "Verify extracted information", "Enhanced due diligence"]'
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common NLP queries
+CREATE OR REPLACE VIEW nlp_analysis_summary AS
+SELECT 
+    DATE(nca.created_at) as analysis_date,
+    nca.language_detected,
+    nca.content_type,
+    COUNT(*) as total_analyses,
+    AVG(nca.confidence_score) as avg_confidence,
+    AVG(nca.processing_time_ms) as avg_processing_time,
+    COUNT(CASE WHEN nra.risk_score > 0.5 THEN 1 END) as high_risk_analyses,
+    AVG(nsa.content_coherence) as avg_coherence,
+    AVG(nsa.readability_score) as avg_readability
+FROM nlp_content_analysis nca
+LEFT JOIN nlp_risk_analysis nra ON nca.analysis_id = nra.analysis_id
+LEFT JOIN nlp_semantic_analysis nsa ON nca.analysis_id = nsa.analysis_id
+WHERE nca.created_at >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(nca.created_at), nca.language_detected, nca.content_type
+ORDER BY analysis_date DESC, nca.language_detected, nca.content_type;
+
+-- Insert default classification rules
+INSERT INTO nlp_classification_rules (
+    rule_id, rule_name, classification_type, target_class, rule_pattern, rule_type, language, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Dutch Financial Statement Detection', 'content_type', 'financial_statement',
+    '\\b(bankrekening|saldo|transactie|betaling|rente|hypotheek)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Dutch Identity Document Detection', 'content_type', 'identity_document',
+    '\\b(paspoort|identiteit|geboren|nationaliteit|BSN)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Employment Document Detection', 'content_type', 'employment_document',
+    '\\b(werkgever|salaris|contract|arbeidsovereenkomst|loonstrook)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Financial Distress Indicator', 'risk_indicator', 'financial_distress',
+    '\\b(betalingsproblemen|schulden|financiële problemen|insolvent)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Employment Instability Indicator', 'risk_indicator', 'employment_instability',
+    '\\b(werkloos|ontslagen|tijdelijk contract|zzp)\\b', 'regex', 'nl', 'system'
+) ON CONFLICT DO NOTHING;
