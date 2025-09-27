@@ -40,7 +40,7 @@ const API_VALIDATORS = {
 
         // For other keys, try a quick validation with shorter timeout
         const formData = new URLSearchParams();
-        formData.append('url', 'https://via.placeholder.com/150x50/000000/FFFFFF?text=TEST');
+        formData.append('url', 'https://httpbin.org/status/200');
         formData.append('language', 'eng');
         formData.append('isOverlayRequired', 'false');
         formData.append('OCREngine', '1'); // Use engine 1 for faster response

@@ -7382,7 +7382,7 @@ INSERT INTO advice_templates (
     'system'
 ),
 (
-    gen_random_uuid(), 'Risk Disclosure Template - Dutch', 'risk_analysis', 'nl', 'simple',
+    gen_random_uuid(), 'Risk Disclosure Template - Dutch', 'risk_analysis', 'nl', 'accessible',
     'Belangrijke risico''s: Rentewijzigingen kunnen uw maandlasten beïnvloeden. Woningwaarde kan fluctueren.',
     '["risk_factors", "mitigation_strategies", "impact_scenarios"]',
     '["wft_article_86f", "afm_disclosure", "bgfo_article_8_1"]',

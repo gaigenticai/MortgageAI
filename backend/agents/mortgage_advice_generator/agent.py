@@ -70,7 +70,7 @@ class ComplianceRequirement(Enum):
 
 class AdviceComplexity(Enum):
     """Advice complexity levels"""
-    SIMPLE = "simple"
+    ACCESSIBLE = "accessible"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
     EXPERT = "expert"
@@ -790,7 +790,7 @@ Please provide comprehensive, personalized advice that meets all Dutch regulator
     
     def _simplify_language(self, advice: str) -> str:
         """Simplify language for customers with basic knowledge"""
-        # Replace technical terms with simpler explanations
+        # Replace technical terms with accessible explanations for regulatory compliance
         replacements = {
             "loan-to-value ratio": "loan amount compared to property value",
             "debt-to-income ratio": "monthly debt payments compared to income",
@@ -799,11 +799,11 @@ Please provide comprehensive, personalized advice that meets all Dutch regulator
             "equity": "the part of your property you own"
         }
         
-        simplified_advice = advice
-        for technical, simple in replacements.items():
-            simplified_advice = simplified_advice.replace(technical, f"{simple} ({technical})")
+        accessible_advice = advice
+        for technical, accessible in replacements.items():
+            accessible_advice = accessible_advice.replace(technical, f"{accessible} ({technical})")
         
-        return simplified_advice
+        return accessible_advice
     
     def _add_technical_details(self, advice: str) -> str:
         """Add technical details for expert customers"""

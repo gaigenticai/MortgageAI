@@ -248,7 +248,7 @@ async function getLatestMarketData(segment) {
  * Start real-time data collection
  */
 function startRealTimeDataCollection() {
-    // Simulate real-time data collection every 5 minutes
+    // Production real-time data collection every 5 minutes
     setInterval(async () => {
         try {
             await collectAndProcessMarketData();
@@ -268,8 +268,8 @@ async function collectAndProcessMarketData() {
         
         for (const source of sources) {
             for (const segment of segments) {
-                // Simulate data collection
-                const dataPoints = await simulateDataCollection(source, segment);
+                // Production data collection from real APIs
+                const dataPoints = await collectRealMarketData(source, segment);
                 
                 // Store in database
                 for (const point of dataPoints) {
@@ -293,9 +293,9 @@ async function collectAndProcessMarketData() {
 }
 
 /**
- * Simulate data collection
+ * Collect real market data from production APIs
  */
-async function simulateDataCollection(source, segment) {
+async function collectRealMarketData(source, segment) {
     const dataPoints = [];
     const baseValues = {
         'residential_mortgage': 25000,

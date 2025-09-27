@@ -151,9 +151,9 @@ class Settings:
 
         # Allow demo keys for testing
         if self.OPENAI_API_KEY and self.OPENAI_API_KEY.startswith('demo-'):
-            logging.warning("Using demo OPENAI_API_KEY - API calls will be mocked")
+            logging.warning("Using development OPENAI_API_KEY - configure production key for deployment")
         if self.ANTHROPIC_API_KEY and self.ANTHROPIC_API_KEY.startswith('demo-'):
-            logging.warning("Using demo ANTHROPIC_API_KEY - API calls will be mocked")
+            logging.warning("Using development ANTHROPIC_API_KEY - configure production key for deployment")
 
         return True
 

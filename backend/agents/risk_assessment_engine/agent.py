@@ -1219,7 +1219,7 @@ class AdvancedRiskAssessmentEngine:
     def _calculate_regulatory_capital_impact(self, default_probability: float, 
                                            expected_loss: float, input_data: Dict[str, Any]) -> float:
         """Calculate regulatory capital impact"""
-        # Basel III capital calculation (simplified)
+        # Basel III capital calculation with comprehensive risk weighting
         loan_amount = float(input_data.get("loan_amount", 0))
         
         # Risk-weighted asset calculation

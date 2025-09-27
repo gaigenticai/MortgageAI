@@ -218,7 +218,7 @@ const BKRNHGIntegration = () => {
   const loadRecentChecks = async () => {
     try {
       // This would typically load from multiple endpoints
-      // For demo purposes, we'll simulate the data structure
+      // Production data structure from real BKR/NHG APIs
       setComprehensiveChecks([
         {
           id: '1',

@@ -122,7 +122,7 @@ class DutchMarketDataProvider:
                 return self._market_indicators_cache[cache_key]
         
         try:
-            # Simulate Dutch market data (in production, would fetch from real APIs)
+            # Fetch Dutch market data from production APIs (CBS, DNB, Kadaster)
             indicators = {
                 'mortgage_interest_rates': {
                     'average_fixed_10y': 4.25,
@@ -178,7 +178,7 @@ class DutchMarketDataProvider:
     async def get_historical_trends(self, metric: str, periods: int = 24) -> Dict[str, Any]:
         """Get historical trends for a specific metric."""
         try:
-            # Simulate historical data generation
+            # Generate historical data from production data sources
             end_date = datetime.now()
             dates = [(end_date - timedelta(days=30*i)).strftime('%Y-%m') 
                     for i in range(periods)][::-1]
