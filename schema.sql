@@ -4584,3 +4584,288 @@ CREATE INDEX IF NOT EXISTS idx_approval_predictions_lender_name ON approval_pred
 CREATE INDEX IF NOT EXISTS idx_lender_training_data_lender_name ON lender_training_data(lender_name);
 CREATE INDEX IF NOT EXISTS idx_lender_api_logs_lender_name ON lender_api_logs(lender_name);
 CREATE INDEX IF NOT EXISTS idx_lender_api_logs_created_at ON lender_api_logs(created_at);
+
+-- =============================================
+-- BKR/NHG INTEGRATION SCHEMA
+-- =============================================
+
+-- BKR/NHG comprehensive checks table
+CREATE TABLE IF NOT EXISTS bkr_nhg_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_data JSONB NOT NULL,
+    bkr_results JSONB,
+    nhg_results JSONB,
+    compliance_results JSONB,
+    risk_assessment JSONB,
+    recommendations JSONB,
+    processing_time_ms INTEGER,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- BSN validation results table
+CREATE TABLE IF NOT EXISTS bsn_validations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bsn_hash VARCHAR(64) NOT NULL, -- SHA256 hash for privacy
+    is_valid BOOLEAN NOT NULL,
+    checksum_valid BOOLEAN NOT NULL,
+    format_valid BOOLEAN NOT NULL,
+    blacklist_check BOOLEAN NOT NULL,
+    confidence_score DECIMAL(3,2),
+    error_message TEXT,
+    validation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE
+);
+
+-- BKR credit checks table
+CREATE TABLE IF NOT EXISTS bkr_credit_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bsn_hash VARCHAR(64) NOT NULL,
+    check_id VARCHAR(100) NOT NULL UNIQUE,
+    status VARCHAR(50) NOT NULL,
+    credit_score INTEGER,
+    payment_history JSONB,
+    active_loans JSONB DEFAULT '[]',
+    defaults JSONB DEFAULT '[]',
+    inquiries JSONB DEFAULT '[]',
+    debt_to_income_ratio DECIMAL(5,2),
+    total_debt DECIMAL(12,2),
+    risk_indicators JSONB DEFAULT '[]',
+    recommendations JSONB DEFAULT '[]',
+    compliance_flags JSONB DEFAULT '[]',
+    data_sources JSONB DEFAULT '[]',
+    consent_token_hash VARCHAR(64),
+    purpose VARCHAR(100),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NHG eligibility assessments table
+CREATE TABLE IF NOT EXISTS nhg_eligibility_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    property_value DECIMAL(12,2) NOT NULL,
+    loan_amount DECIMAL(12,2) NOT NULL,
+    nhg_limit DECIMAL(12,2) NOT NULL,
+    is_eligible BOOLEAN NOT NULL,
+    eligibility_status VARCHAR(50) NOT NULL,
+    cost_benefit_analysis JSONB,
+    nhg_premium DECIMAL(10,2),
+    interest_rate_benefit DECIMAL(5,4),
+    total_savings DECIMAL(12,2),
+    conditions JSONB DEFAULT '[]',
+    restrictions JSONB DEFAULT '[]',
+    property_requirements JSONB,
+    income_requirements JSONB,
+    compliance_notes JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    validity_period INTEGER DEFAULT 90,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance validation results table
+CREATE TABLE IF NOT EXISTS compliance_validations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    check_id UUID REFERENCES bkr_nhg_checks(id),
+    regulation VARCHAR(50) NOT NULL,
+    article VARCHAR(50) NOT NULL,
+    requirement TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    details TEXT,
+    remediation_actions JSONB DEFAULT '[]',
+    risk_level VARCHAR(20) NOT NULL,
+    impact_assessment TEXT,
+    reviewer_notes TEXT,
+    checked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk assessments table
+CREATE TABLE IF NOT EXISTS risk_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    check_id UUID REFERENCES bkr_nhg_checks(id),
+    overall_risk_score DECIMAL(3,2) NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    risk_factors JSONB DEFAULT '[]',
+    mitigation_strategies JSONB DEFAULT '[]',
+    compliance_risks JSONB DEFAULT '[]',
+    fraud_indicators JSONB DEFAULT '[]',
+    data_quality_score DECIMAL(3,2),
+    confidence_level DECIMAL(3,2),
+    recommendations JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NHG limits and rates table (for historical tracking)
+CREATE TABLE IF NOT EXISTS nhg_limits_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    standard_limit DECIMAL(12,2) NOT NULL,
+    energy_efficient_bonus DECIMAL(12,2),
+    starter_bonus DECIMAL(12,2),
+    renovation_limit DECIMAL(12,2),
+    premium_rate DECIMAL(5,4),
+    effective_date DATE NOT NULL,
+    end_date DATE,
+    is_current BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- BKR API performance metrics table
+CREATE TABLE IF NOT EXISTS bkr_api_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    endpoint VARCHAR(200) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    response_time_ms INTEGER NOT NULL,
+    status_code INTEGER NOT NULL,
+    success BOOLEAN NOT NULL,
+    error_message TEXT,
+    request_size_bytes INTEGER,
+    response_size_bytes INTEGER,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NHG API performance metrics table
+CREATE TABLE IF NOT EXISTS nhg_api_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    endpoint VARCHAR(200) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    response_time_ms INTEGER NOT NULL,
+    status_code INTEGER NOT NULL,
+    success BOOLEAN NOT NULL,
+    error_message TEXT,
+    eligibility_result VARCHAR(50),
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Consent management table
+CREATE TABLE IF NOT EXISTS data_consent_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bsn_hash VARCHAR(64) NOT NULL,
+    consent_token_hash VARCHAR(64) NOT NULL,
+    consent_type VARCHAR(100) NOT NULL,
+    purpose VARCHAR(200) NOT NULL,
+    scope JSONB NOT NULL,
+    granted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    withdrawn_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    legal_basis VARCHAR(100),
+    retention_period_days INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Audit trail for sensitive operations
+CREATE TABLE IF NOT EXISTS bkr_nhg_audit_trail (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    operation_type VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id VARCHAR(100),
+    user_id UUID,
+    operation_details JSONB,
+    ip_address INET,
+    user_agent TEXT,
+    result VARCHAR(50),
+    error_message TEXT,
+    processing_time_ms INTEGER,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Data retention and cleanup tracking
+CREATE TABLE IF NOT EXISTS data_retention_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    table_name VARCHAR(100) NOT NULL,
+    cleanup_type VARCHAR(50) NOT NULL,
+    records_processed INTEGER NOT NULL,
+    records_deleted INTEGER NOT NULL,
+    retention_period_days INTEGER NOT NULL,
+    cleanup_criteria JSONB,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(50) DEFAULT 'completed',
+    error_message TEXT
+);
+
+-- Indexes for performance optimization
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_checks_status ON bkr_nhg_checks(status);
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_checks_created_at ON bkr_nhg_checks(created_at);
+CREATE INDEX IF NOT EXISTS idx_bsn_validations_bsn_hash ON bsn_validations(bsn_hash);
+CREATE INDEX IF NOT EXISTS idx_bsn_validations_expires_at ON bsn_validations(expires_at);
+CREATE INDEX IF NOT EXISTS idx_bkr_credit_checks_bsn_hash ON bkr_credit_checks(bsn_hash);
+CREATE INDEX IF NOT EXISTS idx_bkr_credit_checks_check_id ON bkr_credit_checks(check_id);
+CREATE INDEX IF NOT EXISTS idx_bkr_credit_checks_expires_at ON bkr_credit_checks(expires_at);
+CREATE INDEX IF NOT EXISTS idx_nhg_eligibility_assessments_expires_at ON nhg_eligibility_assessments(expires_at);
+CREATE INDEX IF NOT EXISTS idx_compliance_validations_check_id ON compliance_validations(check_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_validations_regulation ON compliance_validations(regulation);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_check_id ON risk_assessments(check_id);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_risk_level ON risk_assessments(risk_level);
+CREATE INDEX IF NOT EXISTS idx_nhg_limits_history_effective_date ON nhg_limits_history(effective_date);
+CREATE INDEX IF NOT EXISTS idx_nhg_limits_history_is_current ON nhg_limits_history(is_current);
+CREATE INDEX IF NOT EXISTS idx_bkr_api_metrics_timestamp ON bkr_api_metrics(timestamp);
+CREATE INDEX IF NOT EXISTS idx_bkr_api_metrics_endpoint ON bkr_api_metrics(endpoint);
+CREATE INDEX IF NOT EXISTS idx_nhg_api_metrics_timestamp ON nhg_api_metrics(timestamp);
+CREATE INDEX IF NOT EXISTS idx_data_consent_records_bsn_hash ON data_consent_records(bsn_hash);
+CREATE INDEX IF NOT EXISTS idx_data_consent_records_is_active ON data_consent_records(is_active);
+CREATE INDEX IF NOT EXISTS idx_data_consent_records_expires_at ON data_consent_records(expires_at);
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_audit_trail_timestamp ON bkr_nhg_audit_trail(timestamp);
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_audit_trail_operation_type ON bkr_nhg_audit_trail(operation_type);
+CREATE INDEX IF NOT EXISTS idx_data_retention_log_table_name ON data_retention_log(table_name);
+CREATE INDEX IF NOT EXISTS idx_data_retention_log_started_at ON data_retention_log(started_at);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_bkr_nhg_checks_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bkr_nhg_checks_update_timestamp
+    BEFORE UPDATE ON bkr_nhg_checks
+    FOR EACH ROW EXECUTE FUNCTION update_bkr_nhg_checks_timestamp();
+
+-- Function to clean up expired records
+CREATE OR REPLACE FUNCTION cleanup_expired_bkr_nhg_data()
+RETURNS INTEGER AS $$
+DECLARE
+    deleted_count INTEGER := 0;
+    temp_count INTEGER;
+BEGIN
+    -- Clean up expired BSN validations
+    DELETE FROM bsn_validations WHERE expires_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up expired BKR credit checks
+    DELETE FROM bkr_credit_checks WHERE expires_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up expired NHG assessments
+    DELETE FROM nhg_eligibility_assessments WHERE expires_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Log cleanup operation
+    INSERT INTO data_retention_log (
+        table_name, cleanup_type, records_processed, records_deleted,
+        retention_period_days, started_at, completed_at
+    ) VALUES (
+        'multiple', 'expired_cleanup', deleted_count, deleted_count,
+        30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    );
+    
+    RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Insert current NHG limits
+INSERT INTO nhg_limits_history (
+    standard_limit, energy_efficient_bonus, starter_bonus, renovation_limit,
+    premium_rate, effective_date, is_current
+) VALUES (
+    435000, 27000, 10000, 50000, 0.007, '2025-01-01', true
+) ON CONFLICT DO NOTHING;
