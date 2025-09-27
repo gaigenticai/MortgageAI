@@ -77,6 +77,7 @@ const advancedAnalyticsDashboardRoutes = require('../routes/advanced_analytics_d
 const anomalyDetectionInterfaceRoutes = require('../routes/anomaly_detection_interface');
 const advancedFieldValidationRoutes = require('../routes/advanced_field_validation');
 const agentPerformanceMetricsRoutes = require('../routes/agent_performance_metrics');
+const dutchMarketIntelligenceRoutes = require('../routes/dutch_market_intelligence');
 
 // Register routes
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -118,6 +119,9 @@ fastify.register(advancedFieldValidationRoutes, { prefix: '/api/field-validation
 
 // Register agent performance metrics routes
 fastify.register(agentPerformanceMetricsRoutes, { prefix: '/api/performance' });
+
+// Register Dutch market intelligence routes
+fastify.register(dutchMarketIntelligenceRoutes, { prefix: '/api/intelligence' });
 
 // Authentication middleware (when REQUIRE_AUTH=true)
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -165,6 +169,7 @@ fastify.get('/', async (request, reply) => {
       anomaly_detection: '/api/anomaly-detection',
       field_validation: '/api/field-validation',
       performance_metrics: '/api/performance',
+      market_intelligence: '/api/intelligence',
       health: '/health'
     }
   };
@@ -242,6 +247,7 @@ fastify.setNotFoundHandler((request, reply) => {
       '/api/anomaly-detection/*',
       '/api/field-validation/*',
       '/api/performance/*',
+      '/api/intelligence/*',
       '/health',
             '/api/upload'
     ]
