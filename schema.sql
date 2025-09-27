@@ -7395,3 +7395,211 @@ INSERT INTO advice_templates (
     '["wft_article_86f"]',
     'system'
 ) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- USER COMPREHENSION VALIDATOR SCHEMA
+-- =============================================
+
+-- Assessment questions bank
+CREATE TABLE IF NOT EXISTS assessment_questions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    question_id UUID NOT NULL UNIQUE,
+    knowledge_domain VARCHAR(100) NOT NULL,
+    question_type VARCHAR(50) NOT NULL,
+    difficulty_level VARCHAR(50) NOT NULL,
+    question_text TEXT NOT NULL,
+    question_context TEXT,
+    options JSONB,
+    correct_answer JSONB NOT NULL,
+    explanation TEXT,
+    learning_objectives JSONB DEFAULT '[]',
+    regulatory_relevance JSONB DEFAULT '[]',
+    estimated_time_minutes INTEGER DEFAULT 2,
+    multimedia_content JSONB,
+    adaptive_parameters JSONB DEFAULT '{}',
+    tags JSONB DEFAULT '[]',
+    usage_count INTEGER DEFAULT 0,
+    correct_rate DECIMAL(5,4) DEFAULT 0.5,
+    avg_response_time INTEGER DEFAULT 120,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    reviewed_by VARCHAR(255),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Assessment sessions table
+CREATE TABLE IF NOT EXISTS assessment_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL UNIQUE,
+    user_id VARCHAR(255) NOT NULL,
+    assessment_goals JSONB NOT NULL,
+    user_preferences JSONB DEFAULT '{}',
+    session_status VARCHAR(50) DEFAULT 'active',
+    target_domains JSONB DEFAULT '[]',
+    adaptive_algorithm VARCHAR(50) DEFAULT 'cat',
+    target_precision DECIMAL(3,2) DEFAULT 0.3,
+    max_questions INTEGER DEFAULT 20,
+    min_questions INTEGER DEFAULT 5,
+    time_limit_minutes INTEGER,
+    started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    session_duration_minutes INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User responses table
+CREATE TABLE IF NOT EXISTS user_responses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    response_id UUID NOT NULL UNIQUE,
+    session_id UUID REFERENCES assessment_sessions(session_id),
+    question_id UUID REFERENCES assessment_questions(question_id),
+    user_answer JSONB NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    confidence_level INTEGER CHECK (confidence_level >= 1 AND confidence_level <= 5),
+    response_time_seconds INTEGER NOT NULL,
+    attempt_number INTEGER DEFAULT 1,
+    hint_used BOOLEAN DEFAULT false,
+    explanation_viewed BOOLEAN DEFAULT false,
+    response_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    device_info JSONB DEFAULT '{}',
+    interaction_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Knowledge assessments table
+CREATE TABLE IF NOT EXISTS knowledge_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    user_id VARCHAR(255) NOT NULL,
+    session_id UUID REFERENCES assessment_sessions(session_id),
+    assessment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    domain_scores JSONB NOT NULL,
+    overall_comprehension_level VARCHAR(50) NOT NULL,
+    overall_score DECIMAL(5,4) NOT NULL,
+    confidence_interval_lower DECIMAL(5,4),
+    confidence_interval_upper DECIMAL(5,4),
+    strengths JSONB DEFAULT '[]',
+    weaknesses JSONB DEFAULT '[]',
+    knowledge_gaps JSONB DEFAULT '[]',
+    learning_recommendations JSONB DEFAULT '[]',
+    estimated_learning_time INTEGER,
+    regulatory_compliance_score DECIMAL(5,4),
+    adaptive_parameters JSONB DEFAULT '{}',
+    next_assessment_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Learning paths table
+CREATE TABLE IF NOT EXISTS learning_paths (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    path_id UUID NOT NULL UNIQUE,
+    user_id VARCHAR(255) NOT NULL,
+    assessment_id UUID REFERENCES knowledge_assessments(assessment_id),
+    learning_objectives JSONB NOT NULL,
+    recommended_modules JSONB NOT NULL,
+    estimated_completion_time INTEGER,
+    difficulty_progression JSONB DEFAULT '[]',
+    learning_style_adaptations JSONB DEFAULT '{}',
+    milestone_checkpoints JSONB DEFAULT '[]',
+    progress_tracking JSONB DEFAULT '{}',
+    adaptive_adjustments JSONB DEFAULT '[]',
+    gamification_elements JSONB DEFAULT '{}',
+    accessibility_accommodations JSONB DEFAULT '[]',
+    path_status VARCHAR(50) DEFAULT 'active',
+    started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    last_accessed TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Learning modules table
+CREATE TABLE IF NOT EXISTS learning_modules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    module_id UUID NOT NULL UNIQUE,
+    module_name VARCHAR(300) NOT NULL,
+    module_type VARCHAR(100) NOT NULL,
+    knowledge_domain VARCHAR(100) NOT NULL,
+    difficulty_level VARCHAR(50) NOT NULL,
+    estimated_time_minutes INTEGER NOT NULL,
+    learning_objectives JSONB NOT NULL,
+    prerequisites JSONB DEFAULT '[]',
+    content_types JSONB DEFAULT '[]',
+    module_content TEXT,
+    multimedia_resources JSONB DEFAULT '{}',
+    assessment_criteria JSONB DEFAULT '{}',
+    completion_requirements JSONB DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    version VARCHAR(50) DEFAULT '1.0',
+    created_by VARCHAR(255),
+    reviewed_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User learning progress table
+CREATE TABLE IF NOT EXISTS user_learning_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(255) NOT NULL,
+    path_id UUID REFERENCES learning_paths(path_id),
+    module_id UUID REFERENCES learning_modules(module_id),
+    progress_percentage DECIMAL(5,2) DEFAULT 0.00,
+    time_spent_minutes INTEGER DEFAULT 0,
+    completion_status VARCHAR(50) DEFAULT 'not_started',
+    last_activity TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    module_score DECIMAL(5,4),
+    attempts INTEGER DEFAULT 0,
+    mastery_achieved BOOLEAN DEFAULT false,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_domain ON assessment_questions(knowledge_domain);
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_difficulty ON assessment_questions(difficulty_level);
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_is_active ON assessment_questions(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_assessment_sessions_user_id ON assessment_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_sessions_status ON assessment_sessions(session_status);
+
+CREATE INDEX IF NOT EXISTS idx_user_responses_session_id ON user_responses(session_id);
+CREATE INDEX IF NOT EXISTS idx_user_responses_question_id ON user_responses(question_id);
+CREATE INDEX IF NOT EXISTS idx_user_responses_is_correct ON user_responses(is_correct);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_assessments_user_id ON knowledge_assessments(user_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_assessments_comprehension_level ON knowledge_assessments(overall_comprehension_level);
+
+CREATE INDEX IF NOT EXISTS idx_learning_paths_user_id ON learning_paths(user_id);
+CREATE INDEX IF NOT EXISTS idx_learning_paths_path_status ON learning_paths(path_status);
+
+CREATE INDEX IF NOT EXISTS idx_user_learning_progress_user_id ON user_learning_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_learning_progress_completion_status ON user_learning_progress(completion_status);
+
+-- Insert default assessment questions
+INSERT INTO assessment_questions (
+    question_id, knowledge_domain, question_type, difficulty_level, question_text,
+    options, correct_answer, explanation, learning_objectives, regulatory_relevance,
+    estimated_time_minutes, tags, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'mortgage_basics', 'multiple_choice', 'beginner',
+    'What is a mortgage?',
+    '["A type of savings account", "A loan secured by property", "An investment product", "A type of insurance"]',
+    '"A loan secured by property"',
+    'A mortgage is a loan that is secured by real estate property. The property serves as collateral for the loan.',
+    '["Understand basic mortgage definition", "Recognize mortgage as secured loan"]',
+    '["wft_article_86f"]',
+    2, '["definition", "basics", "security"]', 'system'
+),
+(
+    gen_random_uuid(), 'interest_rates', 'multiple_choice', 'intermediate',
+    'What happens to your monthly payment if interest rates increase on a variable rate mortgage?',
+    '["Payment stays the same", "Payment decreases", "Payment increases", "Payment becomes variable"]',
+    '"Payment increases"',
+    'With a variable rate mortgage, your monthly payment will increase when interest rates rise, as the interest portion of your payment increases.',
+    '["Understand variable rate impact", "Recognize payment risk"]',
+    '["afm_disclosure", "risk_disclosure"]',
+    3, '["variable_rate", "payment_risk", "interest_impact"]', 'system'
+) ON CONFLICT DO NOTHING;
