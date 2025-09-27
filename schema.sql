@@ -7603,3 +7603,420 @@ INSERT INTO assessment_questions (
     '["afm_disclosure", "risk_disclosure"]',
     3, '["variable_rate", "payment_risk", "interest_impact"]', 'system'
 ) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- DUTCH MARKET INTELLIGENCE SCHEMA
+-- =============================================
+
+-- Market data points table
+CREATE TABLE IF NOT EXISTS market_data_points (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    data_id UUID NOT NULL UNIQUE,
+    data_source VARCHAR(50) NOT NULL,
+    market_segment VARCHAR(50) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    value DECIMAL(20,6) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    region VARCHAR(100),
+    metadata JSONB DEFAULT '{}',
+    confidence_score DECIMAL(3,2) DEFAULT 0.85,
+    data_quality VARCHAR(20) DEFAULT 'medium',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market trend analyses table
+CREATE TABLE IF NOT EXISTS market_trend_analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL UNIQUE,
+    market_segment VARCHAR(50) NOT NULL,
+    analysis_period VARCHAR(50) NOT NULL,
+    trend_direction VARCHAR(30) NOT NULL,
+    trend_strength DECIMAL(5,4) NOT NULL,
+    statistical_significance DECIMAL(5,4),
+    correlation_factors JSONB DEFAULT '{}',
+    seasonal_patterns JSONB DEFAULT '{}',
+    volatility_index DECIMAL(5,4),
+    confidence_interval_lower DECIMAL(20,6),
+    confidence_interval_upper DECIMAL(20,6),
+    key_drivers JSONB DEFAULT '[]',
+    risk_factors JSONB DEFAULT '[]',
+    analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Predictive insights table
+CREATE TABLE IF NOT EXISTS predictive_insights (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    insight_id UUID NOT NULL UNIQUE,
+    market_segment VARCHAR(50) NOT NULL,
+    prediction_horizon VARCHAR(30) NOT NULL,
+    predicted_value DECIMAL(20,6) NOT NULL,
+    prediction_interval_lower DECIMAL(20,6),
+    prediction_interval_upper DECIMAL(20,6),
+    confidence_score DECIMAL(5,4) NOT NULL,
+    model_used VARCHAR(100) NOT NULL,
+    key_assumptions JSONB DEFAULT '[]',
+    risk_scenarios JSONB DEFAULT '{}',
+    business_impact TEXT,
+    recommended_actions JSONB DEFAULT '[]',
+    validation_metrics JSONB DEFAULT '{}',
+    insight_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market intelligence reports table
+CREATE TABLE IF NOT EXISTS market_intelligence_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL UNIQUE,
+    report_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    reporting_period VARCHAR(50) NOT NULL,
+    market_overview JSONB NOT NULL,
+    risk_assessment JSONB DEFAULT '{}',
+    competitive_intelligence JSONB DEFAULT '{}',
+    regulatory_impact JSONB DEFAULT '{}',
+    recommendations JSONB DEFAULT '[]',
+    data_sources_used JSONB DEFAULT '[]',
+    report_confidence DECIMAL(5,4),
+    processing_time_ms INTEGER,
+    report_status VARCHAR(30) DEFAULT 'generated',
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market data sources configuration table
+CREATE TABLE IF NOT EXISTS market_data_sources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_id UUID NOT NULL UNIQUE,
+    source_name VARCHAR(100) NOT NULL,
+    source_type VARCHAR(50) NOT NULL,
+    base_url VARCHAR(500),
+    api_key_required BOOLEAN DEFAULT false,
+    rate_limit INTEGER DEFAULT 100,
+    data_formats JSONB DEFAULT '["json"]',
+    endpoints JSONB DEFAULT '{}',
+    collection_schedule VARCHAR(50) DEFAULT 'daily',
+    is_active BOOLEAN DEFAULT true,
+    last_collection TIMESTAMP WITH TIME ZONE,
+    collection_count INTEGER DEFAULT 0,
+    error_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market segments configuration table
+CREATE TABLE IF NOT EXISTS market_segments_config (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    segment_id UUID NOT NULL UNIQUE,
+    segment_name VARCHAR(100) NOT NULL,
+    segment_type VARCHAR(50) NOT NULL,
+    description TEXT,
+    key_indicators JSONB DEFAULT '[]',
+    data_sources JSONB DEFAULT '[]',
+    analysis_methods JSONB DEFAULT '[]',
+    update_frequency VARCHAR(30) DEFAULT 'daily',
+    importance_weight DECIMAL(3,2) DEFAULT 1.00,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market intelligence alerts table
+CREATE TABLE IF NOT EXISTS market_intelligence_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    alert_type VARCHAR(50) NOT NULL,
+    market_segment VARCHAR(50) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    trigger_conditions JSONB DEFAULT '{}',
+    alert_data JSONB DEFAULT '{}',
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(30) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market performance metrics table
+CREATE TABLE IF NOT EXISTS market_performance_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_date DATE NOT NULL,
+    market_segment VARCHAR(50) NOT NULL,
+    data_points_collected INTEGER DEFAULT 0,
+    trends_analyzed INTEGER DEFAULT 0,
+    predictions_generated INTEGER DEFAULT 0,
+    avg_confidence_score DECIMAL(5,4),
+    avg_processing_time_ms INTEGER,
+    data_quality_score DECIMAL(3,2),
+    prediction_accuracy DECIMAL(5,4),
+    alert_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(metric_date, market_segment)
+);
+
+-- Economic indicators table
+CREATE TABLE IF NOT EXISTS economic_indicators (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    indicator_id UUID NOT NULL UNIQUE,
+    indicator_name VARCHAR(100) NOT NULL,
+    indicator_type VARCHAR(50) NOT NULL,
+    value DECIMAL(20,6) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    reference_period DATE NOT NULL,
+    source VARCHAR(50) NOT NULL,
+    region VARCHAR(100) DEFAULT 'Netherlands',
+    seasonal_adjustment BOOLEAN DEFAULT false,
+    revision_status VARCHAR(30) DEFAULT 'final',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_market_data_points_source ON market_data_points(data_source);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_segment ON market_data_points(market_segment);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_timestamp ON market_data_points(timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_region ON market_data_points(region);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_quality ON market_data_points(data_quality);
+
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_segment ON market_trend_analyses(market_segment);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_period ON market_trend_analyses(analysis_period);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_direction ON market_trend_analyses(trend_direction);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_timestamp ON market_trend_analyses(analysis_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_segment ON predictive_insights(market_segment);
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_horizon ON predictive_insights(prediction_horizon);
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_confidence ON predictive_insights(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_timestamp ON predictive_insights(insight_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_period ON market_intelligence_reports(reporting_period);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_timestamp ON market_intelligence_reports(report_timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_status ON market_intelligence_reports(report_status);
+
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_type ON market_data_sources(source_type);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_active ON market_data_sources(is_active);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_schedule ON market_data_sources(collection_schedule);
+
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_type ON market_intelligence_alerts(alert_type);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_segment ON market_intelligence_alerts(market_segment);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_severity ON market_intelligence_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_status ON market_intelligence_alerts(alert_status);
+
+CREATE INDEX IF NOT EXISTS idx_market_performance_metrics_date ON market_performance_metrics(metric_date);
+CREATE INDEX IF NOT EXISTS idx_market_performance_metrics_segment ON market_performance_metrics(market_segment);
+
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_type ON economic_indicators(indicator_type);
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_period ON economic_indicators(reference_period);
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_source ON economic_indicators(source);
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_region ON economic_indicators(region);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_market_data_sources_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER market_data_sources_update_timestamp
+    BEFORE UPDATE ON market_data_sources
+    FOR EACH ROW EXECUTE FUNCTION update_market_data_sources_timestamp();
+
+-- Function to calculate daily market metrics
+CREATE OR REPLACE FUNCTION calculate_daily_market_metrics()
+RETURNS VOID AS $$
+DECLARE
+    metric_date DATE := CURRENT_DATE;
+    segment_record RECORD;
+BEGIN
+    -- Calculate metrics for each market segment
+    FOR segment_record IN 
+        SELECT DISTINCT market_segment FROM market_data_points 
+        WHERE DATE(timestamp) = metric_date
+    LOOP
+        INSERT INTO market_performance_metrics (
+            metric_date, market_segment, data_points_collected, trends_analyzed,
+            predictions_generated, avg_confidence_score, data_quality_score
+        )
+        SELECT 
+            metric_date,
+            segment_record.market_segment,
+            COUNT(mdp.id) as data_points_collected,
+            COUNT(DISTINCT mta.analysis_id) as trends_analyzed,
+            COUNT(DISTINCT pi.insight_id) as predictions_generated,
+            AVG(mdp.confidence_score) as avg_confidence_score,
+            AVG(CASE 
+                WHEN mdp.data_quality = 'very_high' THEN 1.0
+                WHEN mdp.data_quality = 'high' THEN 0.8
+                WHEN mdp.data_quality = 'medium' THEN 0.6
+                WHEN mdp.data_quality = 'low' THEN 0.4
+                ELSE 0.2 END) as data_quality_score
+        FROM market_data_points mdp
+        LEFT JOIN market_trend_analyses mta ON mdp.market_segment = mta.market_segment 
+            AND DATE(mta.analysis_timestamp) = metric_date
+        LEFT JOIN predictive_insights pi ON mdp.market_segment = pi.market_segment 
+            AND DATE(pi.insight_timestamp) = metric_date
+        WHERE mdp.market_segment = segment_record.market_segment
+        AND DATE(mdp.timestamp) = metric_date
+        GROUP BY mdp.market_segment
+        ON CONFLICT (metric_date, market_segment) DO UPDATE SET
+            data_points_collected = EXCLUDED.data_points_collected,
+            trends_analyzed = EXCLUDED.trends_analyzed,
+            predictions_generated = EXCLUDED.predictions_generated,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            data_quality_score = EXCLUDED.data_quality_score;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate market intelligence alerts
+CREATE OR REPLACE FUNCTION generate_market_intelligence_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    trend_record RECORD;
+    insight_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for significant trend changes
+    FOR trend_record IN 
+        SELECT mta.market_segment, mta.trend_direction, mta.trend_strength, mta.volatility_index
+        FROM market_trend_analyses mta
+        WHERE mta.analysis_timestamp > NOW() - INTERVAL '24 hours'
+        AND (mta.trend_strength > 0.8 OR mta.volatility_index > 0.7)
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO market_intelligence_alerts (
+            alert_id, alert_type, market_segment, severity, title, description,
+            trigger_conditions, recommended_actions
+        ) VALUES (
+            alert_id, 'trend_change', trend_record.market_segment,
+            CASE WHEN trend_record.trend_strength > 0.9 THEN 'high'
+                 WHEN trend_record.trend_strength > 0.8 THEN 'medium'
+                 ELSE 'low' END,
+            'Significant Market Trend Detected',
+            'A significant trend change has been detected in ' || trend_record.market_segment,
+            jsonb_build_object('trend_strength', trend_record.trend_strength, 'volatility', trend_record.volatility_index),
+            '["Monitor market conditions closely", "Review investment strategies", "Consider risk mitigation"]'
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    -- Check for high confidence predictions with significant changes
+    FOR insight_record IN 
+        SELECT pi.market_segment, pi.predicted_value, pi.confidence_score
+        FROM predictive_insights pi
+        WHERE pi.insight_timestamp > NOW() - INTERVAL '24 hours'
+        AND pi.confidence_score > 0.8
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO market_intelligence_alerts (
+            alert_id, alert_type, market_segment, severity, title, description,
+            trigger_conditions, recommended_actions
+        ) VALUES (
+            alert_id, 'prediction_alert', insight_record.market_segment, 'medium',
+            'High Confidence Market Prediction',
+            'High confidence prediction generated for ' || insight_record.market_segment,
+            jsonb_build_object('confidence_score', insight_record.confidence_score, 'predicted_value', insight_record.predicted_value),
+            '["Review prediction details", "Assess business impact", "Plan strategic response"]'
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common market intelligence queries
+CREATE OR REPLACE VIEW market_intelligence_dashboard AS
+SELECT 
+    DATE(mdp.timestamp) as data_date,
+    mdp.market_segment,
+    COUNT(mdp.id) as data_points_count,
+    AVG(mdp.value) as avg_value,
+    AVG(mdp.confidence_score) as avg_confidence,
+    COUNT(DISTINCT mta.analysis_id) as trend_analyses_count,
+    COUNT(DISTINCT pi.insight_id) as predictions_count,
+    COUNT(CASE WHEN mia.severity = 'high' THEN 1 END) as high_severity_alerts
+FROM market_data_points mdp
+LEFT JOIN market_trend_analyses mta ON mdp.market_segment = mta.market_segment 
+    AND DATE(mta.analysis_timestamp) = DATE(mdp.timestamp)
+LEFT JOIN predictive_insights pi ON mdp.market_segment = pi.market_segment 
+    AND DATE(pi.insight_timestamp) = DATE(mdp.timestamp)
+LEFT JOIN market_intelligence_alerts mia ON mdp.market_segment = mia.market_segment 
+    AND DATE(mia.created_at) = DATE(mdp.timestamp) AND mia.alert_status = 'active'
+WHERE mdp.timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(mdp.timestamp), mdp.market_segment
+ORDER BY data_date DESC, mdp.market_segment;
+
+CREATE OR REPLACE VIEW market_trend_summary AS
+SELECT 
+    mta.market_segment,
+    mta.trend_direction,
+    AVG(mta.trend_strength) as avg_trend_strength,
+    AVG(mta.statistical_significance) as avg_statistical_significance,
+    AVG(mta.volatility_index) as avg_volatility,
+    COUNT(*) as analysis_count,
+    MAX(mta.analysis_timestamp) as latest_analysis
+FROM market_trend_analyses mta
+WHERE mta.analysis_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY mta.market_segment, mta.trend_direction
+ORDER BY avg_trend_strength DESC;
+
+-- Insert default market data sources
+INSERT INTO market_data_sources (
+    source_id, source_name, source_type, base_url, api_key_required, rate_limit,
+    endpoints, collection_schedule, is_active
+) VALUES 
+(
+    gen_random_uuid(), 'Statistics Netherlands (CBS)', 'government', 'https://opendata.cbs.nl/ODataApi/odata/',
+    true, 100, '{"house_prices": "83906NED/TypedDataSet", "mortgage_data": "83913NED/TypedDataSet"}',
+    'daily', true
+),
+(
+    gen_random_uuid(), 'Dutch Central Bank (DNB)', 'central_bank', 'https://www.dnb.nl/',
+    true, 50, '{"interest_rates": "statistiek-dnb/api/data/rates", "mortgage_lending": "statistiek-dnb/api/data/mortgage"}',
+    'daily', true
+),
+(
+    gen_random_uuid(), 'Dutch Land Registry (Kadaster)', 'government', 'https://api.kadaster.nl/',
+    true, 200, '{"property_prices": "lvbag/individuelebevragingen/v2/adressen", "transactions": "kik-inzage-api/v4/kadastraalonroerendezaken"}',
+    'daily', true
+),
+(
+    gen_random_uuid(), 'National Mortgage Guarantee (NHG)', 'financial', 'https://www.nhg.nl/',
+    true, 30, '{"guarantee_stats": "api/statistics/guarantees", "market_conditions": "api/market/conditions"}',
+    'weekly', true
+) ON CONFLICT DO NOTHING;
+
+-- Insert default market segments configuration
+INSERT INTO market_segments_config (
+    segment_id, segment_name, segment_type, description, key_indicators,
+    data_sources, analysis_methods, importance_weight
+) VALUES 
+(
+    gen_random_uuid(), 'Residential Mortgage Market', 'mortgage', 'Dutch residential mortgage market analysis',
+    '["mortgage_volume", "approval_rates", "interest_rates", "ltv_ratios"]',
+    '["dnb", "nhg", "cbs"]', '["trend_analysis", "predictive_modeling", "correlation_analysis"]', 1.00
+),
+(
+    gen_random_uuid(), 'Property Prices', 'property', 'Dutch residential property price analysis',
+    '["average_price", "price_growth", "regional_variations", "transaction_volume"]',
+    '["cbs", "kadaster", "nvm"]', '["trend_analysis", "seasonal_analysis", "regional_analysis"]', 0.90
+),
+(
+    gen_random_uuid(), 'Interest Rates', 'financial', 'Dutch mortgage interest rate analysis',
+    '["fixed_rates", "variable_rates", "rate_spreads", "yield_curve"]',
+    '["dnb", "ecb"]', '["time_series_analysis", "yield_curve_analysis", "spread_analysis"]', 0.95
+),
+(
+    gen_random_uuid(), 'Economic Indicators', 'economic', 'Dutch economic indicators affecting mortgage market',
+    '["gdp_growth", "unemployment", "inflation", "consumer_confidence"]',
+    '["cbs", "eurostat", "ecb"]', '["correlation_analysis", "leading_indicators", "economic_modeling"]', 0.85
+) ON CONFLICT DO NOTHING;

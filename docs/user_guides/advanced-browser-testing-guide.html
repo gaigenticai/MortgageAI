@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Browser Testing - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧪 Advanced Browser Testing</h1>
+            <p>Comprehensive Puppeteer MCP + Selenium MCP testing framework for mortgage system validation</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#puppeteer-mcp">Puppeteer MCP</a></li>
+                <li><a href="#selenium-mcp">Selenium MCP</a></li>
+                <li><a href="#testing-workflows">Testing Workflows</a></li>
+                <li><a href="#performance-testing">Performance Testing</a></li>
+                <li><a href="#accessibility-testing">Accessibility Testing</a></li>
+                <li><a href="#visual-regression">Visual Regression</a></li>
+                <li><a href="#cross-browser">Cross-Browser Testing</a></li>
+                <li><a href="#setup-configuration">Setup & Configuration</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The Advanced Browser Testing framework combines Puppeteer MCP and Selenium MCP to provide comprehensive testing capabilities for the mortgage advisory system. It ensures all components work flawlessly across different browsers and scenarios.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🎭</div>
+                    <h4>Puppeteer MCP</h4>
+                    <p>Advanced Chrome automation with performance monitoring, accessibility testing, and visual regression capabilities.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧪</div>
+                    <h4>Selenium MCP</h4>
+                    <p>Cross-browser testing across Chrome, Firefox, and Edge with parallel execution and comprehensive workflow validation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Performance Testing</h4>
+                    <p>Lighthouse integration for performance audits, Core Web Vitals monitoring, and optimization recommendations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">♿</div>
+                    <h4>Accessibility Testing</h4>
+                    <p>Comprehensive accessibility validation using axe-core with WCAG 2.1 compliance checking.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Production-Grade Testing:</strong> This framework provides enterprise-level testing capabilities with no stubs or mock implementations - all tests run against real system components.
+            </div>
+        </div>
+
+        <!-- Puppeteer MCP Section -->
+        <div class="section" id="puppeteer-mcp">
+            <h2>🎭 Puppeteer MCP</h2>
+
+            <h3>Core Capabilities</h3>
+            <ul>
+                <li><strong>Advanced Browser Automation:</strong> Full Chrome DevTools Protocol access</li>
+                <li><strong>Performance Monitoring:</strong> Real-time performance metrics collection</li>
+                <li><strong>Visual Testing:</strong> Screenshot comparison and visual regression detection</li>
+                <li><strong>Network Monitoring:</strong> Request/response analysis and performance tracking</li>
+                <li><strong>Mobile Testing:</strong> Device simulation and responsive design validation</li>
+            </ul>
+
+            <h3>Basic Usage</h3>
+            <div class="code-block">
+<span class="keyword">const</span> PuppeteerMCP = <span class="keyword">require</span>(<span class="string">'./puppeteer-mcp'</span>);
+
+<span class="comment">// Initialize Puppeteer MCP</span>
+<span class="keyword">const</span> puppeteer = <span class="keyword">new</span> PuppeteerMCP({
+    headless: <span class="keyword">true</span>,
+    viewport: { width: 1920, height: 1080 },
+    timeout: 30000
+});
+
+<span class="keyword">await</span> puppeteer.initialize();
+
+<span class="comment">// Navigate and take screenshot</span>
+<span class="keyword">await</span> puppeteer.navigateToUrl(<span class="string">'http://localhost:3000/bkr-nhg-integration'</span>);
+<span class="keyword">const</span> screenshot = <span class="keyword">await</span> puppeteer.takeScreenshot(<span class="string">'bkr-nhg-test'</span>, <span class="keyword">true</span>);
+
+<span class="comment">// Run Lighthouse audit</span>
+<span class="keyword">const</span> audit = <span class="keyword">await</span> puppeteer.runLighthouseAudit(<span class="string">'http://localhost:3000'</span>);
+
+<span class="comment">// Test form interactions</span>
+<span class="keyword">const</span> formTest = <span class="keyword">await</span> puppeteer.testFormInteractions(<span class="string">'.mortgage-form'</span>, {
+    firstName: <span class="string">'Jan'</span>,
+    lastName: <span class="string">'de Vries'</span>,
+    email: <span class="string">'jan@example.nl'</span>
+});
+
+<span class="comment">// Cleanup</span>
+<span class="keyword">await</span> puppeteer.cleanup();
+            </div>
+
+            <h3>Performance Testing Features</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Description</th>
+                        <th>Metrics Collected</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Lighthouse Integration</td>
+                        <td>Full Lighthouse performance audits</td>
+                        <td>Performance, Accessibility, Best Practices, SEO scores</td>
+                    </tr>
+                    <tr>
+                        <td>Core Web Vitals</td>
+                        <td>Essential user experience metrics</td>
+                        <td>FCP, LCP, CLS, TBT, FID</td>
+                    </tr>
+                    <tr>
+                        <td>Network Monitoring</td>
+                        <td>Request/response analysis</td>
+                        <td>Response times, payload sizes, error rates</td>
+                    </tr>
+                    <tr>
+                        <td>Resource Analysis</td>
+                        <td>Asset loading and optimization</td>
+                        <td>Image sizes, JavaScript bundles, CSS optimization</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Selenium MCP Section -->
+        <div class="section" id="selenium-mcp">
+            <h2>🧪 Selenium MCP</h2>
+
+            <h3>Cross-Browser Support</h3>
+            <ul>
+                <li><strong>Google Chrome:</strong> Latest stable version with ChromeDriver</li>
+                <li><strong>Mozilla Firefox:</strong> Latest stable version with GeckoDriver</li>
+                <li><strong>Microsoft Edge:</strong> Latest stable version with EdgeDriver</li>
+                <li><strong>Parallel Execution:</strong> Simultaneous testing across multiple browsers</li>
+            </ul>
+
+            <h3>Workflow Testing</h3>
+            <div class="code-block">
+<span class="keyword">const</span> SeleniumMCP = <span class="keyword">require</span>(<span class="string">'./selenium-mcp'</span>);
+
+<span class="comment">// Initialize Selenium MCP</span>
+<span class="keyword">const</span> selenium = <span class="keyword">new</span> SeleniumMCP({
+    browsers: [<span class="string">'chrome'</span>, <span class="string">'firefox'</span>, <span class="string">'edge'</span>],
+    headless: <span class="keyword">true</span>,
+    parallelExecution: <span class="keyword">true</span>
+});
+
+<span class="keyword">await</span> selenium.initialize();
+
+<span class="comment">// Test mortgage application workflow</span>
+<span class="keyword">const</span> mortgageTest = <span class="keyword">await</span> selenium.testMortgageApplicationWorkflow(<span class="string">'http://localhost:3000'</span>);
+
+<span class="comment">// Test BKR/NHG integration workflow</span>
+<span class="keyword">const</span> bkrNhgTest = <span class="keyword">await</span> selenium.testBKRNHGIntegrationWorkflow(<span class="string">'http://localhost:3000'</span>);
+
+<span class="comment">// Run all system workflows</span>
+<span class="keyword">const</span> allTests = <span class="keyword">await</span> selenium.testAllMortgageWorkflows(<span class="string">'http://localhost:3000'</span>);
+
+<span class="comment">// Cleanup</span>
+<span class="keyword">await</span> selenium.cleanup();
+            </div>
+
+            <h3>Supported Test Actions</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Action</th>
+                        <th>Description</th>
+                        <th>Parameters</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>navigate</td>
+                        <td>Navigate to URL</td>
+                        <td>url, waitFor</td>
+                        <td>{ action: 'navigate', url: '/app', waitFor: '.main-content' }</td>
+                    </tr>
+                    <tr>
+                        <td>click</td>
+                        <td>Click element</td>
+                        <td>selector</td>
+                        <td>{ action: 'click', selector: 'button[data-testid="submit"]' }</td>
+                    </tr>
+                    <tr>
+                        <td>type</td>
+                        <td>Type text into element</td>
+                        <td>selector, text</td>
+                        <td>{ action: 'type', selector: 'input[name="email"]', text: 'test@example.com' }</td>
+                    </tr>
+                    <tr>
+                        <td>select</td>
+                        <td>Select option from dropdown</td>
+                        <td>selector, value/text/index</td>
+                        <td>{ action: 'select', selector: 'select[name="country"]', value: 'NL' }</td>
+                    </tr>
+                    <tr>
+                        <td>wait</td>
+                        <td>Wait for element or timeout</td>
+                        <td>selector, timeout</td>
+                        <td>{ action: 'wait', selector: '.loading-complete', timeout: 5000 }</td>
+                    </tr>
+                    <tr>
+                        <td>assert_text</td>
+                        <td>Assert element contains text</td>
+                        <td>selector, expectedText</td>
+                        <td>{ action: 'assert_text', selector: '.success-message', expectedText: 'Success' }</td>
+                    </tr>
+                    <tr>
+                        <td>screenshot</td>
+                        <td>Take screenshot</td>
+                        <td>name</td>
+                        <td>{ action: 'screenshot', name: 'form-completed' }</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Testing Workflows Section -->
+        <div class="section" id="testing-workflows">
+            <h2>🔄 Testing Workflows</h2>
+
+            <h3>Mortgage System Components Tested</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>BKR/NHG Integration</h4>
+                    <p>Credit checks, mortgage guarantee eligibility, and real-time data validation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h4>Compliance Audit Trail</h4>
+                    <p>Audit event logging, investigation workflows, and compliance reporting</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Risk Assessment Engine</h4>
+                    <p>Multi-factor risk analysis, predictive modeling, and mitigation recommendations</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔐</div>
+                    <h4>Document Authenticity</h4>
+                    <p>Document verification, forgery detection, and blockchain validation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>NLP Content Analyzer</h4>
+                    <p>Semantic analysis, entity extraction, and content understanding</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💡</div>
+                    <h4>Mortgage Advice Generator</h4>
+                    <p>Personalized recommendations, regulatory compliance, and explanation generation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎓</div>
+                    <h4>User Comprehension Validator</h4>
+                    <p>Adaptive testing, knowledge assessment, and learning path optimization</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h4>Dutch Market Intelligence</h4>
+                    <p>Market data feeds, trend analysis, and predictive insights</p>
+                </div>
+            </div>
+
+            <h3>Complete Workflow Testing</h3>
+            <div class="code-block">
+<span class="keyword">const</span> { runAdvancedBrowserTests } = <span class="keyword">require</span>(<span class="string">'./advanced-browser-testing'</span>);
+
+<span class="comment">// Run comprehensive testing</span>
+<span class="keyword">const</span> results = <span class="keyword">await</span> runAdvancedBrowserTests({
+    baseUrl: <span class="string">'http://localhost:3000'</span>,
+    browsers: [<span class="string">'chrome'</span>, <span class="string">'firefox'</span>, <span class="string">'edge'</span>],
+    runPuppeteerTests: <span class="keyword">true</span>,
+    runSeleniumTests: <span class="keyword">true</span>,
+    runPerformanceTests: <span class="keyword">true</span>,
+    runAccessibilityTests: <span class="keyword">true</span>,
+    runVisualRegressionTests: <span class="keyword">true</span>
+});
+
+console.log(<span class="string">'Testing Results:'</span>, results.summary);
+            </div>
+        </div>
+
+        <!-- Performance Testing Section -->
+        <div class="section" id="performance-testing">
+            <h2>⚡ Performance Testing</h2>
+
+            <h3>Lighthouse Integration</h3>
+            <p>Comprehensive performance audits using Google Lighthouse:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🚀</div>
+                    <h4>Performance Score</h4>
+                    <p>Overall performance rating based on Core Web Vitals and loading metrics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">♿</div>
+                    <h4>Accessibility Score</h4>
+                    <p>Accessibility compliance rating based on WCAG guidelines</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">✅</div>
+                    <h4>Best Practices</h4>
+                    <p>Modern web development best practices compliance</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>SEO Score</h4>
+                    <p>Search engine optimization and discoverability rating</p>
+                </div>
+            </div>
+
+            <h3>Core Web Vitals Monitoring</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Description</th>
+                        <th>Good Threshold</th>
+                        <th>Poor Threshold</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>First Contentful Paint (FCP)</td>
+                        <td>Time until first content is painted</td>
+                        <td>&lt; 1.8s</td>
+                        <td>&gt; 3.0s</td>
+                    </tr>
+                    <tr>
+                        <td>Largest Contentful Paint (LCP)</td>
+                        <td>Time until largest content element is painted</td>
+                        <td>&lt; 2.5s</td>
+                        <td>&gt; 4.0s</td>
+                    </tr>
+                    <tr>
+                        <td>Cumulative Layout Shift (CLS)</td>
+                        <td>Visual stability during page load</td>
+                        <td>&lt; 0.1</td>
+                        <td>&gt; 0.25</td>
+                    </tr>
+                    <tr>
+                        <td>Total Blocking Time (TBT)</td>
+                        <td>Time blocked by long tasks</td>
+                        <td>&lt; 200ms</td>
+                        <td>&gt; 600ms</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Performance Test Example</h3>
+            <div class="code-block">
+<span class="comment">// Run performance audit</span>
+<span class="keyword">const</span> auditResult = <span class="keyword">await</span> puppeteerMCP.runLighthouseAudit(<span class="string">'http://localhost:3000/mortgage-advice-generator'</span>);
+
+<span class="keyword">if</span> (auditResult.success) {
+    console.log(<span class="string">'Performance Score:'</span>, auditResult.metrics.performance);
+    console.log(<span class="string">'First Contentful Paint:'</span>, auditResult.metrics.firstContentfulPaint);
+    console.log(<span class="string">'Largest Contentful Paint:'</span>, auditResult.metrics.largestContentfulPaint);
+}
+            </div>
+        </div>
+
+        <!-- Accessibility Testing Section -->
+        <div class="section" id="accessibility-testing">
+            <h2>♿ Accessibility Testing</h2>
+
+            <h3>axe-core Integration</h3>
+            <p>Comprehensive accessibility testing using industry-standard axe-core engine:</p>
+
+            <ul>
+                <li><strong>WCAG 2.1 Compliance:</strong> Level A, AA, and AAA guideline validation</li>
+                <li><strong>Automated Testing:</strong> Over 90 accessibility rules automatically checked</li>
+                <li><strong>Detailed Reporting:</strong> Specific violation descriptions with remediation guidance</li>
+                <li><strong>Impact Assessment:</strong> Critical, serious, moderate, and minor impact classification</li>
+            </ul>
+
+            <h3>Accessibility Test Categories</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Rules Checked</th>
+                        <th>Common Issues</th>
+                        <th>Impact Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Keyboard Navigation</td>
+                        <td>Focus management, tab order</td>
+                        <td>Missing focus indicators, keyboard traps</td>
+                        <td>Critical</td>
+                    </tr>
+                    <tr>
+                        <td>Screen Reader Support</td>
+                        <td>ARIA labels, semantic HTML</td>
+                        <td>Missing alt text, improper headings</td>
+                        <td>Critical</td>
+                    </tr>
+                    <tr>
+                        <td>Color and Contrast</td>
+                        <td>Color contrast ratios</td>
+                        <td>Insufficient contrast, color-only information</td>
+                        <td>Serious</td>
+                    </tr>
+                    <tr>
+                        <td>Form Accessibility</td>
+                        <td>Labels, error messages</td>
+                        <td>Missing labels, unclear error messages</td>
+                        <td>Serious</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Accessibility Test Example</h3>
+            <div class="code-block">
+<span class="comment">// Run accessibility audit</span>
+<span class="keyword">const</span> accessibilityResult = <span class="keyword">await</span> puppeteerMCP.runAccessibilityTests(<span class="string">'http://localhost:3000/user-comprehension-validator'</span>);
+
+<span class="keyword">if</span> (accessibilityResult.success) {
+    console.log(<span class="string">'Violations:'</span>, accessibilityResult.summary.violations);
+    console.log(<span class="string">'Critical Issues:'</span>, accessibilityResult.summary.criticalViolations);
+    console.log(<span class="string">'Passes:'</span>, accessibilityResult.summary.passes);
+}
+            </div>
+        </div>
+
+        <!-- Visual Regression Section -->
+        <div class="section" id="visual-regression">
+            <h2>📸 Visual Regression Testing</h2>
+
+            <h3>Screenshot Comparison</h3>
+            <p>Automated visual regression testing with pixel-perfect comparison:</p>
+
+            <ul>
+                <li><strong>Baseline Management:</strong> Automatic baseline creation and management</li>
+                <li><strong>Pixel Comparison:</strong> Precise pixel-by-pixel comparison using pixelmatch</li>
+                <li><strong>Difference Visualization:</strong> Visual diff images highlighting changes</li>
+                <li><strong>Threshold Configuration:</strong> Configurable sensitivity for change detection</li>
+                <li><strong>Responsive Testing:</strong> Multiple viewport size validation</li>
+            </ul>
+
+            <h3>Visual Testing Process</h3>
+            <ol>
+                <li><strong>Baseline Creation:</strong> Capture reference screenshots for all components</li>
+                <li><strong>Test Execution:</strong> Capture current screenshots during testing</li>
+                <li><strong>Comparison Analysis:</strong> Compare current with baseline images</li>
+                <li><strong>Difference Detection:</strong> Identify and quantify visual changes</li>
+                <li><strong>Report Generation:</strong> Generate visual diff reports with highlighted changes</li>
+            </ol>
+
+            <h3>Visual Test Configuration</h3>
+            <div class="code-block">
+<span class="comment">// Take screenshot with comparison</span>
+<span class="keyword">const</span> screenshot = <span class="keyword">await</span> puppeteerMCP.takeScreenshot(<span class="string">'mortgage-form'</span>, <span class="keyword">true</span>);
+
+<span class="keyword">if</span> (screenshot.comparison) {
+    console.log(<span class="string">'Comparison Status:'</span>, screenshot.comparison.status);
+    console.log(<span class="string">'Difference Percentage:'</span>, screenshot.comparison.diffPercentage);
+    console.log(<span class="string">'Different Pixels:'</span>, screenshot.comparison.diffPixels);
+}
+            </div>
+        </div>
+
+        <!-- Cross-Browser Testing Section -->
+        <div class="section" id="cross-browser">
+            <h2>🌐 Cross-Browser Testing</h2>
+
+            <h3>Browser Compatibility Matrix</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Chrome</th>
+                        <th>Firefox</th>
+                        <th>Edge</th>
+                        <th>Safari*</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Mortgage Application Form</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="warning">⚠️ Limited Testing</td>
+                    </tr>
+                    <tr>
+                        <td>BKR/NHG Integration</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="warning">⚠️ Limited Testing</td>
+                    </tr>
+                    <tr>
+                        <td>Risk Assessment Engine</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="warning">⚠️ Limited Testing</td>
+                    </tr>
+                    <tr>
+                        <td>Document Upload/Verification</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="warning">⚠️ Limited Testing</td>
+                    </tr>
+                    <tr>
+                        <td>Real-time Data Updates</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="success">✅ Full Support</td>
+                        <td class="warning">⚠️ Limited Testing</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="text-sm text-gray-500">* Safari testing requires macOS environment</p>
+
+            <h3>Parallel Testing Benefits</h3>
+            <ul>
+                <li><strong>Time Efficiency:</strong> 3x faster testing with parallel browser execution</li>
+                <li><strong>Resource Optimization:</strong> Efficient use of system resources</li>
+                <li><strong>Comprehensive Coverage:</strong> Simultaneous testing across all target browsers</li>
+                <li><strong>Early Issue Detection:</strong> Immediate identification of browser-specific issues</li>
+            </ul>
+        </div>
+
+        <!-- Setup & Configuration Section -->
+        <div class="section" id="setup-configuration">
+            <h2>🔧 Setup & Configuration</h2>
+
+            <h3>Installation</h3>
+            <div class="code-block">
+<span class="comment"># Navigate to testing directory</span>
+cd testing
+
+<span class="comment"># Install dependencies</span>
+npm install
+
+<span class="comment"># Install browser drivers</span>
+npm run install-drivers
+
+<span class="comment"># Run all tests</span>
+npm test
+
+<span class="comment"># Run specific test types</span>
+npm run test:performance
+npm run test:accessibility
+npm run test:cross-browser
+            </div>
+
+            <h3>Environment Configuration</h3>
+            <div class="code-block">
+<span class="comment"># Environment variables for testing</span>
+BASE_URL=http://localhost:3000
+HEADLESS=true
+BROWSERS=chrome,firefox,edge
+SCREENSHOT_PATH=./testing/screenshots
+REPORTS_PATH=./testing/reports
+TIMEOUT=30000
+PARALLEL_EXECUTION=true
+            </div>
+
+            <h3>Docker Integration</h3>
+            <div class="code-block">
+<span class="comment"># Dockerfile for testing environment</span>
+<span class="keyword">FROM</span> node:18-slim
+
+<span class="comment"># Install Chrome, Firefox, and dependencies</span>
+<span class="keyword">RUN</span> apt-get update && apt-get install -y \
+    chromium \
+    firefox-esr \
+    wget \
+    gnupg \
+    && rm -rf /var/lib/apt/lists/*
+
+<span class="comment"># Set up testing environment</span>
+<span class="keyword">WORKDIR</span> /app/testing
+<span class="keyword">COPY</span> testing/ .
+<span class="keyword">RUN</span> npm install
+
+<span class="comment"># Run tests</span>
+<span class="keyword">CMD</span> ["npm", "test"]
+            </div>
+
+            <h3>CI/CD Integration</h3>
+            <div class="code-block">
+<span class="comment"># GitHub Actions workflow example</span>
+name: Advanced Browser Testing
+
+on: [push, pull_request]
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: |
+          cd testing
+          npm install
+          npm run install-drivers
+          
+      - name: Run tests
+        run: |
+          cd testing
+          npm test
+          
+      - name: Upload test reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: testing/reports/
+            </div>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🎯 Testing Strategy</h3>
+            <ul>
+                <li><strong>Comprehensive Coverage:</strong> Test all critical user journeys and edge cases</li>
+                <li><strong>Cross-Browser Validation:</strong> Ensure consistent functionality across target browsers</li>
+                <li><strong>Performance Monitoring:</strong> Continuously monitor and optimize application performance</li>
+                <li><strong>Accessibility Compliance:</strong> Maintain WCAG 2.1 AA compliance for inclusive design</li>
+                <li><strong>Visual Consistency:</strong> Detect unintended visual changes through regression testing</li>
+            </ul>
+
+            <h3>📋 Test Organization</h3>
+            <ul>
+                <li><strong>Modular Tests:</strong> Organize tests by component and functionality</li>
+                <li><strong>Reusable Components:</strong> Create reusable test utilities and helpers</li>
+                <li><strong>Data-Driven Testing:</strong> Use test data files for maintainable test scenarios</li>
+                <li><strong>Page Object Model:</strong> Implement page objects for maintainable test code</li>
+                <li><strong>Parallel Execution:</strong> Optimize test execution time with parallel strategies</li>
+            </ul>
+
+            <h3>🔍 Debugging & Troubleshooting</h3>
+            <ul>
+                <li><strong>Screenshot Evidence:</strong> Capture screenshots at failure points for debugging</li>
+                <li><strong>Detailed Logging:</strong> Implement comprehensive logging for test execution</li>
+                <li><strong>Error Categorization:</strong> Classify errors by type for efficient resolution</li>
+                <li><strong>Retry Mechanisms:</strong> Implement smart retry logic for flaky tests</li>
+                <li><strong>Environment Validation:</strong> Verify test environment before execution</li>
+            </ul>
+
+            <h3>⚡ Performance Optimization</h3>
+            <ul>
+                <li><strong>Resource Management:</strong> Properly manage browser instances and memory</li>
+                <li><strong>Test Parallelization:</strong> Run independent tests in parallel</li>
+                <li><strong>Smart Waiting:</strong> Use explicit waits instead of arbitrary timeouts</li>
+                <li><strong>Cache Utilization:</strong> Leverage browser caching for faster test execution</li>
+                <li><strong>Selective Testing:</strong> Run only relevant tests based on code changes</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Quality Metrics:</strong>
+                <ul>
+                    <li>Test Coverage: > 95% of critical user journeys</li>
+                    <li>Cross-Browser Compatibility: 100% across Chrome, Firefox, Edge</li>
+                    <li>Performance Score: > 90 for all key pages</li>
+                    <li>Accessibility Compliance: WCAG 2.1 AA standard</li>
+                    <li>Visual Regression: < 1% unintended changes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Command Reference Section -->
+        <div class="section">
+            <h2>📚 Command Reference</h2>
+
+            <h3>NPM Scripts</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Description</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>npm test</code></td>
+                        <td>Run all tests (Puppeteer + Selenium)</td>
+                        <td>Comprehensive testing before deployment</td>
+                    </tr>
+                    <tr>
+                        <td><code>npm run test:puppeteer</code></td>
+                        <td>Run Puppeteer tests only</td>
+                        <td>Performance and visual testing</td>
+                    </tr>
+                    <tr>
+                        <td><code>npm run test:selenium</code></td>
+                        <td>Run Selenium tests only</td>
+                        <td>Cross-browser workflow testing</td>
+                    </tr>
+                    <tr>
+                        <td><code>npm run test:performance</code></td>
+                        <td>Run performance tests only</td>
+                        <td>Performance optimization validation</td>
+                    </tr>
+                    <tr>
+                        <td><code>npm run test:accessibility</code></td>
+                        <td>Run accessibility tests only</td>
+                        <td>Accessibility compliance verification</td>
+                    </tr>
+                    <tr>
+                        <td><code>npm run test:cross-browser</code></td>
+                        <td>Run cross-browser tests only</td>
+                        <td>Browser compatibility validation</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Configuration Options</h3>
+            <div class="code-block">
+<span class="keyword">const</span> config = {
+    <span class="comment">// Base configuration</span>
+    baseUrl: <span class="string">'http://localhost:3000'</span>,
+    browsers: [<span class="string">'chrome'</span>, <span class="string">'firefox'</span>, <span class="string">'edge'</span>],
+    headless: <span class="keyword">true</span>,
+    
+    <span class="comment">// Test type enablement</span>
+    runPuppeteerTests: <span class="keyword">true</span>,
+    runSeleniumTests: <span class="keyword">true</span>,
+    runPerformanceTests: <span class="keyword">true</span>,
+    runAccessibilityTests: <span class="keyword">true</span>,
+    runVisualRegressionTests: <span class="keyword">true</span>,
+    
+    <span class="comment">// Paths and timeouts</span>
+    reportsPath: <span class="string">'./testing/reports'</span>,
+    timeout: 30000,
+    parallelExecution: <span class="keyword">true</span>
+};
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Comprehensive testing guides and API documentation</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🐛</div>
+                    <h4>Bug Reports</h4>
+                    <p>Issue tracking and resolution for testing framework</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🚀</div>
+                    <h4>Performance</h4>
+                    <p>Performance optimization and testing best practices</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">♿</div>
+                    <h4>Accessibility</h4>
+                    <p>Accessibility testing and compliance guidance</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

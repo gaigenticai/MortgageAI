@@ -1,0 +1,61 @@
+{
+  "name": "mortgage-ai-advanced-browser-testing",
+  "version": "1.0.0",
+  "description": "Advanced browser-based testing with Puppeteer MCP and Selenium MCP for comprehensive mortgage system validation",
+  "main": "advanced-browser-testing.js",
+  "scripts": {
+    "test": "node advanced-browser-testing.js",
+    "test:puppeteer": "node -e \"const { PuppeteerMCP } = require('./advanced-browser-testing'); const mcp = new PuppeteerMCP(); mcp.initialize().then(() => console.log('Puppeteer MCP ready')).catch(console.error);\"",
+    "test:selenium": "node -e \"const { SeleniumMCP } = require('./advanced-browser-testing'); const mcp = new SeleniumMCP(); mcp.initialize().then(() => console.log('Selenium MCP ready')).catch(console.error);\"",
+    "test:all": "node advanced-browser-testing.js",
+    "test:performance": "node -e \"const { runAdvancedBrowserTests } = require('./advanced-browser-testing'); runAdvancedBrowserTests({ runSeleniumTests: false, runAccessibilityTests: false, runVisualRegressionTests: false }).then(r => console.log('Performance tests completed')).catch(console.error);\"",
+    "test:accessibility": "node -e \"const { runAdvancedBrowserTests } = require('./advanced-browser-testing'); runAdvancedBrowserTests({ runSeleniumTests: false, runPerformanceTests: false, runVisualRegressionTests: false }).then(r => console.log('Accessibility tests completed')).catch(console.error);\"",
+    "test:cross-browser": "node -e \"const { runAdvancedBrowserTests } = require('./advanced-browser-testing'); runAdvancedBrowserTests({ browsers: ['chrome', 'firefox', 'edge'], runPuppeteerTests: false }).then(r => console.log('Cross-browser tests completed')).catch(console.error);\"",
+    "install-drivers": "npm run install:chrome && npm run install:firefox && npm run install:edge",
+    "install:chrome": "npx @puppeteer/browsers install chrome@stable",
+    "install:firefox": "npx @puppeteer/browsers install firefox@stable",
+    "install:edge": "npx @puppeteer/browsers install edge@stable"
+  },
+  "dependencies": {
+    "puppeteer": "^21.6.1",
+    "selenium-webdriver": "^4.15.0",
+    "lighthouse": "^11.4.0",
+    "chrome-launcher": "^1.1.0",
+    "@axe-core/puppeteer": "^4.8.2",
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@puppeteer/browsers": "^1.9.1",
+    "chromedriver": "^119.0.1",
+    "geckodriver": "^4.2.1",
+    "edgedriver": "^5.4.2"
+  },
+  "keywords": [
+    "testing",
+    "browser-automation",
+    "puppeteer",
+    "selenium",
+    "mortgage-system",
+    "cross-browser",
+    "performance",
+    "accessibility",
+    "visual-regression",
+    "mcp",
+    "dutch-mortgage",
+    "compliance-testing"
+  ],
+  "author": "MortgageAI Testing Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/mortgage-ai-testing"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/mortgage-ai-testing/issues"
+  },
+  "homepage": "https://github.com/your-org/mortgage-ai-testing#readme"
+}
