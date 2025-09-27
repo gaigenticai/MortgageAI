@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Compliance Audit Trail - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .section h4 {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button.secondary {
+            background: var(--secondary-color);
+        }
+
+        .button.secondary:hover {
+            background: #475569;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            margin: 2rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛡️ Comprehensive Compliance Audit Trail</h1>
+            <p>Advanced compliance logging, investigation, and regulatory reporting with immutable audit trails and forensic capabilities</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#audit-logging">Audit Event Logging</a></li>
+                <li><a href="#violation-management">Violation Management</a></li>
+                <li><a href="#investigations">Investigation Management</a></li>
+                <li><a href="#reporting">Regulatory Reporting</a></li>
+                <li><a href="#integrity">Audit Trail Integrity</a></li>
+                <li><a href="#pattern-analysis">Pattern Analysis</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The Comprehensive Compliance Audit Trail system provides enterprise-grade compliance logging, monitoring, and investigation capabilities for regulated financial environments. It ensures complete auditability, regulatory compliance, and forensic investigation support.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h4>Immutable Logging</h4>
+                    <p>Blockchain-style hash chains ensure audit events cannot be modified or deleted, providing forensic-level integrity.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Advanced Investigation</h4>
+                    <p>Sophisticated investigation tools with evidence tracking, timeline reconstruction, and pattern recognition.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Regulatory Reporting</h4>
+                    <p>Automated compliance reporting with customizable templates and multi-format export capabilities.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>AI-Powered Analytics</h4>
+                    <p>Machine learning algorithms detect patterns, anomalies, and potential compliance violations in real-time.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Enterprise Grade:</strong> This system meets the highest standards for financial regulatory compliance, including SOX, GDPR, PCI DSS, and Dutch AFM requirements.
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+
+            <h3>🔒 Immutable Audit Logging</h3>
+            <ul>
+                <li><strong>Hash Chain Verification:</strong> SHA-256 hash chains ensure event immutability</li>
+                <li><strong>Digital Signatures:</strong> HMAC signatures for event authenticity verification</li>
+                <li><strong>Tamper Detection:</strong> Automatic detection of any modification attempts</li>
+                <li><strong>Forensic Integrity:</strong> Court-admissible audit trails with cryptographic proof</li>
+                <li><strong>Retention Management:</strong> Automated data retention and secure deletion</li>
+            </ul>
+
+            <h3>🔍 Advanced Investigation Tools</h3>
+            <ul>
+                <li><strong>Timeline Reconstruction:</strong> Detailed chronological event reconstruction</li>
+                <li><strong>Evidence Collection:</strong> Systematic evidence gathering and documentation</li>
+                <li><strong>Pattern Recognition:</strong> ML-powered identification of suspicious patterns</li>
+                <li><strong>Root Cause Analysis:</strong> Advanced analytics for violation root causes</li>
+                <li><strong>Collaborative Investigation:</strong> Multi-user investigation with role-based access</li>
+            </ul>
+
+            <h3>📊 Comprehensive Reporting</h3>
+            <ul>
+                <li><strong>Regulatory Reports:</strong> Automated generation of compliance reports</li>
+                <li><strong>Custom Dashboards:</strong> Real-time compliance monitoring dashboards</li>
+                <li><strong>Trend Analysis:</strong> Historical trend analysis and forecasting</li>
+                <li><strong>Multi-Format Export:</strong> JSON, CSV, PDF, and Excel export options</li>
+                <li><strong>Scheduled Reports:</strong> Automated report generation and distribution</li>
+            </ul>
+
+            <h3>🤖 AI-Powered Analytics</h3>
+            <ul>
+                <li><strong>Anomaly Detection:</strong> Isolation Forest algorithms for anomaly identification</li>
+                <li><strong>Pattern Clustering:</strong> DBSCAN clustering for pattern recognition</li>
+                <li><strong>Risk Scoring:</strong> Multi-dimensional risk assessment algorithms</li>
+                <li><strong>Predictive Analytics:</strong> Forecasting of compliance risks and trends</li>
+                <li><strong>Natural Language Search:</strong> Advanced search with NLP capabilities</li>
+            </ul>
+        </div>
+
+        <!-- Getting Started Section -->
+        <div class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+
+            <h3>Prerequisites</h3>
+            <ul>
+                <li>Docker and Docker Compose installed</li>
+                <li>PostgreSQL database (handled by Docker)</li>
+                <li>Redis cache (handled by Docker)</li>
+                <li>Python 3.9+ with ML libraries (scikit-learn, pandas, numpy)</li>
+                <li>Node.js 18+ for the API server</li>
+            </ul>
+
+            <h3>Installation Steps</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Configure Environment Variables</strong>
+                    <div class="code-block">
+<span class="comment"># Compliance Audit Configuration</span>
+COMPLIANCE_ENCRYPTION_PASSWORD=your_secure_password_here
+COMPLIANCE_ENCRYPTION_SALT=your_secure_salt_here
+COMPLIANCE_RETENTION_PERIOD=2555  # 7 years in days
+COMPLIANCE_INTEGRITY_CHECK_INTERVAL=24  # hours
+
+<span class="comment"># Notification Configuration</span>
+COMPLIANCE_ALERT_EMAIL=compliance@yourcompany.com
+COMPLIANCE_WEBHOOK_URL=https://your-webhook-endpoint.com
+                    </div>
+                </li>
+                <li>
+                    <strong>Start the System</strong>
+                    <div class="code-block">docker-compose up -d</div>
+                    <p>This starts all required services including the Compliance Audit Trail system.</p>
+                </li>
+                <li>
+                    <strong>Initialize Database Schema</strong>
+                    <div class="code-block">
+<span class="comment"># Database will be automatically initialized with schema</span>
+curl http://localhost:3000/api/compliance-audit/health
+                    </div>
+                </li>
+                <li>
+                    <strong>Verify Installation</strong>
+                    <div class="code-block">
+<span class="comment"># Check system health</span>
+curl http://localhost:3000/api/compliance-audit/metrics
+
+<span class="comment"># Verify integrity system</span>
+curl -X POST http://localhost:3000/api/compliance-audit/verify-integrity \
+  -H "Content-Type: application/json" \
+  -d '{"start_date":"2025-01-20T00:00:00Z","end_date":"2025-01-27T23:59:59Z"}'
+                    </div>
+                </li>
+            </ol>
+
+            <div class="alert success">
+                <strong>✅ Quick Test:</strong> Use the demo functionality in the UI to test event logging, violation detection, and report generation.
+            </div>
+        </div>
+
+        <!-- Audit Logging Section -->
+        <div class="section" id="audit-logging">
+            <h2>📝 Audit Event Logging</h2>
+
+            <h3>Event Types</h3>
+            <p>The system supports comprehensive event type classification:</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Event Type</th>
+                        <th>Description</th>
+                        <th>Examples</th>
+                        <th>Retention</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>user_action</td>
+                        <td>Actions performed by users</td>
+                        <td>Login, data access, configuration changes</td>
+                        <td>7 years</td>
+                    </tr>
+                    <tr>
+                        <td>system_action</td>
+                        <td>Automated system actions</td>
+                        <td>Scheduled jobs, automated validations</td>
+                        <td>3 years</td>
+                    </tr>
+                    <tr>
+                        <td>data_access</td>
+                        <td>Access to sensitive data</td>
+                        <td>Customer data viewing, report generation</td>
+                        <td>7 years</td>
+                    </tr>
+                    <tr>
+                        <td>data_modification</td>
+                        <td>Changes to data</td>
+                        <td>Record updates, deletions, exports</td>
+                        <td>10 years</td>
+                    </tr>
+                    <tr>
+                        <td>authentication</td>
+                        <td>Authentication events</td>
+                        <td>Login attempts, password changes</td>
+                        <td>1 year</td>
+                    </tr>
+                    <tr>
+                        <td>violation_detected</td>
+                        <td>Compliance violations</td>
+                        <td>Policy violations, unauthorized access</td>
+                        <td>10 years</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Logging Compliance Events</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/compliance-audit/events</span>
+{
+  <span class="string">"event_type"</span>: <span class="string">"data_access"</span>,
+  <span class="string">"entity_type"</span>: <span class="string">"customer_data"</span>,
+  <span class="string">"entity_id"</span>: <span class="string">"customer_12345"</span>,
+  <span class="string">"action"</span>: <span class="string">"view_sensitive_data"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"fields_accessed"</span>: [<span class="string">"bsn"</span>, <span class="string">"income"</span>, <span class="string">"credit_score"</span>],
+    <span class="string">"purpose"</span>: <span class="string">"mortgage_assessment"</span>,
+    <span class="string">"application_id"</span>: <span class="string">"app_67890"</span>
+  },
+  <span class="string">"regulation"</span>: <span class="string">"GDPR"</span>,
+  <span class="string">"severity"</span>: <span class="string">"medium"</span>,
+  <span class="string">"risk_score"</span>: 0.6,
+  <span class="string">"user_id"</span>: <span class="string">"user_456"</span>,
+  <span class="string">"data_classification"</span>: <span class="string">"sensitive"</span>,
+  <span class="string">"tags"</span>: [<span class="string">"sensitive_data"</span>, <span class="string">"mortgage_process"</span>],
+  <span class="string">"metadata"</span>: {
+    <span class="string">"application_version"</span>: <span class="string">"2025.1"</span>,
+    <span class="string">"feature_flag"</span>: <span class="string">"enhanced_logging"</span>
+  }
+}
+            </div>
+
+            <h3>Event Response</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"event_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="string">"processing_time_ms"</span>: 45,
+  <span class="string">"hash_chain_position"</span>: 12847,
+  <span class="string">"digital_signature"</span>: <span class="string">"a1b2c3d4e5f6..."</span>,
+  <span class="string">"integrity_verified"</span>: <span class="keyword">true</span>,
+  <span class="string">"message"</span>: <span class="string">"Compliance event logged successfully"</span>
+}
+            </div>
+
+            <h3>Batch Event Logging</h3>
+            <p>For high-volume scenarios, use batch logging to improve performance:</p>
+            <div class="code-block">
+<span class="comment">// POST /api/compliance-audit/events/batch</span>
+{
+  <span class="string">"events"</span>: [
+    {
+      <span class="string">"event_type"</span>: <span class="string">"user_action"</span>,
+      <span class="string">"entity_type"</span>: <span class="string">"application"</span>,
+      <span class="string">"entity_id"</span>: <span class="string">"app_001"</span>,
+      <span class="string">"action"</span>: <span class="string">"submit_application"</span>,
+      <span class="string">"details"</span>: { <span class="comment">/* event details */</span> }
+    },
+    {
+      <span class="string">"event_type"</span>: <span class="string">"system_action"</span>,
+      <span class="string">"entity_type"</span>: <span class="string">"validation"</span>,
+      <span class="string">"entity_id"</span>: <span class="string">"val_002"</span>,
+      <span class="string">"action"</span>: <span class="string">"automated_validation"</span>,
+      <span class="string">"details"</span>: { <span class="comment">/* validation details */</span> }
+    }
+  ]
+}
+            </div>
+
+            <div class="alert warning">
+                <strong>⚠️ Immutability:</strong> Once logged, audit events cannot be modified or deleted. Ensure data accuracy before logging.
+            </div>
+        </div>
+
+        <!-- Violation Management Section -->
+        <div class="section" id="violation-management">
+            <h2>⚠️ Violation Management</h2>
+
+            <h3>Automated Violation Detection</h3>
+            <p>The system automatically detects compliance violations using advanced algorithms:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>Real-Time Detection</h4>
+                    <p>Continuous monitoring of audit events for compliance violations</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Rule-Based Detection</h4>
+                    <p>Configurable rules for specific violation patterns</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Statistical Analysis</h4>
+                    <p>Statistical anomaly detection for unusual behavior patterns</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>Machine Learning</h4>
+                    <p>ML models trained on historical data for predictive detection</p>
+                </div>
+            </div>
+
+            <h3>Violation Severity Levels</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Severity</th>
+                        <th>Description</th>
+                        <th>Response Time</th>
+                        <th>Escalation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Critical</td>
+                        <td>Immediate regulatory risk</td>
+                        <td>1 hour</td>
+                        <td>Automatic to C-level</td>
+                    </tr>
+                    <tr>
+                        <td>High</td>
+                        <td>Significant compliance issue</td>
+                        <td>4 hours</td>
+                        <td>Compliance officer</td>
+                    </tr>
+                    <tr>
+                        <td>Medium</td>
+                        <td>Moderate compliance concern</td>
+                        <td>24 hours</td>
+                        <td>Department manager</td>
+                    </tr>
+                    <tr>
+                        <td>Low</td>
+                        <td>Minor compliance issue</td>
+                        <td>72 hours</td>
+                        <td>Team lead</td>
+                    </tr>
+                    <tr>
+                        <td>Info</td>
+                        <td>Informational only</td>
+                        <td>No SLA</td>
+                        <td>None</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Violation Lifecycle</h3>
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('detection')">Detection</button>
+                    <button class="tab-button" onclick="showTab('investigation')">Investigation</button>
+                    <button class="tab-button" onclick="showTab('remediation')">Remediation</button>
+                    <button class="tab-button" onclick="showTab('resolution')">Resolution</button>
+                </div>
+
+                <div id="detection" class="tab-content active">
+                    <h4>Violation Detection</h4>
+                    <ol class="step-list">
+                        <li>
+                            <strong>Event Analysis</strong>
+                            <p>Real-time analysis of audit events for compliance violations</p>
+                        </li>
+                        <li>
+                            <strong>Rule Evaluation</strong>
+                            <p>Application of compliance rules and regulatory requirements</p>
+                        </li>
+                        <li>
+                            <strong>Risk Assessment</strong>
+                            <p>Evaluation of violation severity and potential impact</p>
+                        </li>
+                        <li>
+                            <strong>Notification</strong>
+                            <p>Automatic notification to relevant stakeholders</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div id="investigation" class="tab-content">
+                    <h4>Investigation Process</h4>
+                    <ol class="step-list">
+                        <li>
+                            <strong>Investigation Creation</strong>
+                            <p>Automatic or manual creation of investigation case</p>
+                        </li>
+                        <li>
+                            <strong>Evidence Collection</strong>
+                            <p>Gathering of relevant audit events and supporting data</p>
+                        </li>
+                        <li>
+                            <strong>Analysis</strong>
+                            <p>Detailed analysis of events, patterns, and root causes</p>
+                        </li>
+                        <li>
+                            <strong>Documentation</strong>
+                            <p>Comprehensive documentation of findings and conclusions</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div id="remediation" class="tab-content">
+                    <h4>Remediation Planning</h4>
+                    <ol class="step-list">
+                        <li>
+                            <strong>Action Planning</strong>
+                            <p>Development of specific remediation actions</p>
+                        </li>
+                        <li>
+                            <strong>Resource Allocation</strong>
+                            <p>Assignment of responsible parties and deadlines</p>
+                        </li>
+                        <li>
+                            <strong>Implementation</strong>
+                            <p>Execution of remediation actions with progress tracking</p>
+                        </li>
+                        <li>
+                            <strong>Verification</strong>
+                            <p>Validation that remediation actions are effective</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div id="resolution" class="tab-content">
+                    <h4>Resolution and Closure</h4>
+                    <ol class="step-list">
+                        <li>
+                            <strong>Effectiveness Review</strong>
+                            <p>Review of remediation effectiveness and compliance restoration</p>
+                        </li>
+                        <li>
+                            <strong>Documentation</strong>
+                            <p>Complete documentation of resolution details</p>
+                        </li>
+                        <li>
+                            <strong>Lessons Learned</strong>
+                            <p>Capture lessons learned and process improvements</p>
+                        </li>
+                        <li>
+                            <strong>Case Closure</strong>
+                            <p>Formal closure with stakeholder approval</p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investigations Section -->
+        <div class="section" id="investigations">
+            <h2>🔍 Investigation Management</h2>
+
+            <h3>Investigation Types</h3>
+            <ul>
+                <li><strong>Compliance Violation:</strong> Automated investigations for detected violations</li>
+                <li><strong>Security Incident:</strong> Security-related compliance investigations</li>
+                <li><strong>Data Breach:</strong> Investigations related to data protection violations</li>
+                <li><strong>Regulatory Inquiry:</strong> Investigations triggered by regulatory requests</li>
+                <li><strong>Internal Audit:</strong> Proactive compliance audits and reviews</li>
+            </ul>
+
+            <h3>Creating an Investigation</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/compliance-audit/investigations</span>
+{
+  <span class="string">"title"</span>: <span class="string">"Unauthorized Data Access Investigation"</span>,
+  <span class="string">"description"</span>: <span class="string">"Investigation of potential unauthorized access to customer financial data"</span>,
+  <span class="string">"investigation_type"</span>: <span class="string">"security_incident"</span>,
+  <span class="string">"priority"</span>: <span class="string">"high"</span>,
+  <span class="string">"assigned_investigator"</span>: <span class="string">"compliance_officer_001"</span>,
+  <span class="string">"related_events"</span>: [
+    <span class="string">"event_123"</span>,
+    <span class="string">"event_124"</span>,
+    <span class="string">"event_125"</span>
+  ],
+  <span class="string">"related_violations"</span>: [
+    <span class="string">"violation_456"</span>
+  ],
+  <span class="string">"stakeholders"</span>: [
+    <span class="string">"compliance_officer_001"</span>,
+    <span class="string">"security_manager"</span>,
+    <span class="string">"legal_counsel"</span>
+  ],
+  <span class="string">"confidentiality_level"</span>: <span class="string">"confidential"</span>,
+  <span class="string">"tags"</span>: [<span class="string">"data_breach"</span>, <span class="string">"customer_data"</span>, <span class="string">"urgent"</span>]
+}
+            </div>
+
+            <h3>Investigation Workflow</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h4>Case Management</h4>
+                    <p>Comprehensive case tracking with status updates and timeline management</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Evidence Collection</h4>
+                    <p>Systematic collection and cataloging of digital evidence</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Analysis Tools</h4>
+                    <p>Advanced analytics tools for pattern recognition and root cause analysis</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📝</div>
+                    <h4>Documentation</h4>
+                    <p>Automated documentation generation with templates and workflows</p>
+                </div>
+            </div>
+
+            <h3>Evidence Management</h3>
+            <p>The system provides comprehensive evidence management capabilities:</p>
+            <ul>
+                <li><strong>Chain of Custody:</strong> Complete tracking of evidence handling</li>
+                <li><strong>Digital Forensics:</strong> Forensic-level evidence preservation</li>
+                <li><strong>Metadata Preservation:</strong> Complete metadata capture and preservation</li>
+                <li><strong>Access Control:</strong> Role-based access to sensitive evidence</li>
+                <li><strong>Integrity Verification:</strong> Cryptographic verification of evidence integrity</li>
+            </ul>
+        </div>
+
+        <!-- Reporting Section -->
+        <div class="section" id="reporting">
+            <h2>📊 Regulatory Reporting</h2>
+
+            <h3>Report Types</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📋</div>
+                    <h4>Regulatory Compliance Report</h4>
+                    <p>Comprehensive compliance status by regulation with violation analysis</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Audit Trail Summary</h4>
+                    <p>Summary of audit activities with integrity verification results</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚠️</div>
+                    <h4>Incident Report</h4>
+                    <p>Detailed analysis of specific compliance incidents and investigations</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h4>Trend Analysis</h4>
+                    <p>Compliance trends, patterns, and predictive insights</p>
+                </div>
+            </div>
+
+            <h3>Generating Reports</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/compliance-audit/reports</span>
+{
+  <span class="string">"report_type"</span>: <span class="string">"regulatory_compliance"</span>,
+  <span class="string">"regulation"</span>: <span class="string">"GDPR"</span>,
+  <span class="string">"start_date"</span>: <span class="string">"2025-01-01T00:00:00Z"</span>,
+  <span class="string">"end_date"</span>: <span class="string">"2025-01-31T23:59:59Z"</span>,
+  <span class="string">"format"</span>: <span class="string">"json"</span>,
+  <span class="string">"include_visualizations"</span>: <span class="keyword">true</span>,
+  <span class="string">"confidentiality_level"</span>: <span class="string">"internal"</span>
+}
+            </div>
+
+            <h3>Report Structure</h3>
+            <div class="code-block">
+{
+  <span class="string">"report_id"</span>: <span class="string">"report_789"</span>,
+  <span class="string">"report_type"</span>: <span class="string">"regulatory_compliance"</span>,
+  <span class="string">"regulation"</span>: <span class="string">"GDPR"</span>,
+  <span class="string">"period"</span>: {
+    <span class="string">"start_date"</span>: <span class="string">"2025-01-01T00:00:00Z"</span>,
+    <span class="string">"end_date"</span>: <span class="string">"2025-01-31T23:59:59Z"</span>
+  },
+  <span class="string">"executive_summary"</span>: {
+    <span class="string">"compliance_rate"</span>: 94.8,
+    <span class="string">"total_events_analyzed"</span>: 15420,
+    <span class="string">"total_violations_found"</span>: 23,
+    <span class="string">"compliance_trend"</span>: <span class="string">"improving"</span>
+  },
+  <span class="string">"compliance_status"</span>: {
+    <span class="string">"violation_types"</span>: {
+      <span class="string">"data_retention_violation"</span>: 8,
+      <span class="string">"consent_violation"</span>: 12,
+      <span class="string">"access_control_violation"</span>: 3
+    },
+    <span class="string">"severity_distribution"</span>: {
+      <span class="string">"critical"</span>: 2,
+      <span class="string">"high"</span>: 5,
+      <span class="string">"medium"</span>: 11,
+      <span class="string">"low"</span>: 5
+    }
+  },
+  <span class="string">"recommendations"</span>: [
+    <span class="string">"Implement enhanced consent management system"</span>,
+    <span class="string">"Review data retention policies"</span>,
+    <span class="string">"Enhance access control monitoring"</span>
+  ]
+}
+            </div>
+
+            <h3>Automated Reporting</h3>
+            <p>Configure automated report generation and distribution:</p>
+            <ul>
+                <li><strong>Scheduled Generation:</strong> Daily, weekly, monthly, or quarterly schedules</li>
+                <li><strong>Automatic Distribution:</strong> Email delivery to stakeholders</li>
+                <li><strong>Threshold Alerts:</strong> Automatic alerts when metrics exceed thresholds</li>
+                <li><strong>Custom Templates:</strong> Configurable report templates for different audiences</li>
+            </ul>
+        </div>
+
+        <!-- Integrity Section -->
+        <div class="section" id="integrity">
+            <h2>🔐 Audit Trail Integrity</h2>
+
+            <h3>Hash Chain Technology</h3>
+            <p>The system uses blockchain-inspired hash chains to ensure audit trail immutability:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔗</div>
+                    <h4>Cryptographic Linking</h4>
+                    <p>Each event is cryptographically linked to the previous event using SHA-256 hashing</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h4>Tamper Detection</h4>
+                    <p>Any modification attempt is immediately detected through hash verification</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">✍️</div>
+                    <h4>Digital Signatures</h4>
+                    <p>HMAC signatures provide additional authenticity verification</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Legal Admissibility</h4>
+                    <p>Cryptographic proof suitable for legal and regulatory proceedings</p>
+                </div>
+            </div>
+
+            <h3>Integrity Verification</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/compliance-audit/verify-integrity</span>
+{
+  <span class="string">"start_date"</span>: <span class="string">"2025-01-20T00:00:00Z"</span>,
+  <span class="string">"end_date"</span>: <span class="string">"2025-01-27T23:59:59Z"</span>,
+  <span class="string">"verification_type"</span>: <span class="string">"full"</span>,
+  <span class="string">"include_signatures"</span>: <span class="keyword">true</span>
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"verification"</span>: {
+    <span class="string">"integrity_status"</span>: <span class="string">"verified"</span>,
+    <span class="string">"integrity_score"</span>: 1.0,
+    <span class="string">"total_events"</span>: 15420,
+    <span class="string">"valid_events"</span>: 15420,
+    <span class="string">"invalid_events"</span>: 0,
+    <span class="string">"verification_timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>
+  }
+}
+            </div>
+
+            <h3>Integrity Monitoring</h3>
+            <p>Continuous integrity monitoring includes:</p>
+            <ul>
+                <li><strong>Scheduled Verification:</strong> Daily automated integrity checks</li>
+                <li><strong>Real-Time Monitoring:</strong> Immediate detection of integrity issues</li>
+                <li><strong>Alert System:</strong> Automatic alerts for integrity violations</li>
+                <li><strong>Forensic Analysis:</strong> Detailed analysis of any integrity issues</li>
+                <li><strong>Recovery Procedures:</strong> Documented procedures for integrity restoration</li>
+            </ul>
+
+            <div class="alert error">
+                <strong>🚨 Critical:</strong> Any integrity violations indicate potential security breaches or system compromise. Immediate investigation is required.
+            </div>
+        </div>
+
+        <!-- Pattern Analysis Section -->
+        <div class="section" id="pattern-analysis">
+            <h2>🎯 Pattern Analysis & Anomaly Detection</h2>
+
+            <h3>Machine Learning Algorithms</h3>
+            <p>The system uses advanced ML algorithms for pattern recognition:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Isolation Forest</h4>
+                    <p>Unsupervised anomaly detection for identifying unusual compliance events</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>DBSCAN Clustering</h4>
+                    <p>Density-based clustering for identifying compliance event patterns</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Statistical Analysis</h4>
+                    <p>Statistical methods for trend analysis and risk assessment</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>Neural Networks</h4>
+                    <p>Deep learning models for complex pattern recognition</p>
+                </div>
+            </div>
+
+            <h3>Pattern Types</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Pattern Type</th>
+                        <th>Description</th>
+                        <th>Risk Level</th>
+                        <th>Action Required</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>burst_activity</td>
+                        <td>Unusual burst of activity in short time</td>
+                        <td>Medium</td>
+                        <td>Review for automation or attack</td>
+                    </tr>
+                    <tr>
+                        <td>user_specific</td>
+                        <td>Patterns specific to individual users</td>
+                        <td>High</td>
+                        <td>User behavior analysis</td>
+                    </tr>
+                    <tr>
+                        <td>entity_specific</td>
+                        <td>Patterns related to specific entities</td>
+                        <td>Medium</td>
+                        <td>Entity access review</td>
+                    </tr>
+                    <tr>
+                        <td>critical_sequence</td>
+                        <td>Sequence of critical events</td>
+                        <td>Critical</td>
+                        <td>Immediate investigation</td>
+                    </tr>
+                    <tr>
+                        <td>temporal_anomaly</td>
+                        <td>Unusual timing patterns</td>
+                        <td>Medium</td>
+                        <td>Schedule and access review</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Analyzing Patterns</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/compliance-audit/analyze-patterns</span>
+{
+  <span class="string">"regulation"</span>: <span class="string">"GDPR"</span>,
+  <span class="string">"days"</span>: 30,
+  <span class="string">"analysis_type"</span>: <span class="string">"anomaly_detection"</span>,
+  <span class="string">"confidence_threshold"</span>: 0.8
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"analysis"</span>: {
+    <span class="string">"patterns"</span>: [
+      {
+        <span class="string">"pattern_id"</span>: <span class="string">"pattern_123"</span>,
+        <span class="string">"pattern_type"</span>: <span class="string">"user_specific"</span>,
+        <span class="string">"event_count"</span>: 45,
+        <span class="string">"confidence_score"</span>: 0.92,
+        <span class="string">"most_common_action"</span>: <span class="string">"data_export"</span>,
+        <span class="string">"average_risk_score"</span>: 0.75,
+        <span class="string">"recommendations"</span>: [
+          <span class="string">"Review user access permissions"</span>,
+          <span class="string">"Implement additional monitoring"</span>
+        ]
+      }
+    ],
+    <span class="string">"anomalies"</span>: [
+      {
+        <span class="string">"event_id"</span>: <span class="string">"event_456"</span>,
+        <span class="string">"anomaly_score"</span>: 0.95,
+        <span class="string">"reason"</span>: <span class="string">"Unusual access time and pattern"</span>
+      }
+    ],
+    <span class="string">"insights"</span>: [
+      <span class="string">"Detected 3 compliance patterns requiring attention"</span>,
+      <span class="string">"Average risk score trending upward"</span>,
+      <span class="string">"Most frequent violations: consent management"</span>
+    ]
+  }
+}
+            </div>
+        </div>
+
+        <!-- API Reference Section -->
+        <div class="section" id="api-reference">
+            <h2>📚 API Reference</h2>
+
+            <h3>Base URL</h3>
+            <div class="code-block">https://your-domain.com/api/compliance-audit</div>
+
+            <h3>Authentication</h3>
+            <p>All API requests require authentication via JWT token:</p>
+            <div class="code-block">
+Authorization: Bearer your_jwt_token
+<span class="comment"># or</span>
+X-API-Key: your_api_key
+            </div>
+
+            <h3>Core Endpoints</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>POST</td>
+                        <td>/events</td>
+                        <td>Log compliance event</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/events/batch</td>
+                        <td>Batch log multiple events</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/events</td>
+                        <td>Retrieve audit events with filtering</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/events/{eventId}</td>
+                        <td>Get specific event details</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/violations</td>
+                        <td>Get compliance violations</td>
+                    </tr>
+                    <tr>
+                        <td>PUT</td>
+                        <td>/violations/{violationId}</td>
+                        <td>Update violation status</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/investigations</td>
+                        <td>Create investigation</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/investigations</td>
+                        <td>Get investigations</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/reports</td>
+                        <td>Generate compliance report</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/verify-integrity</td>
+                        <td>Verify audit trail integrity</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/search</td>
+                        <td>Advanced search across audit trail</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Error Handling</h3>
+            <p>Comprehensive error responses with actionable information:</p>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Validation failed"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"COMPLIANCE_VALIDATION_ERROR"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"field"</span>: <span class="string">"event_type"</span>,
+    <span class="string">"message"</span>: <span class="string">"Invalid event type specified"</span>,
+    <span class="string">"valid_options"</span>: [<span class="string">"user_action"</span>, <span class="string">"system_action"</span>, <span class="string">"data_access"</span>]
+  },
+  <span class="string">"request_id"</span>: <span class="string">"req_123456789"</span>,
+  <span class="string">"timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>
+}
+            </div>
+
+            <h3>Rate Limiting</h3>
+            <p>API endpoints have different rate limits based on operation type:</p>
+            <ul>
+                <li><strong>Event Logging:</strong> 10,000 requests per hour</li>
+                <li><strong>Search Operations:</strong> 1,000 requests per hour</li>
+                <li><strong>Report Generation:</strong> 100 requests per hour</li>
+                <li><strong>Integrity Verification:</strong> 10 requests per hour</li>
+            </ul>
+        </div>
+
+        <!-- Troubleshooting Section -->
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Common Issues</h3>
+
+            <h4>🔴 Integrity Verification Failures</h4>
+            <div class="alert error">
+                <strong>Symptoms:</strong> Hash chain verification returns integrity violations
+            </div>
+            <p><strong>Immediate Actions:</strong></p>
+            <ol class="step-list">
+                <li>
+                    <strong>Isolate the System</strong>
+                    <p>Immediately stop all write operations to prevent further compromise</p>
+                </li>
+                <li>
+                    <strong>Forensic Analysis</strong>
+                    <p>Conduct detailed forensic analysis to identify the breach point</p>
+                </li>
+                <li>
+                    <strong>Restore from Backup</strong>
+                    <p>Restore from the last known good backup with verified integrity</p>
+                </li>
+                <li>
+                    <strong>Incident Response</strong>
+                    <p>Follow incident response procedures and notify relevant authorities</p>
+                </li>
+            </ol>
+
+            <h4>🟡 Performance Issues</h4>
+            <div class="alert warning">
+                <strong>Symptoms:</strong> Slow response times, high memory usage, timeouts
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Monitor database performance and optimize queries</li>
+                <li>Implement event archiving for old data</li>
+                <li>Scale horizontally with read replicas</li>
+                <li>Optimize search indexes and caching</li>
+                <li>Review retention policies and cleanup schedules</li>
+            </ul>
+
+            <h4>🔵 Search Performance</h4>
+            <div class="alert info">
+                <strong>Symptoms:</strong> Slow search results, timeout errors
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Rebuild search indexes</li>
+                <li>Optimize search queries with filters</li>
+                <li>Implement search result caching</li>
+                <li>Use pagination for large result sets</li>
+                <li>Consider full-text search engine integration</li>
+            </ul>
+
+            <h3>Diagnostic Commands</h3>
+            <div class="code-block">
+<span class="comment"># Check system health</span>
+curl -X GET http://localhost:3000/api/compliance-audit/health
+
+<span class="comment"># Verify integrity for last 7 days</span>
+curl -X POST http://localhost:3000/api/compliance-audit/verify-integrity \
+  -H "Content-Type: application/json" \
+  -d '{"start_date":"2025-01-20T00:00:00Z","end_date":"2025-01-27T23:59:59Z"}'
+
+<span class="comment"># Get performance metrics</span>
+curl -X GET http://localhost:3000/api/compliance-audit/metrics
+
+<span class="comment"># Test search functionality</span>
+curl -X POST http://localhost:3000/api/compliance-audit/search \
+  -H "Content-Type: application/json" \
+  -d '{"query":"GDPR violation","filters":{"severity":"high"}}'
+            </div>
+
+            <h3>Log Analysis</h3>
+            <p>Important log files for troubleshooting:</p>
+            <ul>
+                <li><strong>/app/logs/compliance-audit.log</strong> - Main system logs</li>
+                <li><strong>/app/logs/integrity-verification.log</strong> - Integrity check logs</li>
+                <li><strong>/app/logs/pattern-analysis.log</strong> - ML analysis logs</li>
+                <li><strong>/app/logs/investigation.log</strong> - Investigation activity logs</li>
+            </ul>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🔒 Security & Compliance</h3>
+            <ul>
+                <li><strong>Event Classification:</strong> Properly classify events by sensitivity and retention requirements</li>
+                <li><strong>Access Control:</strong> Implement strict role-based access to audit data</li>
+                <li><strong>Encryption:</strong> Ensure all sensitive data is encrypted at rest and in transit</li>
+                <li><strong>Regular Verification:</strong> Perform integrity verification at least daily</li>
+                <li><strong>Backup Strategy:</strong> Maintain secure, verified backups of audit data</li>
+                <li><strong>Incident Response:</strong> Have clear procedures for integrity violations</li>
+            </ul>
+
+            <h3>⚡ Performance Optimization</h3>
+            <ul>
+                <li><strong>Batch Operations:</strong> Use batch APIs for high-volume logging</li>
+                <li><strong>Indexing Strategy:</strong> Maintain optimal database indexes for common queries</li>
+                <li><strong>Caching:</strong> Implement intelligent caching for frequently accessed data</li>
+                <li><strong>Archiving:</strong> Archive old events to maintain performance</li>
+                <li><strong>Monitoring:</strong> Continuously monitor system performance metrics</li>
+            </ul>
+
+            <h3>📊 Compliance Management</h3>
+            <ul>
+                <li><strong>Regular Reviews:</strong> Conduct weekly compliance reviews</li>
+                <li><strong>Stakeholder Training:</strong> Train staff on compliance requirements</li>
+                <li><strong>Process Documentation:</strong> Maintain up-to-date compliance procedures</li>
+                <li><strong>Continuous Improvement:</strong> Regularly update rules and thresholds</li>
+                <li><strong>Regulatory Updates:</strong> Stay current with regulatory changes</li>
+            </ul>
+
+            <h3>🔍 Investigation Excellence</h3>
+            <ul>
+                <li><strong>Timely Response:</strong> Respond to violations within SLA timeframes</li>
+                <li><strong>Thorough Documentation:</strong> Document all investigation steps and findings</li>
+                <li><strong>Evidence Preservation:</strong> Maintain chain of custody for all evidence</li>
+                <li><strong>Stakeholder Communication:</strong> Keep stakeholders informed of progress</li>
+                <li><strong>Lessons Learned:</strong> Capture and apply lessons from investigations</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Success Metrics:</strong>
+                <ul>
+                    <li>Audit Trail Integrity: 100%</li>
+                    <li>Compliance Rate: > 95%</li>
+                    <li>Violation Response Time: < 4 hours</li>
+                    <li>Investigation Completion: < 7 days</li>
+                    <li>Report Generation: < 30 minutes</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Complete API documentation and compliance guides</p>
+                    <a href="#api-reference" class="button secondary">View API Docs</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Security</h4>
+                    <p>Security best practices and integrity verification procedures</p>
+                    <a href="#integrity" class="button secondary">Security Guide</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>Investigation</h4>
+                    <p>Investigation procedures and forensic analysis tools</p>
+                    <a href="#investigations" class="button secondary">Investigation Guide</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Compliance</h4>
+                    <p>Regulatory compliance information and reporting procedures</p>
+                    <a href="#reporting" class="button secondary">Compliance Guide</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

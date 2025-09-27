@@ -4869,3 +4869,584 @@ INSERT INTO nhg_limits_history (
 ) VALUES (
     435000, 27000, 10000, 50000, 0.007, '2025-01-01', true
 ) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- COMPREHENSIVE COMPLIANCE AUDIT TRAIL SCHEMA
+-- =============================================
+
+-- Main compliance audit events table with immutable logging
+CREATE TABLE IF NOT EXISTS compliance_audit_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL UNIQUE,
+    event_type VARCHAR(50) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    user_id UUID,
+    session_id VARCHAR(255),
+    ip_address INET,
+    user_agent TEXT,
+    geo_location JSONB,
+    entity_type VARCHAR(100) NOT NULL,
+    entity_id VARCHAR(255) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    details JSONB NOT NULL,
+    regulation VARCHAR(100),
+    compliance_status VARCHAR(50) NOT NULL DEFAULT 'compliant',
+    severity VARCHAR(20) NOT NULL,
+    risk_score DECIMAL(3,2) DEFAULT 0.0,
+    data_classification VARCHAR(50) DEFAULT 'internal',
+    retention_period INTEGER DEFAULT 2555, -- 7 years in days
+    encryption_key_id VARCHAR(100),
+    hash_chain_previous VARCHAR(64),
+    hash_chain_current VARCHAR(64) NOT NULL,
+    digital_signature VARCHAR(128),
+    investigation_id UUID,
+    tags JSONB DEFAULT '[]',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- Immutable: prevent updates after creation
+    CONSTRAINT no_updates CHECK (created_at = created_at)
+);
+
+-- Compliance violations tracking table
+CREATE TABLE IF NOT EXISTS compliance_violations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    violation_id UUID NOT NULL UNIQUE,
+    event_id UUID REFERENCES compliance_audit_events(event_id),
+    regulation VARCHAR(100) NOT NULL,
+    article VARCHAR(50),
+    violation_type VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    risk_impact VARCHAR(20) NOT NULL,
+    affected_entities JSONB DEFAULT '[]',
+    detection_method VARCHAR(100) NOT NULL,
+    detection_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    remediation_actions JSONB DEFAULT '[]',
+    remediation_deadline TIMESTAMP WITH TIME ZONE,
+    remediation_status VARCHAR(50) DEFAULT 'pending',
+    investigation_required BOOLEAN DEFAULT false,
+    notification_sent BOOLEAN DEFAULT false,
+    escalation_level INTEGER DEFAULT 0,
+    compliance_officer_assigned VARCHAR(255),
+    resolution_timestamp TIMESTAMP WITH TIME ZONE,
+    resolution_details TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance investigations table
+CREATE TABLE IF NOT EXISTS compliance_investigations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    investigation_id UUID NOT NULL UNIQUE,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    investigation_type VARCHAR(100) NOT NULL,
+    priority VARCHAR(20) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    assigned_investigator VARCHAR(255) NOT NULL,
+    created_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    deadline TIMESTAMP WITH TIME ZONE,
+    related_events JSONB DEFAULT '[]',
+    related_violations JSONB DEFAULT '[]',
+    evidence_collected JSONB DEFAULT '[]',
+    findings JSONB DEFAULT '[]',
+    conclusions TEXT,
+    recommendations JSONB DEFAULT '[]',
+    actions_taken JSONB DEFAULT '[]',
+    timeline JSONB DEFAULT '[]',
+    stakeholders JSONB DEFAULT '[]',
+    confidentiality_level VARCHAR(50) DEFAULT 'internal',
+    tags JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance reports table
+CREATE TABLE IF NOT EXISTS compliance_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL UNIQUE,
+    report_type VARCHAR(100) NOT NULL,
+    regulation VARCHAR(100),
+    period_start TIMESTAMP WITH TIME ZONE,
+    period_end TIMESTAMP WITH TIME ZONE,
+    generated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    generated_by VARCHAR(255),
+    report_data JSONB NOT NULL,
+    file_path VARCHAR(1000),
+    file_size_bytes BIGINT,
+    access_count INTEGER DEFAULT 0,
+    last_accessed TIMESTAMP WITH TIME ZONE,
+    retention_until TIMESTAMP WITH TIME ZONE,
+    is_archived BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Regulatory changes tracking table
+CREATE TABLE IF NOT EXISTS regulatory_changes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    change_id UUID NOT NULL UNIQUE,
+    regulation VARCHAR(100) NOT NULL,
+    change_type VARCHAR(50) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    effective_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    impact_assessment TEXT,
+    affected_systems JSONB DEFAULT '[]',
+    implementation_required BOOLEAN DEFAULT false,
+    implementation_deadline TIMESTAMP WITH TIME ZONE,
+    implementation_status VARCHAR(50) DEFAULT 'pending',
+    change_source VARCHAR(200),
+    change_document_url TEXT,
+    stakeholders_notified JSONB DEFAULT '[]',
+    impact_score DECIMAL(3,2) DEFAULT 0.0,
+    created_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance patterns and anomalies table
+CREATE TABLE IF NOT EXISTS compliance_patterns (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pattern_id UUID NOT NULL UNIQUE,
+    pattern_type VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    detection_algorithm VARCHAR(100) NOT NULL,
+    confidence_score DECIMAL(3,2) NOT NULL,
+    event_count INTEGER NOT NULL,
+    time_span_hours DECIMAL(8,2),
+    most_common_action VARCHAR(255),
+    most_common_entity VARCHAR(100),
+    primary_regulation VARCHAR(100),
+    severity_distribution JSONB,
+    average_risk_score DECIMAL(3,2),
+    recommendations JSONB DEFAULT '[]',
+    related_events JSONB DEFAULT '[]',
+    pattern_data JSONB NOT NULL,
+    first_detected TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
+);
+
+-- Compliance metrics and KPIs table
+CREATE TABLE IF NOT EXISTS compliance_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(10,4) NOT NULL,
+    metric_unit VARCHAR(50),
+    calculation_method TEXT,
+    regulation VARCHAR(100),
+    measurement_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    measurement_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    benchmark_value DECIMAL(10,4),
+    target_value DECIMAL(10,4),
+    status VARCHAR(20), -- 'above_target', 'on_target', 'below_target', 'critical'
+    trend VARCHAR(20), -- 'improving', 'stable', 'declining'
+    metadata JSONB DEFAULT '{}',
+    calculated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance stakeholders and roles table
+CREATE TABLE IF NOT EXISTS compliance_stakeholders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stakeholder_id VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    role VARCHAR(100) NOT NULL,
+    department VARCHAR(100),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    responsibilities JSONB DEFAULT '[]',
+    regulations_assigned JSONB DEFAULT '[]',
+    notification_preferences JSONB DEFAULT '{}',
+    escalation_level INTEGER DEFAULT 1,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Audit trail integrity verification table
+CREATE TABLE IF NOT EXISTS audit_trail_integrity (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    verification_id UUID NOT NULL UNIQUE,
+    verification_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    total_events_verified INTEGER NOT NULL,
+    valid_events INTEGER NOT NULL,
+    invalid_events INTEGER NOT NULL,
+    integrity_score DECIMAL(5,2) NOT NULL,
+    integrity_status VARCHAR(20) NOT NULL,
+    verification_details JSONB,
+    hash_verification_method VARCHAR(100),
+    digital_signature_verification BOOLEAN,
+    anomalies_detected JSONB DEFAULT '[]',
+    corrective_actions_required JSONB DEFAULT '[]',
+    verified_by VARCHAR(255),
+    verification_duration_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance notification log table
+CREATE TABLE IF NOT EXISTS compliance_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    notification_id UUID NOT NULL UNIQUE,
+    notification_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    message TEXT NOT NULL,
+    recipients JSONB NOT NULL,
+    channels JSONB DEFAULT '[]', -- email, sms, webhook, slack, etc.
+    related_event_id UUID,
+    related_violation_id UUID,
+    related_investigation_id UUID,
+    trigger_conditions JSONB,
+    delivery_status VARCHAR(50) DEFAULT 'pending',
+    delivery_attempts INTEGER DEFAULT 0,
+    delivered_at TIMESTAMP WITH TIME ZONE,
+    delivery_errors JSONB DEFAULT '[]',
+    read_receipts JSONB DEFAULT '[]',
+    escalation_triggered BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance data lineage table
+CREATE TABLE IF NOT EXISTS compliance_data_lineage (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lineage_id UUID NOT NULL UNIQUE,
+    source_entity_type VARCHAR(100) NOT NULL,
+    source_entity_id VARCHAR(255) NOT NULL,
+    target_entity_type VARCHAR(100) NOT NULL,
+    target_entity_id VARCHAR(255) NOT NULL,
+    transformation_type VARCHAR(100) NOT NULL,
+    transformation_details JSONB,
+    data_classification VARCHAR(50),
+    compliance_impact VARCHAR(100),
+    lineage_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_by VARCHAR(255),
+    validation_status VARCHAR(50) DEFAULT 'pending',
+    retention_inherited BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance search index table for advanced querying
+CREATE TABLE IF NOT EXISTS compliance_search_index (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_id VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    searchable_content TEXT NOT NULL,
+    content_hash VARCHAR(64) NOT NULL,
+    regulation_tags JSONB DEFAULT '[]',
+    risk_tags JSONB DEFAULT '[]',
+    date_tags JSONB DEFAULT '[]',
+    user_tags JSONB DEFAULT '[]',
+    custom_tags JSONB DEFAULT '[]',
+    last_indexed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    index_version INTEGER DEFAULT 1
+);
+
+-- Comprehensive indexes for performance optimization
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_timestamp ON compliance_audit_events(timestamp);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_user_id ON compliance_audit_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_entity_type ON compliance_audit_events(entity_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_entity_id ON compliance_audit_events(entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_regulation ON compliance_audit_events(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_severity ON compliance_audit_events(severity);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_risk_score ON compliance_audit_events(risk_score);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_hash_chain ON compliance_audit_events(hash_chain_current);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_regulation ON compliance_violations(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_severity ON compliance_violations(severity);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_detection_timestamp ON compliance_violations(detection_timestamp);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_remediation_status ON compliance_violations(remediation_status);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_escalation_level ON compliance_violations(escalation_level);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_status ON compliance_investigations(status);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_priority ON compliance_investigations(priority);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_assigned_investigator ON compliance_investigations(assigned_investigator);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_created_timestamp ON compliance_investigations(created_timestamp);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_deadline ON compliance_investigations(deadline);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_report_type ON compliance_reports(report_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_regulation ON compliance_reports(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_generated_at ON compliance_reports(generated_at);
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_period_start ON compliance_reports(period_start);
+
+CREATE INDEX IF NOT EXISTS idx_regulatory_changes_regulation ON regulatory_changes(regulation);
+CREATE INDEX IF NOT EXISTS idx_regulatory_changes_effective_date ON regulatory_changes(effective_date);
+CREATE INDEX IF NOT EXISTS idx_regulatory_changes_implementation_status ON regulatory_changes(implementation_status);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_patterns_pattern_type ON compliance_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_patterns_confidence_score ON compliance_patterns(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_compliance_patterns_first_detected ON compliance_patterns(first_detected);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_metrics_metric_name ON compliance_metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_compliance_metrics_regulation ON compliance_metrics(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_metrics_calculated_at ON compliance_metrics(calculated_at);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_stakeholders_role ON compliance_stakeholders(role);
+CREATE INDEX IF NOT EXISTS idx_compliance_stakeholders_department ON compliance_stakeholders(department);
+
+CREATE INDEX IF NOT EXISTS idx_audit_trail_integrity_verification_timestamp ON audit_trail_integrity(verification_timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_trail_integrity_integrity_status ON audit_trail_integrity(integrity_status);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_notifications_notification_type ON compliance_notifications(notification_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_notifications_severity ON compliance_notifications(severity);
+CREATE INDEX IF NOT EXISTS idx_compliance_notifications_delivery_status ON compliance_notifications(delivery_status);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_data_lineage_source_entity ON compliance_data_lineage(source_entity_type, source_entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_data_lineage_target_entity ON compliance_data_lineage(target_entity_type, target_entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_data_lineage_timestamp ON compliance_data_lineage(lineage_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_search_index_entity ON compliance_search_index(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_search_index_content_hash ON compliance_search_index(content_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_compliance_search_index_unique ON compliance_search_index(entity_id, entity_type, content_hash);
+
+-- Full-text search index for compliance content
+CREATE INDEX IF NOT EXISTS idx_compliance_search_content_gin ON compliance_search_index USING gin(to_tsvector('english', searchable_content));
+
+-- Triggers for automatic updates and integrity protection
+CREATE OR REPLACE FUNCTION update_compliance_violations_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER compliance_violations_update_timestamp
+    BEFORE UPDATE ON compliance_violations
+    FOR EACH ROW EXECUTE FUNCTION update_compliance_violations_timestamp();
+
+CREATE OR REPLACE FUNCTION update_compliance_investigations_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_timestamp = CURRENT_TIMESTAMP;
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER compliance_investigations_update_timestamp
+    BEFORE UPDATE ON compliance_investigations
+    FOR EACH ROW EXECUTE FUNCTION update_compliance_investigations_timestamp();
+
+-- Function to prevent audit event modifications (immutability)
+CREATE OR REPLACE FUNCTION prevent_audit_event_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Audit events are immutable and cannot be modified';
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_audit_event_updates
+    BEFORE UPDATE ON compliance_audit_events
+    FOR EACH ROW EXECUTE FUNCTION prevent_audit_event_modification();
+
+CREATE TRIGGER prevent_audit_event_deletes
+    BEFORE DELETE ON compliance_audit_events
+    FOR EACH ROW EXECUTE FUNCTION prevent_audit_event_modification();
+
+-- Function for automated compliance metrics calculation
+CREATE OR REPLACE FUNCTION calculate_compliance_metrics()
+RETURNS VOID AS $$
+DECLARE
+    metric_date DATE := CURRENT_DATE;
+    total_events INTEGER;
+    total_violations INTEGER;
+    compliance_rate DECIMAL(5,2);
+    avg_risk_score DECIMAL(3,2);
+    critical_violations INTEGER;
+BEGIN
+    -- Calculate daily compliance metrics
+    SELECT COUNT(*) INTO total_events
+    FROM compliance_audit_events
+    WHERE DATE(timestamp) = metric_date;
+    
+    SELECT COUNT(*) INTO total_violations
+    FROM compliance_violations
+    WHERE DATE(detection_timestamp) = metric_date;
+    
+    SELECT COUNT(*) INTO critical_violations
+    FROM compliance_violations
+    WHERE DATE(detection_timestamp) = metric_date AND severity = 'critical';
+    
+    -- Calculate compliance rate
+    compliance_rate := CASE 
+        WHEN total_events > 0 THEN ((total_events - total_violations)::DECIMAL / total_events) * 100
+        ELSE 100
+    END;
+    
+    -- Calculate average risk score
+    SELECT COALESCE(AVG(risk_score), 0) INTO avg_risk_score
+    FROM compliance_audit_events
+    WHERE DATE(timestamp) = metric_date;
+    
+    -- Insert daily metrics
+    INSERT INTO compliance_metrics (
+        metric_name, metric_value, metric_unit, regulation,
+        measurement_period_start, measurement_period_end,
+        target_value, status, trend
+    ) VALUES 
+    ('daily_compliance_rate', compliance_rate, 'percentage', 'overall',
+     metric_date::TIMESTAMP, (metric_date + INTERVAL '1 day')::TIMESTAMP,
+     95.0, 
+     CASE WHEN compliance_rate >= 95 THEN 'on_target' 
+          WHEN compliance_rate >= 90 THEN 'below_target'
+          ELSE 'critical' END,
+     'stable'),
+    ('daily_risk_score', avg_risk_score, 'score', 'overall',
+     metric_date::TIMESTAMP, (metric_date + INTERVAL '1 day')::TIMESTAMP,
+     0.3,
+     CASE WHEN avg_risk_score <= 0.3 THEN 'on_target'
+          WHEN avg_risk_score <= 0.5 THEN 'below_target'
+          ELSE 'critical' END,
+     'stable'),
+    ('daily_critical_violations', critical_violations, 'count', 'overall',
+     metric_date::TIMESTAMP, (metric_date + INTERVAL '1 day')::TIMESTAMP,
+     0,
+     CASE WHEN critical_violations = 0 THEN 'on_target'
+          WHEN critical_violations <= 2 THEN 'below_target'
+          ELSE 'critical' END,
+     'stable')
+    ON CONFLICT (metric_name, measurement_period_start, regulation) DO UPDATE SET
+        metric_value = EXCLUDED.metric_value,
+        status = EXCLUDED.status,
+        calculated_at = CURRENT_TIMESTAMP;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function for automated data retention cleanup
+CREATE OR REPLACE FUNCTION cleanup_expired_compliance_data()
+RETURNS INTEGER AS $$
+DECLARE
+    deleted_count INTEGER := 0;
+    temp_count INTEGER;
+    retention_date TIMESTAMP WITH TIME ZONE;
+BEGIN
+    -- Calculate retention cutoff (7 years ago)
+    retention_date := CURRENT_TIMESTAMP - INTERVAL '7 years';
+    
+    -- Clean up expired audit events (only if explicitly marked for deletion)
+    DELETE FROM compliance_audit_events 
+    WHERE created_at < retention_date 
+    AND data_classification = 'temporary';
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up resolved violations older than retention period
+    DELETE FROM compliance_violations 
+    WHERE resolution_timestamp < retention_date 
+    AND remediation_status = 'completed';
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up old compliance reports
+    DELETE FROM compliance_reports 
+    WHERE created_at < retention_date 
+    AND is_archived = true;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up old patterns that are no longer active
+    DELETE FROM compliance_patterns 
+    WHERE last_updated < CURRENT_TIMESTAMP - INTERVAL '1 year' 
+    AND is_active = false;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Log cleanup operation
+    INSERT INTO data_retention_log (
+        table_name, cleanup_type, records_processed, records_deleted,
+        retention_period_days, started_at, completed_at
+    ) VALUES (
+        'compliance_audit_trail', 'retention_cleanup', deleted_count, deleted_count,
+        2555, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    );
+    
+    RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to automatically update search index
+CREATE OR REPLACE FUNCTION update_compliance_search_index()
+RETURNS TRIGGER AS $$
+DECLARE
+    searchable_text TEXT;
+    content_hash VARCHAR(64);
+BEGIN
+    -- Build searchable content
+    searchable_text := COALESCE(NEW.action, '') || ' ' ||
+                      COALESCE(NEW.entity_type, '') || ' ' ||
+                      COALESCE(NEW.entity_id, '') || ' ' ||
+                      COALESCE(NEW.regulation, '') || ' ' ||
+                      COALESCE(NEW.details::TEXT, '');
+    
+    -- Calculate content hash
+    content_hash := encode(digest(searchable_text, 'sha256'), 'hex');
+    
+    -- Insert or update search index
+    INSERT INTO compliance_search_index (
+        entity_id, entity_type, searchable_content, content_hash,
+        regulation_tags, risk_tags, date_tags, user_tags
+    ) VALUES (
+        NEW.event_id::TEXT, 'compliance_event', searchable_text, content_hash,
+        CASE WHEN NEW.regulation IS NOT NULL THEN jsonb_build_array(NEW.regulation) ELSE '[]' END,
+        jsonb_build_array(NEW.severity),
+        jsonb_build_array(to_char(NEW.timestamp, 'YYYY-MM-DD')),
+        CASE WHEN NEW.user_id IS NOT NULL THEN jsonb_build_array(NEW.user_id) ELSE '[]' END
+    ) ON CONFLICT (entity_id, entity_type, content_hash) DO UPDATE SET
+        last_indexed = CURRENT_TIMESTAMP,
+        index_version = compliance_search_index.index_version + 1;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_compliance_search_index_trigger
+    AFTER INSERT ON compliance_audit_events
+    FOR EACH ROW EXECUTE FUNCTION update_compliance_search_index();
+
+-- Views for common compliance queries
+CREATE OR REPLACE VIEW compliance_dashboard_summary AS
+SELECT 
+    DATE(timestamp) as date,
+    regulation,
+    COUNT(*) as total_events,
+    COUNT(CASE WHEN compliance_status != 'compliant' THEN 1 END) as violations,
+    AVG(risk_score) as avg_risk_score,
+    COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_events,
+    COUNT(CASE WHEN severity = 'high' THEN 1 END) as high_events
+FROM compliance_audit_events
+WHERE timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(timestamp), regulation
+ORDER BY date DESC, regulation;
+
+CREATE OR REPLACE VIEW active_compliance_violations AS
+SELECT 
+    cv.*,
+    cae.user_id,
+    cae.timestamp as event_timestamp,
+    cae.entity_type,
+    cae.action
+FROM compliance_violations cv
+JOIN compliance_audit_events cae ON cv.event_id = cae.event_id
+WHERE cv.remediation_status != 'completed'
+AND cv.resolution_timestamp IS NULL
+ORDER BY cv.detection_timestamp DESC;
+
+CREATE OR REPLACE VIEW compliance_investigation_summary AS
+SELECT 
+    ci.*,
+    COUNT(cv.violation_id) as related_violations_count,
+    COUNT(cae.event_id) as related_events_count
+FROM compliance_investigations ci
+LEFT JOIN compliance_violations cv ON cv.investigation_id = ci.investigation_id
+LEFT JOIN compliance_audit_events cae ON cae.investigation_id = ci.investigation_id
+GROUP BY ci.investigation_id, ci.title, ci.description, ci.investigation_type, 
+         ci.priority, ci.status, ci.assigned_investigator, ci.created_timestamp,
+         ci.updated_timestamp, ci.deadline, ci.related_events, ci.related_violations,
+         ci.evidence_collected, ci.findings, ci.conclusions, ci.recommendations,
+         ci.actions_taken, ci.timeline, ci.stakeholders, ci.confidentiality_level,
+         ci.tags, ci.created_at, ci.updated_at
+ORDER BY ci.created_timestamp DESC;
