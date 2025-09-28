@@ -4408,6 +4408,7 @@ CREATE TRIGGER update_implementation_progress_trigger
     BEFORE UPDATE ON recommendation_implementations
     FOR EACH ROW EXECUTE FUNCTION update_implementation_progress();
 
+
 -- =============================================
 -- ADVANCED LENDER INTEGRATION MANAGER SCHEMA
 -- =============================================
@@ -4456,9 +4457,119 @@ CREATE TABLE IF NOT EXISTS lender_submissions_advanced (
     error_message TEXT,
     response_time_ms INTEGER,
     retry_count INTEGER DEFAULT 0,
+=======
+-- ============================================================================
+-- DUTCH MARKET INTELLIGENCE INTERFACE TABLES
+-- ============================================================================
+-- These tables support the Dutch Market Intelligence Interface with comprehensive
+-- real-time data feeds, trend analysis, and predictive insights
+
+-- Market Data Sources - stores configuration and metadata for Dutch market data sources
+CREATE TABLE IF NOT EXISTS market_data_sources (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Source identification
+    source_id VARCHAR(255) NOT NULL UNIQUE,
+    source_name VARCHAR(255) NOT NULL,
+    source_type VARCHAR(100) NOT NULL CHECK (source_type IN ('cbs', 'dnb', 'kadaster', 'afm', 'nhg', 'bkr', 'ecb', 'eurostat', 'custom')),
+    source_category VARCHAR(100) NOT NULL,
+    
+    -- Source details
+    description TEXT,
+    data_provider VARCHAR(255),
+    official_name VARCHAR(500),
+    website_url VARCHAR(500),
+    
+    -- API configuration
+    api_endpoint VARCHAR(500),
+    api_key_required BOOLEAN DEFAULT true,
+    api_version VARCHAR(50),
+    authentication_method VARCHAR(100) DEFAULT 'api_key',
+    rate_limit_requests INTEGER DEFAULT 100,
+    rate_limit_window INTEGER DEFAULT 3600, -- seconds
+    
+    -- Data characteristics
+    update_frequency VARCHAR(50) DEFAULT 'daily',
+    data_quality VARCHAR(20) DEFAULT 'high' CHECK (data_quality IN ('low', 'medium', 'high', 'very_high')),
+    historical_data_availability VARCHAR(100),
+    real_time_availability BOOLEAN DEFAULT false,
+    
+    -- Available metrics
+    available_metrics JSONB DEFAULT '[]',
+    supported_formats JSONB DEFAULT '["json"]',
+    supported_filters JSONB DEFAULT '{}',
+    
+    -- Source status and reliability
+    source_status VARCHAR(20) DEFAULT 'active' CHECK (source_status IN ('active', 'inactive', 'maintenance', 'deprecated')),
+    reliability_score DECIMAL(5,4) DEFAULT 1.0 CHECK (reliability_score BETWEEN 0 AND 1),
+    uptime_percentage DECIMAL(5,4) DEFAULT 1.0,
+    last_successful_fetch TIMESTAMP WITH TIME ZONE,
+    
+    -- Configuration and settings
+    fetch_configuration JSONB DEFAULT '{}',
+    transformation_rules JSONB DEFAULT '[]',
+    validation_rules JSONB DEFAULT '{}',
+    
+    -- Extended metadata
+    contact_information JSONB DEFAULT '{}',
+    license_information TEXT,
+    usage_restrictions TEXT,
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_validated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market Data Collections - stores collected market data points
+CREATE TABLE IF NOT EXISTS market_data_collections (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Collection identification
+    collection_id VARCHAR(255) NOT NULL UNIQUE,
+    source_id VARCHAR(255) NOT NULL REFERENCES market_data_sources(source_id) ON DELETE CASCADE,
+    metric_name VARCHAR(255) NOT NULL,
+    
+    -- Data point details
+    data_value DECIMAL(15,6) NOT NULL,
+    data_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    data_type VARCHAR(50) DEFAULT 'numeric',
+    data_unit VARCHAR(100),
+    
+    -- Data quality and validation
+    quality_score DECIMAL(5,4) DEFAULT 1.0 CHECK (quality_score BETWEEN 0 AND 1),
+    confidence_level DECIMAL(5,4) DEFAULT 1.0 CHECK (confidence_level BETWEEN 0 AND 1),
+    validation_status VARCHAR(20) DEFAULT 'validated' CHECK (validation_status IN ('pending', 'validated', 'failed', 'flagged')),
+    
+    -- Data context
+    geographical_scope VARCHAR(100) DEFAULT 'national',
+    sector_classification VARCHAR(100),
+    demographic_filters JSONB DEFAULT '{}',
+    
+    -- Collection metadata
+    collection_method VARCHAR(100) DEFAULT 'automated',
+    collection_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processing_time DECIMAL(8,4) DEFAULT 0,
+    batch_id VARCHAR(255),
+    
+    -- Data transformations applied
+    raw_value DECIMAL(15,6),
+    transformations_applied JSONB DEFAULT '[]',
+    normalization_method VARCHAR(100),
+    
+    -- Extended metadata
+    tags JSONB DEFAULT '[]',
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE IF NOT EXISTS lender_health_metrics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -4490,9 +4601,73 @@ CREATE TABLE IF NOT EXISTS validation_rules_advanced (
     priority INTEGER DEFAULT 1,
     lender_specific VARCHAR(100),
     is_active BOOLEAN DEFAULT true,
+
+-- Market Trend Analyses - stores results of trend analysis operations
+CREATE TABLE IF NOT EXISTS market_trend_analyses (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Analysis identification
+    analysis_id VARCHAR(255) NOT NULL UNIQUE,
+    analysis_name VARCHAR(255) NOT NULL,
+    analysis_type VARCHAR(100) NOT NULL CHECK (analysis_type IN ('trend_analysis', 'predictive_modeling', 'sentiment_analysis', 'risk_assessment', 'correlation_analysis', 'seasonal_analysis', 'volatility_analysis', 'comparative_analysis')),
+    
+    -- Analysis scope
+    metric_name VARCHAR(255) NOT NULL,
+    data_source VARCHAR(100),
+    analysis_period VARCHAR(100) NOT NULL,
+    data_points_count INTEGER DEFAULT 0,
+    
+    -- Trend analysis results
+    trend_type VARCHAR(50) DEFAULT 'unknown' CHECK (trend_type IN ('upward', 'downward', 'stable', 'volatile', 'cyclical', 'seasonal', 'unknown')),
+    trend_direction VARCHAR(50) DEFAULT 'stable',
+    trend_strength DECIMAL(5,4) DEFAULT 0 CHECK (trend_strength BETWEEN 0 AND 1),
+    confidence_level DECIMAL(5,4) DEFAULT 0 CHECK (confidence_level BETWEEN 0 AND 1),
+    
+    -- Statistical measures
+    statistical_significance DECIMAL(8,6) DEFAULT 0,
+    r_squared DECIMAL(8,6) DEFAULT 0,
+    trend_equation VARCHAR(500),
+    volatility_measure DECIMAL(8,6) DEFAULT 0,
+    
+    -- Trend components
+    trend_component DECIMAL(8,6),
+    seasonal_component DECIMAL(8,6),
+    cyclical_component DECIMAL(8,6),
+    irregular_component DECIMAL(8,6),
+    
+    -- Analysis parameters and configuration
+    analysis_parameters JSONB DEFAULT '{}',
+    algorithm_used VARCHAR(100),
+    model_configuration JSONB DEFAULT '{}',
+    
+    -- Key findings and factors
+    key_factors JSONB DEFAULT '[]',
+    analysis_summary TEXT,
+    significant_events JSONB DEFAULT '[]',
+    
+    -- Analysis quality and validation
+    analysis_quality DECIMAL(5,4) DEFAULT 1.0 CHECK (analysis_quality BETWEEN 0 AND 1),
+    validation_metrics JSONB DEFAULT '{}',
+    peer_review_status VARCHAR(20) DEFAULT 'pending',
+    
+    -- Time periods and forecasting
+    analysis_start_date TIMESTAMP WITH TIME ZONE,
+    analysis_end_date TIMESTAMP WITH TIME ZONE,
+    forecast_horizon_days INTEGER DEFAULT 0,
+    forecast_accuracy DECIMAL(5,4),
+    
+    -- Extended metadata
+    tags JSONB DEFAULT '[]',
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE IF NOT EXISTS validation_results_advanced (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -4930,9 +5105,153 @@ CREATE TABLE IF NOT EXISTS compliance_violations (
     compliance_officer_assigned VARCHAR(255),
     resolution_timestamp TIMESTAMP WITH TIME ZONE,
     resolution_details TEXT,
+=======
+-- Market Predictive Models - stores predictive model configurations and results
+CREATE TABLE IF NOT EXISTS market_predictive_models (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Model identification
+    model_id VARCHAR(255) NOT NULL UNIQUE,
+    model_name VARCHAR(255) NOT NULL,
+    model_type VARCHAR(100) NOT NULL CHECK (model_type IN ('random_forest', 'gradient_boosting', 'linear_regression', 'ridge', 'lasso', 'neural_network', 'arima', 'lstm')),
+    model_version VARCHAR(50) DEFAULT '1.0',
+    
+    -- Model target and features
+    target_variable VARCHAR(255) NOT NULL,
+    feature_variables JSONB NOT NULL DEFAULT '[]',
+    feature_importance JSONB DEFAULT '{}',
+    
+    -- Training data information
+    training_data_size INTEGER NOT NULL DEFAULT 0,
+    training_start_date TIMESTAMP WITH TIME ZONE,
+    training_end_date TIMESTAMP WITH TIME ZONE,
+    data_sources_used JSONB DEFAULT '[]',
+    
+    -- Model performance metrics
+    accuracy_score DECIMAL(8,6) DEFAULT 0 CHECK (accuracy_score BETWEEN 0 AND 1),
+    mae DECIMAL(12,6) DEFAULT 0, -- Mean Absolute Error
+    rmse DECIMAL(12,6) DEFAULT 0, -- Root Mean Square Error
+    r2_score DECIMAL(8,6) DEFAULT 0,
+    cross_validation_score DECIMAL(8,6) DEFAULT 0,
+    
+    -- Model configuration and parameters
+    model_parameters JSONB DEFAULT '{}',
+    hyperparameters JSONB DEFAULT '{}',
+    training_configuration JSONB DEFAULT '{}',
+    preprocessing_steps JSONB DEFAULT '[]',
+    
+    -- Predictions and forecasting
+    prediction_horizon_days INTEGER DEFAULT 30,
+    latest_predictions JSONB DEFAULT '[]',
+    prediction_confidence_intervals JSONB DEFAULT '[]',
+    prediction_accuracy_history JSONB DEFAULT '[]',
+    
+    -- Model validation and testing
+    validation_method VARCHAR(100) DEFAULT 'train_test_split',
+    test_data_size INTEGER DEFAULT 0,
+    validation_results JSONB DEFAULT '{}',
+    model_stability_score DECIMAL(5,4) DEFAULT 0,
+    
+    -- Model lifecycle
+    model_status VARCHAR(20) DEFAULT 'active' CHECK (model_status IN ('training', 'active', 'deprecated', 'archived', 'failed')),
+    last_training_date TIMESTAMP WITH TIME ZONE,
+    next_retrain_date TIMESTAMP WITH TIME ZONE,
+    retrain_frequency VARCHAR(50) DEFAULT 'monthly',
+    
+    -- Performance monitoring
+    prediction_drift_score DECIMAL(5,4) DEFAULT 0,
+    model_degradation_alerts INTEGER DEFAULT 0,
+    last_performance_check TIMESTAMP WITH TIME ZONE,
+    
+    -- Extended metadata
+    model_description TEXT,
+    business_context TEXT,
+    usage_guidelines TEXT,
+    limitations TEXT,
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_used TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market Intelligence Insights - stores generated market insights and recommendations
+CREATE TABLE IF NOT EXISTS market_intelligence_insights (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Insight identification
+    insight_id VARCHAR(255) NOT NULL UNIQUE,
+    insight_title VARCHAR(500) NOT NULL,
+    insight_category VARCHAR(100) NOT NULL,
+    insight_type VARCHAR(100) DEFAULT 'trend_based',
+    
+    -- Insight content
+    description TEXT NOT NULL,
+    detailed_analysis TEXT,
+    key_findings JSONB DEFAULT '[]',
+    implications JSONB DEFAULT '[]',
+    recommendations JSONB DEFAULT '[]',
+    
+    -- Insight scoring and prioritization
+    importance_score DECIMAL(5,4) NOT NULL CHECK (importance_score BETWEEN 0 AND 1),
+    confidence_level DECIMAL(5,4) NOT NULL CHECK (confidence_level BETWEEN 0 AND 1),
+    actionability_score DECIMAL(5,4) DEFAULT 0 CHECK (actionability_score BETWEEN 0 AND 1),
+    urgency_level VARCHAR(20) DEFAULT 'medium' CHECK (urgency_level IN ('low', 'medium', 'high', 'critical')),
+    
+    -- Risk assessment
+    risk_level VARCHAR(20) NOT NULL CHECK (risk_level IN ('very_low', 'low', 'moderate', 'high', 'very_high', 'critical')),
+    risk_factors JSONB DEFAULT '[]',
+    mitigation_strategies JSONB DEFAULT '[]',
+    
+    -- Supporting data and analysis
+    supporting_data_sources JSONB DEFAULT '[]',
+    analysis_references JSONB DEFAULT '[]', -- References to trend_analyses and models
+    statistical_evidence JSONB DEFAULT '{}',
+    validation_evidence JSONB DEFAULT '{}',
+    
+    -- Time relevance
+    time_horizon VARCHAR(100) DEFAULT 'short_term',
+    relevance_period VARCHAR(100),
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    
+    -- Insight lifecycle
+    insight_status VARCHAR(20) DEFAULT 'active' CHECK (insight_status IN ('draft', 'active', 'archived', 'superseded', 'rejected')),
+    review_status VARCHAR(20) DEFAULT 'pending',
+    reviewed_by VARCHAR(100),
+    review_notes TEXT,
+    
+    -- User interactions and feedback
+    view_count INTEGER DEFAULT 0,
+    like_count INTEGER DEFAULT 0,
+    share_count INTEGER DEFAULT 0,
+    implementation_count INTEGER DEFAULT 0,
+    user_feedback JSONB DEFAULT '[]',
+    
+    -- Quality and validation
+    insight_quality DECIMAL(5,4) DEFAULT 1.0 CHECK (insight_quality BETWEEN 0 AND 1),
+    peer_review_score DECIMAL(5,4),
+    validation_status VARCHAR(20) DEFAULT 'validated',
+    
+    -- Market context
+    market_conditions JSONB DEFAULT '{}',
+    economic_indicators JSONB DEFAULT '{}',
+    regulatory_context JSONB DEFAULT '{}',
+    
+    -- Extended metadata
+    tags JSONB DEFAULT '[]',
+    related_insights JSONB DEFAULT '[]',
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Compliance investigations table
 CREATE TABLE IF NOT EXISTS compliance_investigations (
@@ -4958,9 +5277,96 @@ CREATE TABLE IF NOT EXISTS compliance_investigations (
     stakeholders JSONB DEFAULT '[]',
     confidentiality_level VARCHAR(50) DEFAULT 'internal',
     tags JSONB DEFAULT '[]',
+=======
+-- Market Intelligence Reports - stores comprehensive market intelligence reports
+CREATE TABLE IF NOT EXISTS market_intelligence_reports (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Report identification
+    report_id VARCHAR(255) NOT NULL UNIQUE,
+    report_title VARCHAR(500) NOT NULL,
+    report_type VARCHAR(100) NOT NULL CHECK (report_type IN ('comprehensive', 'executive', 'technical', 'regulatory', 'sector_specific', 'custom')),
+    report_version VARCHAR(50) DEFAULT '1.0',
+    
+    -- Report scope and coverage
+    coverage_period VARCHAR(100) NOT NULL,
+    geographical_scope VARCHAR(100) DEFAULT 'netherlands',
+    sector_focus JSONB DEFAULT '[]',
+    market_segments JSONB DEFAULT '[]',
+    
+    -- Report structure and content
+    executive_summary TEXT,
+    key_findings JSONB DEFAULT '[]',
+    market_analysis TEXT,
+    trend_analysis TEXT,
+    risk_assessment TEXT,
+    recommendations JSONB DEFAULT '[]',
+    conclusions TEXT,
+    
+    -- Report components
+    included_insights JSONB DEFAULT '[]', -- References to market_intelligence_insights
+    data_sources_used JSONB DEFAULT '[]',
+    analyses_referenced JSONB DEFAULT '[]',
+    models_used JSONB DEFAULT '[]',
+    
+    -- Report metrics and statistics
+    total_insights_count INTEGER DEFAULT 0,
+    high_priority_insights_count INTEGER DEFAULT 0,
+    critical_risks_identified INTEGER DEFAULT 0,
+    recommendations_count INTEGER DEFAULT 0,
+    
+    -- Visualizations and attachments
+    visualizations JSONB DEFAULT '{}',
+    chart_configurations JSONB DEFAULT '{}',
+    attached_files JSONB DEFAULT '[]',
+    
+    -- Report quality and validation
+    report_quality DECIMAL(5,4) DEFAULT 1.0 CHECK (report_quality BETWEEN 0 AND 1),
+    data_completeness DECIMAL(5,4) DEFAULT 1.0,
+    analysis_depth VARCHAR(20) DEFAULT 'standard' CHECK (analysis_depth IN ('basic', 'standard', 'detailed', 'comprehensive')),
+    
+    -- Generation and processing
+    generation_method VARCHAR(100) DEFAULT 'automated',
+    generation_time DECIMAL(8,4),
+    processing_steps JSONB DEFAULT '[]',
+    generation_parameters JSONB DEFAULT '{}',
+    
+    -- Report lifecycle
+    report_status VARCHAR(20) DEFAULT 'draft' CHECK (report_status IN ('generating', 'draft', 'review', 'approved', 'published', 'archived')),
+    approval_status VARCHAR(20) DEFAULT 'pending',
+    approved_by VARCHAR(100),
+    approval_date TIMESTAMP WITH TIME ZONE,
+    
+    -- Distribution and access
+    distribution_list JSONB DEFAULT '[]',
+    access_level VARCHAR(20) DEFAULT 'internal' CHECK (access_level IN ('restricted', 'internal', 'public')),
+    download_count INTEGER DEFAULT 0,
+    view_count INTEGER DEFAULT 0,
+    
+    -- Export formats and storage
+    available_formats JSONB DEFAULT '["json", "pdf", "html"]',
+    file_paths JSONB DEFAULT '{}',
+    report_size_kb INTEGER DEFAULT 0,
+    
+    -- Extended metadata
+    report_description TEXT,
+    methodology TEXT,
+    limitations TEXT,
+    disclaimers TEXT,
+    tags JSONB DEFAULT '[]',
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    report_period_start TIMESTAMP WITH TIME ZONE,
+    report_period_end TIMESTAMP WITH TIME ZONE,
+    generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    published_at TIMESTAMP WITH TIME ZONE,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Compliance reports table
 CREATE TABLE IF NOT EXISTS compliance_reports (
@@ -5059,9 +5465,76 @@ CREATE TABLE IF NOT EXISTS compliance_stakeholders (
     notification_preferences JSONB DEFAULT '{}',
     escalation_level INTEGER DEFAULT 1,
     is_active BOOLEAN DEFAULT true,
+=======
+-- Intelligence Task Executions - stores task execution history and results for market intelligence
+CREATE TABLE IF NOT EXISTS intelligence_task_executions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Task identification
+    task_id VARCHAR(255) NOT NULL UNIQUE,
+    execution_id VARCHAR(255) NOT NULL,
+    task_type VARCHAR(100) NOT NULL CHECK (task_type IN ('collect_market_data', 'perform_trend_analysis', 'generate_predictive_model', 'generate_market_insights', 'generate_comprehensive_report', 'data_validation', 'cache_management', 'system_health_check', 'performance_optimization')),
+    task_name VARCHAR(500) NOT NULL,
+    
+    -- Task parameters and configuration
+    task_parameters JSONB NOT NULL DEFAULT '{}',
+    execution_parameters JSONB DEFAULT '{}',
+    environment_context JSONB DEFAULT '{}',
+    
+    -- Task execution details
+    execution_status VARCHAR(20) NOT NULL CHECK (execution_status IN ('pending', 'queued', 'running', 'completed', 'failed', 'cancelled', 'timeout', 'retrying')),
+    priority_level VARCHAR(20) DEFAULT 'normal' CHECK (priority_level IN ('critical', 'high', 'normal', 'low', 'background')),
+    timeout_seconds INTEGER DEFAULT 1800,
+    max_retries INTEGER DEFAULT 3,
+    retry_count INTEGER DEFAULT 0,
+    
+    -- Execution timing
+    queued_at TIMESTAMP WITH TIME ZONE,
+    started_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    execution_time DECIMAL(8,4) DEFAULT 0,
+    
+    -- Task results and outputs
+    execution_result JSONB DEFAULT '{}',
+    output_data JSONB DEFAULT '{}',
+    generated_artifacts JSONB DEFAULT '[]',
+    error_message TEXT,
+    error_details JSONB DEFAULT '{}',
+    
+    -- Resource utilization
+    cpu_usage_percent DECIMAL(5,2) DEFAULT 0,
+    memory_usage_mb DECIMAL(10,2) DEFAULT 0,
+    disk_io_operations INTEGER DEFAULT 0,
+    network_requests INTEGER DEFAULT 0,
+    
+    -- Dependencies and relationships
+    dependent_tasks JSONB DEFAULT '[]',
+    parent_task_id VARCHAR(255),
+    child_task_ids JSONB DEFAULT '[]',
+    
+    -- Quality and validation
+    execution_quality DECIMAL(5,4) DEFAULT 1.0 CHECK (execution_quality BETWEEN 0 AND 1),
+    output_validation_status VARCHAR(20) DEFAULT 'pending',
+    data_quality_score DECIMAL(5,4) DEFAULT 1.0,
+    
+    -- Monitoring and alerting
+    progress_percentage INTEGER DEFAULT 0 CHECK (progress_percentage BETWEEN 0 AND 100),
+    status_updates JSONB DEFAULT '[]',
+    alerts_generated JSONB DEFAULT '[]',
+    
+    -- Extended metadata
+    worker_thread VARCHAR(100),
+    execution_environment VARCHAR(100),
+    system_metrics JSONB DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
 
 -- Audit trail integrity verification table
 CREATE TABLE IF NOT EXISTS audit_trail_integrity (
@@ -5205,12 +5678,167 @@ CREATE INDEX IF NOT EXISTS idx_compliance_search_content_gin ON compliance_searc
 
 -- Triggers for automatic updates and integrity protection
 CREATE OR REPLACE FUNCTION update_compliance_violations_timestamp()
+
+-- Market Data Quality Metrics - stores data quality assessments and metrics
+CREATE TABLE IF NOT EXISTS market_data_quality_metrics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    
+    -- Quality assessment identification
+    assessment_id VARCHAR(255) NOT NULL UNIQUE,
+    source_id VARCHAR(255) NOT NULL,
+    metric_name VARCHAR(255) NOT NULL,
+    assessment_period VARCHAR(100) NOT NULL,
+    
+    -- Quality dimensions
+    completeness_score DECIMAL(5,4) DEFAULT 1.0 CHECK (completeness_score BETWEEN 0 AND 1),
+    accuracy_score DECIMAL(5,4) DEFAULT 1.0 CHECK (accuracy_score BETWEEN 0 AND 1),
+    consistency_score DECIMAL(5,4) DEFAULT 1.0 CHECK (consistency_score BETWEEN 0 AND 1),
+    timeliness_score DECIMAL(5,4) DEFAULT 1.0 CHECK (timeliness_score BETWEEN 0 AND 1),
+    validity_score DECIMAL(5,4) DEFAULT 1.0 CHECK (validity_score BETWEEN 0 AND 1),
+    
+    -- Overall quality metrics
+    overall_quality_score DECIMAL(5,4) DEFAULT 1.0 CHECK (overall_quality_score BETWEEN 0 AND 1),
+    quality_grade VARCHAR(5) DEFAULT 'A' CHECK (quality_grade IN ('A', 'B', 'C', 'D', 'F')),
+    quality_trend VARCHAR(20) DEFAULT 'stable' CHECK (quality_trend IN ('improving', 'stable', 'declining')),
+    
+    -- Data volume and coverage
+    total_data_points INTEGER DEFAULT 0,
+    missing_data_points INTEGER DEFAULT 0,
+    invalid_data_points INTEGER DEFAULT 0,
+    duplicate_data_points INTEGER DEFAULT 0,
+    outlier_data_points INTEGER DEFAULT 0,
+    
+    -- Quality issues identified
+    quality_issues JSONB DEFAULT '[]',
+    data_anomalies JSONB DEFAULT '[]',
+    validation_failures JSONB DEFAULT '[]',
+    
+    -- Assessment details
+    assessment_method VARCHAR(100) DEFAULT 'automated',
+    quality_rules_applied JSONB DEFAULT '[]',
+    validation_criteria JSONB DEFAULT '{}',
+    
+    -- Improvement recommendations
+    quality_recommendations JSONB DEFAULT '[]',
+    remediation_actions JSONB DEFAULT '[]',
+    priority_improvements JSONB DEFAULT '[]',
+    
+    -- Historical comparison
+    previous_assessment_score DECIMAL(5,4),
+    score_change DECIMAL(6,4) DEFAULT 0,
+    improvement_percentage DECIMAL(6,2) DEFAULT 0,
+    
+    -- Extended metadata
+    assessment_notes TEXT,
+    methodology TEXT,
+    data_lineage JSONB DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    
+    -- Timestamps
+    assessment_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    period_start TIMESTAMP WITH TIME ZONE,
+    period_end TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================================
+-- INDEXES FOR DUTCH MARKET INTELLIGENCE TABLES
+-- ============================================================================
+
+-- Market Data Sources indexes
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_source_id ON market_data_sources(source_id);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_source_type ON market_data_sources(source_type);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_status ON market_data_sources(source_status);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_reliability ON market_data_sources(reliability_score);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_last_fetch ON market_data_sources(last_successful_fetch);
+
+-- Market Data Collections indexes
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_collection_id ON market_data_collections(collection_id);
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_source_metric ON market_data_collections(source_id, metric_name);
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_timestamp ON market_data_collections(data_timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_collection_timestamp ON market_data_collections(collection_timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_quality ON market_data_collections(quality_score);
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_validation ON market_data_collections(validation_status);
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_batch ON market_data_collections(batch_id);
+
+-- Market Trend Analyses indexes
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_analysis_id ON market_trend_analyses(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_type ON market_trend_analyses(analysis_type);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_metric ON market_trend_analyses(metric_name);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_trend_type ON market_trend_analyses(trend_type);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_confidence ON market_trend_analyses(confidence_level);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_quality ON market_trend_analyses(analysis_quality);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_timestamp ON market_trend_analyses(analysis_timestamp);
+
+-- Market Predictive Models indexes
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_model_id ON market_predictive_models(model_id);
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_type ON market_predictive_models(model_type);
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_target ON market_predictive_models(target_variable);
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_status ON market_predictive_models(model_status);
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_accuracy ON market_predictive_models(accuracy_score);
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_last_used ON market_predictive_models(last_used);
+CREATE INDEX IF NOT EXISTS idx_market_predictive_models_retrain_date ON market_predictive_models(next_retrain_date);
+
+-- Market Intelligence Insights indexes
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_insight_id ON market_intelligence_insights(insight_id);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_category ON market_intelligence_insights(insight_category);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_importance ON market_intelligence_insights(importance_score);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_confidence ON market_intelligence_insights(confidence_level);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_risk_level ON market_intelligence_insights(risk_level);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_status ON market_intelligence_insights(insight_status);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_urgency ON market_intelligence_insights(urgency_level);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_generated ON market_intelligence_insights(generated_at);
+
+-- Market Intelligence Reports indexes
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_report_id ON market_intelligence_reports(report_id);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_type ON market_intelligence_reports(report_type);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_status ON market_intelligence_reports(report_status);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_quality ON market_intelligence_reports(report_quality);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_generated ON market_intelligence_reports(generated_at);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_published ON market_intelligence_reports(published_at);
+
+-- Intelligence Task Executions indexes
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_task_id ON intelligence_task_executions(task_id);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_execution_id ON intelligence_task_executions(execution_id);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_type ON intelligence_task_executions(task_type);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_status ON intelligence_task_executions(execution_status);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_priority ON intelligence_task_executions(priority_level);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_started ON intelligence_task_executions(started_at);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_completed ON intelligence_task_executions(completed_at);
+
+-- Market Data Quality Metrics indexes
+CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_assessment_id ON market_data_quality_metrics(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_source_metric ON market_data_quality_metrics(source_id, metric_name);
+CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_overall_score ON market_data_quality_metrics(overall_quality_score);
+CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_assessment_date ON market_data_quality_metrics(assessment_date);
+CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_grade ON market_data_quality_metrics(quality_grade);
+
+-- ============================================================================
+-- COMPOSITE INDEXES FOR PERFORMANCE OPTIMIZATION
+-- ============================================================================
+
+-- Multi-column indexes for complex queries
+CREATE INDEX IF NOT EXISTS idx_market_data_collections_source_metric_time ON market_data_collections(source_id, metric_name, data_timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_metric_type_confidence ON market_trend_analyses(metric_name, analysis_type, confidence_level);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_category_importance_risk ON market_intelligence_insights(insight_category, importance_score, risk_level);
+CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_type_status_started ON intelligence_task_executions(task_type, execution_status, started_at);
+
+-- ============================================================================
+-- TRIGGERS FOR DUTCH MARKET INTELLIGENCE TABLES
+-- ============================================================================
+
+-- Update timestamps trigger for market_data_sources
+CREATE OR REPLACE FUNCTION update_market_data_sources_updated_at()
+
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER compliance_violations_update_timestamp
     BEFORE UPDATE ON compliance_violations
@@ -5220,10 +5848,22 @@ CREATE OR REPLACE FUNCTION update_compliance_investigations_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_timestamp = CURRENT_TIMESTAMP;
+=======
+CREATE TRIGGER trigger_update_market_data_sources_updated_at
+    BEFORE UPDATE ON market_data_sources
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_data_sources_updated_at();
+
+-- Update timestamps trigger for market_data_collections
+CREATE OR REPLACE FUNCTION update_market_data_collections_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER compliance_investigations_update_timestamp
     BEFORE UPDATE ON compliance_investigations
@@ -5399,9 +6039,64 @@ BEGIN
         last_indexed = CURRENT_TIMESTAMP,
         index_version = compliance_search_index.index_version + 1;
     
+=======
+CREATE TRIGGER trigger_update_market_data_collections_updated_at
+    BEFORE UPDATE ON market_data_collections
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_data_collections_updated_at();
+
+-- Update timestamps trigger for market_trend_analyses
+CREATE OR REPLACE FUNCTION update_market_trend_analyses_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_market_trend_analyses_updated_at
+    BEFORE UPDATE ON market_trend_analyses
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_trend_analyses_updated_at();
+
+-- Update timestamps trigger for market_predictive_models
+CREATE OR REPLACE FUNCTION update_market_predictive_models_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_market_predictive_models_updated_at
+    BEFORE UPDATE ON market_predictive_models
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_predictive_models_updated_at();
+
+-- Update timestamps trigger for market_intelligence_insights
+CREATE OR REPLACE FUNCTION update_market_intelligence_insights_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_market_intelligence_insights_updated_at
+    BEFORE UPDATE ON market_intelligence_insights
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_intelligence_insights_updated_at();
+
+-- Update timestamps trigger for market_intelligence_reports
+CREATE OR REPLACE FUNCTION update_market_intelligence_reports_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER update_compliance_search_index_trigger
     AFTER INSERT ON compliance_audit_events
@@ -5786,12 +6481,36 @@ CREATE INDEX IF NOT EXISTS idx_risk_assessment_audit_timestamp ON risk_assessmen
 
 -- Triggers for automatic updates
 CREATE OR REPLACE FUNCTION update_risk_assessments_timestamp()
+=======
+CREATE TRIGGER trigger_update_market_intelligence_reports_updated_at
+    BEFORE UPDATE ON market_intelligence_reports
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_intelligence_reports_updated_at();
+
+-- Update timestamps trigger for intelligence_task_executions
+CREATE OR REPLACE FUNCTION update_intelligence_task_executions_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_intelligence_task_executions_updated_at
+    BEFORE UPDATE ON intelligence_task_executions
+    FOR EACH ROW
+    EXECUTE FUNCTION update_intelligence_task_executions_updated_at();
+
+-- Update timestamps trigger for market_data_quality_metrics
+CREATE OR REPLACE FUNCTION update_market_data_quality_metrics_updated_at()
+
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 
 CREATE TRIGGER risk_assessments_update_timestamp
     BEFORE UPDATE ON risk_assessments_advanced
@@ -8020,3 +8739,9 @@ INSERT INTO market_segments_config (
     '["gdp_growth", "unemployment", "inflation", "consumer_confidence"]',
     '["cbs", "eurostat", "ecb"]', '["correlation_analysis", "leading_indicators", "economic_modeling"]', 0.85
 ) ON CONFLICT DO NOTHING;
+
+CREATE TRIGGER trigger_update_market_data_quality_metrics_updated_at
+    BEFORE UPDATE ON market_data_quality_metrics
+    FOR EACH ROW
+    EXECUTE FUNCTION update_market_data_quality_metrics_updated_at();
+
