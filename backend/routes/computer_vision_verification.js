@@ -478,7 +478,7 @@ router.post('/batch-verify',
             });
             
             const results = [];
-            const errors = [];
+            const batchErrors = [];
             
             // Process documents sequentially to avoid resource overload
             for (let i = 0; i < documents.length; i++) {
@@ -538,7 +538,7 @@ router.post('/batch-verify',
                     
                 } catch (error) {
                     console.error(`Error verifying document ${document.originalname}:`, error);
-                    errors.push({
+                    batchErrors.push({
                         filename: document.originalname,
                         error: error.message
                     });
@@ -575,7 +575,7 @@ router.post('/batch-verify',
                 data: {
                     batch_statistics: batchStats,
                     verification_results: results,
-                    errors: errors
+                    errors: batchErrors
                 }
             });
             

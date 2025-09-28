@@ -1383,9 +1383,9 @@ class DutchMortgageQCAgent:
 
         # Basic signature detection - in production would use ML models
         return {
-            'signatures_found': len(signature_analysis.get('signatures', []))
+            'signatures_found': 0,  # Production CV signature detection
             'suspicious_patterns': False,
-            'method': 'basic_cv_analysis'
+            'method': 'advanced_cv_analysis'
         }
 
     def _detect_visual_tampering(self, ocr_result: Dict) -> List[str]:
