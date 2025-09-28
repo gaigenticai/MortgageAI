@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Lender Integration Manager - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .section h4 {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button.secondary {
+            background: var(--secondary-color);
+        }
+
+        .button.secondary:hover {
+            background: #475569;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            margin: 2rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 Advanced Lender Integration Manager</h1>
+            <p>Comprehensive AI-powered lender integration with real-time monitoring, approval predictions, and advanced validation</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#configuration">Lender Configuration</a></li>
+                <li><a href="#submissions">Application Submissions</a></li>
+                <li><a href="#predictions">AI Predictions</a></li>
+                <li><a href="#monitoring">Health Monitoring</a></li>
+                <li><a href="#validation">Validation Engine</a></li>
+                <li><a href="#optimization">Optimization</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The Advanced Lender Integration Manager is a comprehensive, production-grade system designed to manage complex integrations with multiple Dutch mortgage lenders. It provides AI-powered approval predictions, real-time health monitoring, advanced validation, and intelligent optimization capabilities.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🤖</div>
+                    <h4>AI-Powered Predictions</h4>
+                    <p>Machine learning models predict approval likelihood with confidence intervals, risk analysis, and optimization recommendations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Real-Time Monitoring</h4>
+                    <p>Continuous health monitoring with circuit breakers, rate limiting, and automated failover mechanisms.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Advanced Validation</h4>
+                    <p>Sophisticated validation engine with conditional logic, lender-specific rules, and intelligent error correction.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Performance Analytics</h4>
+                    <p>Comprehensive analytics dashboard with success rates, response times, and predictive insights.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Production Ready:</strong> This system is built with enterprise-grade architecture, including proper error handling, logging, monitoring, and security measures.
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+
+            <h3>🤖 AI-Powered Approval Predictions</h3>
+            <ul>
+                <li><strong>Ensemble Models:</strong> Random Forest, Gradient Boosting, and Logistic Regression</li>
+                <li><strong>Confidence Intervals:</strong> Statistical confidence bounds for predictions</li>
+                <li><strong>Risk Analysis:</strong> Automated identification of risk and positive factors</li>
+                <li><strong>Feature Importance:</strong> Understanding which factors drive decisions</li>
+                <li><strong>Model Versioning:</strong> Track and manage model versions over time</li>
+            </ul>
+
+            <h3>⚡ Real-Time Lender Integration</h3>
+            <ul>
+                <li><strong>Circuit Breaker Pattern:</strong> Automatic failover when lenders are unavailable</li>
+                <li><strong>Rate Limiting:</strong> Token bucket algorithm for API rate management</li>
+                <li><strong>Load Balancing:</strong> Intelligent distribution across multiple endpoints</li>
+                <li><strong>Health Monitoring:</strong> Continuous monitoring of lender API health</li>
+                <li><strong>WebSocket Updates:</strong> Real-time status updates and notifications</li>
+            </ul>
+
+            <h3>🛡️ Advanced Validation Engine</h3>
+            <ul>
+                <li><strong>Rule Types:</strong> Regex, range, required, email, BSN, IBAN, postcode validation</li>
+                <li><strong>Conditional Logic:</strong> Rules that apply based on specific conditions</li>
+                <li><strong>Lender-Specific Rules:</strong> Customized validation for each lender</li>
+                <li><strong>Error Correction:</strong> Intelligent suggestions for fixing validation errors</li>
+                <li><strong>Severity Levels:</strong> INFO, WARNING, ERROR, CRITICAL classifications</li>
+            </ul>
+
+            <h3>📊 Performance Monitoring & Analytics</h3>
+            <ul>
+                <li><strong>Response Time Tracking:</strong> Monitor API response times and trends</li>
+                <li><strong>Success Rate Analysis:</strong> Track submission success rates by lender</li>
+                <li><strong>Error Analysis:</strong> Categorize and analyze failure patterns</li>
+                <li><strong>Predictive Analytics:</strong> Forecast lender performance and capacity</li>
+                <li><strong>Custom Dashboards:</strong> Configurable monitoring dashboards</li>
+            </ul>
+        </div>
+
+        <!-- Getting Started Section -->
+        <div class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+
+            <h3>Prerequisites</h3>
+            <ul>
+                <li>Docker and Docker Compose installed</li>
+                <li>PostgreSQL database (handled by Docker)</li>
+                <li>Redis cache (handled by Docker)</li>
+                <li>Python 3.9+ with required packages</li>
+                <li>Node.js 18+ for the API server</li>
+            </ul>
+
+            <h3>Installation Steps</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Start the System</strong>
+                    <div class="code-block">docker-compose up -d</div>
+                    <p>This starts all required services including the Advanced Lender Integration Manager.</p>
+                </li>
+                <li>
+                    <strong>Verify Installation</strong>
+                    <div class="code-block">curl http://localhost:8002/health</div>
+                    <p>Check that the lender integration service is running properly.</p>
+                </li>
+                <li>
+                    <strong>Access the UI</strong>
+                    <p>Navigate to <code>http://localhost:3001</code> and find the "Advanced Lender Integration" section.</p>
+                </li>
+                <li>
+                    <strong>Configure Lenders</strong>
+                    <p>Add your lender configurations using the management interface or API.</p>
+                </li>
+            </ol>
+
+            <div class="alert success">
+                <strong>✅ Quick Test:</strong> Use the demo functionality in the UI to test the system with sample data.
+            </div>
+        </div>
+
+        <!-- Configuration Section -->
+        <div class="section" id="configuration">
+            <h2>⚙️ Lender Configuration</h2>
+
+            <h3>Adding a New Lender</h3>
+            <p>Lenders can be configured through the API or management interface. Here's the complete configuration structure:</p>
+
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/lenders</span>
+{
+  <span class="string">"name"</span>: <span class="string">"ING Bank"</span>,
+  <span class="string">"api_url"</span>: <span class="string">"https://api.ing.nl/mortgage"</span>,
+  <span class="string">"api_key"</span>: <span class="string">"your_api_key_here"</span>,
+  <span class="string">"backup_api_url"</span>: <span class="string">"https://backup-api.ing.nl/mortgage"</span>,
+  <span class="string">"backup_api_key"</span>: <span class="string">"backup_api_key"</span>,
+  <span class="string">"supported_products"</span>: [
+    <span class="string">"fixed_5_year"</span>,
+    <span class="string">"fixed_10_year"</span>,
+    <span class="string">"fixed_20_year"</span>,
+    <span class="string">"variable"</span>
+  ],
+  <span class="string">"max_loan_amount"</span>: 1000000,
+  <span class="string">"min_loan_amount"</span>: 50000,
+  <span class="string">"max_ltv"</span>: 100,
+  <span class="string">"min_income"</span>: 30000,
+  <span class="string">"processing_time_days"</span>: 7,
+  <span class="string">"rate_limit_per_hour"</span>: 100,
+  <span class="string">"timeout_seconds"</span>: 60,
+  <span class="string">"retry_attempts"</span>: 3,
+  <span class="string">"circuit_breaker_threshold"</span>: 5,
+  <span class="string">"priority_score"</span>: 8,
+  <span class="string">"fees"</span>: {
+    <span class="string">"interest_rate"</span>: 3.2,
+    <span class="string">"origination_fee"</span>: 1500,
+    <span class="string">"appraisal_fee"</span>: 400
+  },
+  <span class="string">"requirements"</span>: {
+    <span class="string">"min_credit_score"</span>: 650,
+    <span class="string">"max_dti_ratio"</span>: 40,
+    <span class="string">"min_employment_years"</span>: 2
+  },
+  <span class="string">"document_requirements"</span>: [
+    <span class="string">"income_proof"</span>,
+    <span class="string">"id_document"</span>,
+    <span class="string">"bank_statements"</span>,
+    <span class="string">"employment_contract"</span>
+  ],
+  <span class="string">"custom_headers"</span>: {
+    <span class="string">"X-API-Version"</span>: <span class="string">"2025.1"</span>,
+    <span class="string">"X-Client-ID"</span>: <span class="string">"mortgage-ai"</span>
+  }
+}
+            </div>
+
+            <h3>Configuration Parameters</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>name</td>
+                        <td>String</td>
+                        <td>Yes</td>
+                        <td>Unique lender name</td>
+                    </tr>
+                    <tr>
+                        <td>api_url</td>
+                        <td>String</td>
+                        <td>Yes</td>
+                        <td>Primary API endpoint URL</td>
+                    </tr>
+                    <tr>
+                        <td>api_key</td>
+                        <td>String</td>
+                        <td>Yes</td>
+                        <td>API authentication key (encrypted in storage)</td>
+                    </tr>
+                    <tr>
+                        <td>backup_api_url</td>
+                        <td>String</td>
+                        <td>No</td>
+                        <td>Fallback API endpoint</td>
+                    </tr>
+                    <tr>
+                        <td>max_loan_amount</td>
+                        <td>Number</td>
+                        <td>Yes</td>
+                        <td>Maximum loan amount in EUR</td>
+                    </tr>
+                    <tr>
+                        <td>rate_limit_per_hour</td>
+                        <td>Number</td>
+                        <td>No</td>
+                        <td>API rate limit (default: 100)</td>
+                    </tr>
+                    <tr>
+                        <td>circuit_breaker_threshold</td>
+                        <td>Number</td>
+                        <td>No</td>
+                        <td>Failures before circuit opens (default: 5)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="alert warning">
+                <strong>🔐 Security Note:</strong> API keys are automatically encrypted before storage. Never store plain text API keys in configuration files.
+            </div>
+        </div>
+
+        <!-- Submissions Section -->
+        <div class="section" id="submissions">
+            <h2>📤 Application Submissions</h2>
+
+            <h3>Single Lender Submission</h3>
+            <p>Submit an application to a specific lender with comprehensive validation and prediction:</p>
+
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/submit</span>
+{
+  <span class="string">"lender_name"</span>: <span class="string">"ING Bank"</span>,
+  <span class="string">"application_data"</span>: {
+    <span class="string">"first_name"</span>: <span class="string">"Jan"</span>,
+    <span class="string">"last_name"</span>: <span class="string">"de Vries"</span>,
+    <span class="string">"bsn"</span>: <span class="string">"123456782"</span>,
+    <span class="string">"email"</span>: <span class="string">"jan@example.com"</span>,
+    <span class="string">"phone"</span>: <span class="string">"+31612345678"</span>,
+    <span class="string">"date_of_birth"</span>: <span class="string">"1985-06-15"</span>,
+    <span class="string">"address"</span>: <span class="string">"Damrak 123, Amsterdam"</span>,
+    <span class="string">"postcode"</span>: <span class="string">"1012 LP"</span>,
+    <span class="string">"loan_amount"</span>: 300000,
+    <span class="string">"property_value"</span>: 400000,
+    <span class="string">"loan_term_years"</span>: 30,
+    <span class="string">"interest_type"</span>: <span class="string">"fixed"</span>,
+    <span class="string">"gross_annual_income"</span>: 60000,
+    <span class="string">"employment_type"</span>: <span class="string">"permanent"</span>,
+    <span class="string">"employment_years"</span>: 5,
+    <span class="string">"existing_debts"</span>: 5000,
+    <span class="string">"savings"</span>: 50000
+  },
+  <span class="string">"options"</span>: {
+    <span class="string">"validate_only"</span>: <span class="keyword">false</span>,
+    <span class="string">"priority"</span>: <span class="string">"normal"</span>
+  }
+}
+            </div>
+
+            <h3>Batch Submission</h3>
+            <p>Submit to multiple lenders simultaneously for comparison:</p>
+
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/submit-batch</span>
+{
+  <span class="string">"lender_names"</span>: [<span class="string">"ING Bank"</span>, <span class="string">"Rabobank"</span>, <span class="string">"ABN AMRO"</span>],
+  <span class="string">"application_data"</span>: { <span class="comment">/* same as above */</span> },
+  <span class="string">"options"</span>: {
+    <span class="string">"parallel_processing"</span>: <span class="keyword">true</span>,
+    <span class="string">"max_concurrent"</span>: 3
+  }
+}
+            </div>
+
+            <h3>Submission Response</h3>
+            <p>The system returns comprehensive information about the submission:</p>
+
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"submission_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="string">"lender_reference"</span>: <span class="string">"ING-2025-001234"</span>,
+  <span class="string">"status"</span>: <span class="string">"submitted"</span>,
+  <span class="string">"estimated_processing_time"</span>: 7,
+  <span class="string">"validation_results"</span>: {
+    <span class="string">"bsn"</span>: [{
+      <span class="string">"is_valid"</span>: <span class="keyword">true</span>,
+      <span class="string">"message"</span>: <span class="string">"Valid BSN format and checksum"</span>
+    }],
+    <span class="string">"loan_amount"</span>: [{
+      <span class="string">"is_valid"</span>: <span class="keyword">true</span>,
+      <span class="string">"message"</span>: <span class="string">"Within lender limits"</span>
+    }]
+  },
+  <span class="string">"approval_prediction"</span>: {
+    <span class="string">"probability"</span>: 0.85,
+    <span class="string">"confidence_interval"</span>: [0.78, 0.92],
+    <span class="string">"risk_factors"</span>: [<span class="string">"High LTV ratio: 75%"</span>],
+    <span class="string">"positive_factors"</span>: [
+      <span class="string">"Stable employment: 5 years"</span>,
+      <span class="string">"Good savings: €50,000"</span>
+    ],
+    <span class="string">"recommendation"</span>: <span class="string">"Strong approval likelihood - proceed with application"</span>
+  },
+  <span class="string">"response_time_ms"</span>: 1250
+}
+            </div>
+
+            <div class="alert info">
+                <strong>💡 Pro Tip:</strong> Use batch submissions to compare multiple lenders and find the best options for your clients.
+            </div>
+        </div>
+
+        <!-- Predictions Section -->
+        <div class="section" id="predictions">
+            <h2>🤖 AI Approval Predictions</h2>
+
+            <h3>How Predictions Work</h3>
+            <p>The AI prediction system uses ensemble machine learning models trained on historical lender data to predict approval likelihood:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>Ensemble Models</h4>
+                    <p>Combines Random Forest, Gradient Boosting, and Logistic Regression for robust predictions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Feature Engineering</h4>
+                    <p>Automatically calculates LTV ratios, debt-to-income ratios, and other derived features.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Risk Analysis</h4>
+                    <p>Identifies specific risk and positive factors that influence lender decisions.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h4>Confidence Intervals</h4>
+                    <p>Provides statistical confidence bounds for prediction reliability.</p>
+                </div>
+            </div>
+
+            <h3>Getting Predictions</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/predict</span>
+{
+  <span class="string">"application_data"</span>: {
+    <span class="string">"loan_amount"</span>: 300000,
+    <span class="string">"property_value"</span>: 400000,
+    <span class="string">"gross_annual_income"</span>: 60000,
+    <span class="string">"employment_type"</span>: <span class="string">"permanent"</span>,
+    <span class="string">"employment_years"</span>: 5,
+    <span class="string">"age"</span>: 35,
+    <span class="string">"existing_debts"</span>: 5000,
+    <span class="string">"savings"</span>: 50000
+  },
+  <span class="string">"lender_names"</span>: [<span class="string">"ING Bank"</span>, <span class="string">"Rabobank"</span>] <span class="comment">// Optional: specific lenders</span>
+}
+            </div>
+
+            <h3>Training Models</h3>
+            <p>Models can be retrained with new historical data to improve accuracy:</p>
+
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/train</span>
+{
+  <span class="string">"lender_names"</span>: [<span class="string">"ING Bank"</span>],
+  <span class="string">"training_data"</span>: {
+    <span class="string">"ING Bank"</span>: [
+      {
+        <span class="string">"loan_amount"</span>: 250000,
+        <span class="string">"property_value"</span>: 350000,
+        <span class="string">"gross_annual_income"</span>: 55000,
+        <span class="string">"approved"</span>: <span class="keyword">true</span>,
+        <span class="string">"processing_time_days"</span>: 6,
+        <span class="string">"final_interest_rate"</span>: 3.25
+      }
+      <span class="comment">// ... more training records</span>
+    ]
+  }
+}
+            </div>
+
+            <h3>Prediction Features</h3>
+            <p>The model uses these key features for predictions:</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>LTV Ratio</td>
+                        <td>Calculated</td>
+                        <td>Loan-to-Value percentage</td>
+                        <td>High</td>
+                    </tr>
+                    <tr>
+                        <td>Debt-to-Income Ratio</td>
+                        <td>Calculated</td>
+                        <td>Monthly debt payments vs income</td>
+                        <td>High</td>
+                    </tr>
+                    <tr>
+                        <td>Credit Score</td>
+                        <td>Direct</td>
+                        <td>Applicant's credit rating</td>
+                        <td>High</td>
+                    </tr>
+                    <tr>
+                        <td>Employment Years</td>
+                        <td>Direct</td>
+                        <td>Years in current employment</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Savings Amount</td>
+                        <td>Direct</td>
+                        <td>Available savings and investments</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Property Type</td>
+                        <td>Encoded</td>
+                        <td>House, apartment, etc.</td>
+                        <td>Low</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Monitoring Section -->
+        <div class="section" id="monitoring">
+            <h2>📊 Health Monitoring</h2>
+
+            <h3>Real-Time Health Metrics</h3>
+            <p>The system continuously monitors lender API health and performance:</p>
+
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('health-overview')">Overview</button>
+                    <button class="tab-button" onclick="showTab('health-metrics')">Metrics</button>
+                    <button class="tab-button" onclick="showTab('health-alerts')">Alerts</button>
+                </div>
+
+                <div id="health-overview" class="tab-content active">
+                    <h4>Health Status Indicators</h4>
+                    <ul>
+                        <li><strong>🟢 Active:</strong> Lender API is responding normally</li>
+                        <li><strong>🟡 Degraded:</strong> Elevated response times or intermittent failures</li>
+                        <li><strong>🔴 Offline:</strong> Lender API is not responding</li>
+                        <li><strong>🔧 Maintenance:</strong> Scheduled maintenance window</li>
+                        <li><strong>⏱️ Rate Limited:</strong> API rate limits exceeded</li>
+                    </ul>
+
+                    <div class="code-block">
+<span class="comment">// GET /api/lender-integration-advanced/health</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"health"</span>: {
+    <span class="string">"lenders"</span>: {
+      <span class="string">"ING Bank"</span>: {
+        <span class="string">"status"</span>: <span class="string">"active"</span>,
+        <span class="string">"response_time_ms"</span>: 245,
+        <span class="string">"success_rate"</span>: 0.98,
+        <span class="string">"consecutive_failures"</span>: 0,
+        <span class="string">"circuit_breaker_open"</span>: <span class="keyword">false</span>
+      }
+    },
+    <span class="string">"system"</span>: {
+      <span class="string">"monitoring_active"</span>: <span class="keyword">true</span>,
+      <span class="string">"db_connected"</span>: <span class="keyword">true</span>,
+      <span class="string">"redis_connected"</span>: <span class="keyword">true</span>
+    }
+  }
+}
+                    </div>
+                </div>
+
+                <div id="health-metrics" class="tab-content">
+                    <h4>Performance Metrics</h4>
+                    <p>Key performance indicators tracked for each lender:</p>
+                    <ul>
+                        <li><strong>Response Time:</strong> Average, min, max API response times</li>
+                        <li><strong>Success Rate:</strong> Percentage of successful API calls</li>
+                        <li><strong>Error Rate:</strong> Percentage of failed API calls</li>
+                        <li><strong>Uptime:</strong> Percentage of time the API was available</li>
+                        <li><strong>Throughput:</strong> Number of requests processed per hour</li>
+                    </ul>
+
+                    <div class="code-block">
+<span class="comment">// GET /api/lender-integration-advanced/reports/performance</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"performance_metrics"</span>: [
+    {
+      <span class="string">"lender_name"</span>: <span class="string">"ING Bank"</span>,
+      <span class="string">"avg_response_time"</span>: 245.5,
+      <span class="string">"min_response_time"</span>: 123,
+      <span class="string">"max_response_time"</span>: 1250,
+      <span class="string">"total_requests"</span>: 1500,
+      <span class="string">"successful_requests"</span>: 1470,
+      <span class="string">"success_rate"</span>: 98.0
+    }
+  ]
+}
+                    </div>
+                </div>
+
+                <div id="health-alerts" class="tab-content">
+                    <h4>Alert Management</h4>
+                    <p>The system generates alerts for various conditions:</p>
+                    <ul>
+                        <li><strong>High Response Time:</strong> When response time exceeds threshold</li>
+                        <li><strong>Low Success Rate:</strong> When success rate drops below threshold</li>
+                        <li><strong>Circuit Breaker Open:</strong> When circuit breaker trips</li>
+                        <li><strong>Rate Limit Exceeded:</strong> When API rate limits are hit</li>
+                        <li><strong>Connection Failures:</strong> When API becomes unreachable</li>
+                    </ul>
+
+                    <div class="alert warning">
+                        <strong>⚠️ Alert Thresholds:</strong> Configure alert thresholds based on your SLA requirements and lender performance expectations.
+                    </div>
+                </div>
+            </div>
+
+            <h3>Circuit Breaker Pattern</h3>
+            <p>The system uses circuit breakers to prevent cascading failures:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h4>Closed State</h4>
+                    <p>Normal operation - requests pass through to the lender API.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Open State</h4>
+                    <p>Circuit is open - requests fail fast without hitting the lender API.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔄</div>
+                    <h4>Half-Open State</h4>
+                    <p>Testing state - limited requests allowed to test if lender has recovered.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Section -->
+        <div class="section" id="validation">
+            <h2>🛡️ Advanced Validation Engine</h2>
+
+            <h3>Validation Rule Types</h3>
+            <p>The validation engine supports multiple rule types for comprehensive data validation:</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Rule Type</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>regex</td>
+                        <td>Regular expression pattern matching</td>
+                        <td>Email format validation</td>
+                    </tr>
+                    <tr>
+                        <td>range</td>
+                        <td>Numeric range validation</td>
+                        <td>Loan amount limits</td>
+                    </tr>
+                    <tr>
+                        <td>required</td>
+                        <td>Field must not be empty</td>
+                        <td>First name required</td>
+                    </tr>
+                    <tr>
+                        <td>bsn</td>
+                        <td>Dutch BSN validation with checksum</td>
+                        <td>Valid BSN number</td>
+                    </tr>
+                    <tr>
+                        <td>iban</td>
+                        <td>IBAN format and checksum validation</td>
+                        <td>Valid Dutch IBAN</td>
+                    </tr>
+                    <tr>
+                        <td>postcode</td>
+                        <td>Dutch postal code format</td>
+                        <td>1234 AB format</td>
+                    </tr>
+                    <tr>
+                        <td>conditional</td>
+                        <td>Rules that apply based on conditions</td>
+                        <td>Income required if employed</td>
+                    </tr>
+                    <tr>
+                        <td>custom</td>
+                        <td>Custom validation functions</td>
+                        <td>Complex business logic</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Creating Validation Rules</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/validation-rules</span>
+{
+  <span class="string">"rule_id"</span>: <span class="string">"ing_max_ltv"</span>,
+  <span class="string">"name"</span>: <span class="string">"ING Maximum LTV Check"</span>,
+  <span class="string">"description"</span>: <span class="string">"Validate LTV ratio for ING Bank"</span>,
+  <span class="string">"field"</span>: <span class="string">"ltv_ratio"</span>,
+  <span class="string">"rule_type"</span>: <span class="string">"range"</span>,
+  <span class="string">"parameters"</span>: {
+    <span class="string">"min"</span>: 0,
+    <span class="string">"max"</span>: 100
+  },
+  <span class="string">"severity"</span>: <span class="string">"ERROR"</span>,
+  <span class="string">"error_message"</span>: <span class="string">"LTV ratio cannot exceed 100% for ING Bank"</span>,
+  <span class="string">"correction_suggestion"</span>: <span class="string">"Increase down payment or reduce loan amount"</span>,
+  <span class="string">"lender_specific"</span>: <span class="string">"ING Bank"</span>,
+  <span class="string">"priority"</span>: 1
+}
+            </div>
+
+            <h3>Conditional Validation</h3>
+            <p>Rules can be applied conditionally based on other field values:</p>
+
+            <div class="code-block">
+{
+  <span class="string">"rule_id"</span>: <span class="string">"employment_income_required"</span>,
+  <span class="string">"name"</span>: <span class="string">"Income Required for Employed"</span>,
+  <span class="string">"field"</span>: <span class="string">"gross_annual_income"</span>,
+  <span class="string">"rule_type"</span>: <span class="string">"required"</span>,
+  <span class="string">"conditions"</span>: [
+    {
+      <span class="string">"field"</span>: <span class="string">"employment_type"</span>,
+      <span class="string">"operator"</span>: <span class="string">"in"</span>,
+      <span class="string">"value"</span>: [<span class="string">"permanent"</span>, <span class="string">"contract"</span>]
+    }
+  ],
+  <span class="string">"severity"</span>: <span class="string">"ERROR"</span>,
+  <span class="string">"error_message"</span>: <span class="string">"Income is required for employed applicants"</span>
+}
+            </div>
+
+            <h3>Validation Response</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"validation_results"</span>: {
+    <span class="string">"bsn"</span>: [
+      {
+        <span class="string">"field"</span>: <span class="string">"bsn"</span>,
+        <span class="string">"rule_id"</span>: <span class="string">"bsn_format"</span>,
+        <span class="string">"is_valid"</span>: <span class="keyword">true</span>,
+        <span class="string">"severity"</span>: <span class="string">"INFO"</span>,
+        <span class="string">"message"</span>: <span class="string">"Valid BSN format and checksum"</span>,
+        <span class="string">"confidence"</span>: 1.0
+      }
+    ],
+    <span class="string">"loan_amount"</span>: [
+      {
+        <span class="string">"field"</span>: <span class="string">"loan_amount"</span>,
+        <span class="string">"rule_id"</span>: <span class="string">"ing_loan_amount"</span>,
+        <span class="string">"is_valid"</span>: <span class="keyword">false</span>,
+        <span class="string">"severity"</span>: <span class="string">"ERROR"</span>,
+        <span class="string">"message"</span>: <span class="string">"Loan amount exceeds maximum limit"</span>,
+        <span class="string">"suggestion"</span>: <span class="string">"Reduce loan amount to €1,000,000 or less"</span>,
+        <span class="string">"confidence"</span>: 1.0
+      }
+    ]
+  }
+}
+            </div>
+        </div>
+
+        <!-- Optimization Section -->
+        <div class="section" id="optimization">
+            <h2>🎯 Lender Optimization</h2>
+
+            <h3>Multi-Criteria Optimization</h3>
+            <p>The system optimizes lender selection based on multiple criteria:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Approval Probability</h4>
+                    <p>AI-predicted likelihood of approval (40% weight)</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💰</div>
+                    <h4>Interest Rates</h4>
+                    <p>Competitive interest rates and fees (30% weight)</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Processing Speed</h4>
+                    <p>Lender priority and processing time (20% weight)</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Reliability</h4>
+                    <p>API health and success rates (10% weight)</p>
+                </div>
+            </div>
+
+            <h3>Getting Optimized Recommendations</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/optimize</span>
+{
+  <span class="string">"application_data"</span>: {
+    <span class="string">"loan_amount"</span>: 300000,
+    <span class="string">"property_value"</span>: 400000,
+    <span class="string">"gross_annual_income"</span>: 60000,
+    <span class="string">"loan_term_years"</span>: 30
+  },
+  <span class="string">"criteria"</span>: {
+    <span class="string">"max_interest_rate"</span>: 4.0,
+    <span class="string">"max_processing_days"</span>: 14,
+    <span class="string">"min_approval_probability"</span>: 0.7
+  }
+}
+            </div>
+
+            <h3>Optimization Response</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"recommendations"</span>: [
+    {
+      <span class="string">"lender_name"</span>: <span class="string">"ING Bank"</span>,
+      <span class="string">"approval_probability"</span>: 0.85,
+      <span class="string">"confidence_interval"</span>: [0.78, 0.92],
+      <span class="string">"estimated_interest_rate"</span>: 3.2,
+      <span class="string">"monthly_payment"</span>: 1264.81,
+      <span class="string">"total_cost"</span>: 455331.60,
+      <span class="string">"processing_time_days"</span>: 7,
+      <span class="string">"recommendation_score"</span>: 8.7,
+      <span class="string">"risk_factors"</span>: [<span class="string">"High LTV ratio: 75%"</span>],
+      <span class="string">"positive_factors"</span>: [
+        <span class="string">"Stable employment: 5 years"</span>,
+        <span class="string">"Good savings: €50,000"</span>
+      ]
+    }
+  ]
+}
+            </div>
+
+            <h3>Lender Comparison</h3>
+            <p>Compare multiple lenders side-by-side:</p>
+
+            <div class="code-block">
+<span class="comment">// POST /api/lender-integration-advanced/compare</span>
+{
+  <span class="string">"application_data"</span>: { <span class="comment">/* application data */</span> },
+  <span class="string">"lender_names"</span>: [<span class="string">"ING Bank"</span>, <span class="string">"Rabobank"</span>, <span class="string">"ABN AMRO"</span>]
+}
+            </div>
+
+            <div class="alert info">
+                <strong>💡 Optimization Tips:</strong>
+                <ul>
+                    <li>Consider both approval probability and total cost</li>
+                    <li>Factor in processing time for urgent applications</li>
+                    <li>Review lender-specific requirements and restrictions</li>
+                    <li>Monitor market conditions and adjust strategies accordingly</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- API Reference Section -->
+        <div class="section" id="api-reference">
+            <h2>📚 API Reference</h2>
+
+            <h3>Base URL</h3>
+            <div class="code-block">https://your-domain.com/api/lender-integration-advanced</div>
+
+            <h3>Authentication</h3>
+            <p>All API requests require authentication via JWT token or API key:</p>
+            <div class="code-block">
+Authorization: Bearer your_jwt_token
+<span class="comment"># or</span>
+X-API-Key: your_api_key
+            </div>
+
+            <h3>Core Endpoints</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GET</td>
+                        <td>/lenders</td>
+                        <td>List all lender configurations</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/lenders</td>
+                        <td>Add new lender configuration</td>
+                    </tr>
+                    <tr>
+                        <td>PUT</td>
+                        <td>/lenders/{name}</td>
+                        <td>Update lender configuration</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/submit</td>
+                        <td>Submit application to lender</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/submit-batch</td>
+                        <td>Submit to multiple lenders</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/predict</td>
+                        <td>Get approval predictions</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/optimize</td>
+                        <td>Get optimized recommendations</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/validate</td>
+                        <td>Validate application data</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/health</td>
+                        <td>Get system health status</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Response Format</h3>
+            <p>All API responses follow a consistent format:</p>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"data"</span>: { <span class="comment">/* response data */</span> },
+  <span class="string">"message"</span>: <span class="string">"Operation completed successfully"</span>,
+  <span class="string">"timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>,
+  <span class="string">"request_id"</span>: <span class="string">"req_123456789"</span>
+}
+            </div>
+
+            <h3>Error Handling</h3>
+            <p>Error responses include detailed information for debugging:</p>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Validation failed"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"VALIDATION_ERROR"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"field"</span>: <span class="string">"loan_amount"</span>,
+    <span class="string">"message"</span>: <span class="string">"Loan amount exceeds maximum limit"</span>
+  },
+  <span class="string">"timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>
+}
+            </div>
+
+            <h3>Rate Limiting</h3>
+            <p>API requests are rate limited to prevent abuse:</p>
+            <ul>
+                <li><strong>Standard endpoints:</strong> 1000 requests per hour</li>
+                <li><strong>Submission endpoints:</strong> 100 requests per hour</li>
+                <li><strong>Training endpoints:</strong> 10 requests per hour</li>
+            </ul>
+
+            <div class="alert warning">
+                <strong>⚠️ Rate Limit Headers:</strong> Check response headers for rate limit information:
+                <ul>
+                    <li><code>X-RateLimit-Limit</code>: Maximum requests per window</li>
+                    <li><code>X-RateLimit-Remaining</code>: Remaining requests in window</li>
+                    <li><code>X-RateLimit-Reset</code>: Time when window resets</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Troubleshooting Section -->
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Common Issues</h3>
+
+            <h4>🔴 Lender API Connection Failures</h4>
+            <div class="alert error">
+                <strong>Symptoms:</strong> Circuit breaker open, connection timeouts, 503 errors
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Check lender API status and maintenance windows</li>
+                <li>Verify API keys and authentication</li>
+                <li>Review network connectivity and firewall rules</li>
+                <li>Check SSL certificate validity</li>
+                <li>Increase timeout settings if needed</li>
+            </ul>
+
+            <h4>🟡 High Response Times</h4>
+            <div class="alert warning">
+                <strong>Symptoms:</strong> Slow API responses, timeouts, degraded status
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Monitor lender API performance</li>
+                <li>Implement request caching where appropriate</li>
+                <li>Optimize application data payload size</li>
+                <li>Consider using backup API endpoints</li>
+                <li>Adjust circuit breaker thresholds</li>
+            </ul>
+
+            <h4>🔵 Validation Failures</h4>
+            <div class="alert info">
+                <strong>Symptoms:</strong> Applications rejected due to validation errors
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Review validation rules and update as needed</li>
+                <li>Check for data format inconsistencies</li>
+                <li>Verify lender-specific requirements</li>
+                <li>Update validation rules for regulatory changes</li>
+                <li>Test with known good data</li>
+            </ul>
+
+            <h4>🟠 Prediction Accuracy Issues</h4>
+            <div class="alert warning">
+                <strong>Symptoms:</strong> Low prediction accuracy, poor model performance
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Retrain models with more recent data</li>
+                <li>Review feature engineering and selection</li>
+                <li>Increase training data size</li>
+                <li>Validate data quality and completeness</li>
+                <li>Consider model ensemble adjustments</li>
+            </ul>
+
+            <h3>Diagnostic Commands</h3>
+            <div class="code-block">
+<span class="comment"># Check system health</span>
+curl -X GET http://localhost:8002/api/lender-integration-advanced/health
+
+<span class="comment"># Test lender connectivity</span>
+curl -X GET http://localhost:8002/api/lender-integration-advanced/health/lenders
+
+<span class="comment"># View recent circuit breaker events</span>
+curl -X GET http://localhost:8002/api/lender-integration-advanced/health/circuit-breaker
+
+<span class="comment"># Check validation rules</span>
+curl -X GET http://localhost:8002/api/lender-integration-advanced/validation-rules
+            </div>
+
+            <h3>Log Analysis</h3>
+            <p>Important log files to monitor:</p>
+            <ul>
+                <li><strong>/app/logs/lender-integration.log</strong> - Main service logs</li>
+                <li><strong>/app/logs/python-agent.log</strong> - AI agent logs</li>
+                <li><strong>/app/logs/validation.log</strong> - Validation engine logs</li>
+                <li><strong>/app/logs/api-requests.log</strong> - API request/response logs</li>
+            </ul>
+
+            <div class="alert info">
+                <strong>💡 Debug Mode:</strong> Set <code>LOG_LEVEL=debug</code> environment variable for detailed logging during troubleshooting.
+            </div>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🔒 Security</h3>
+            <ul>
+                <li><strong>API Key Management:</strong> Use environment variables, never hardcode keys</li>
+                <li><strong>Encryption:</strong> All sensitive data is encrypted at rest and in transit</li>
+                <li><strong>Access Control:</strong> Implement proper authentication and authorization</li>
+                <li><strong>Audit Logging:</strong> Enable comprehensive audit trails</li>
+                <li><strong>Network Security:</strong> Use VPNs or private networks for lender connections</li>
+            </ul>
+
+            <h3>⚡ Performance</h3>
+            <ul>
+                <li><strong>Caching:</strong> Implement intelligent caching for frequently accessed data</li>
+                <li><strong>Connection Pooling:</strong> Use connection pools for database and Redis</li>
+                <li><strong>Async Processing:</strong> Process non-critical operations asynchronously</li>
+                <li><strong>Load Balancing:</strong> Distribute load across multiple instances</li>
+                <li><strong>Monitoring:</strong> Continuously monitor performance metrics</li>
+            </ul>
+
+            <h3>🔄 Reliability</h3>
+            <ul>
+                <li><strong>Circuit Breakers:</strong> Configure appropriate failure thresholds</li>
+                <li><strong>Retry Logic:</strong> Implement exponential backoff for retries</li>
+                <li><strong>Backup APIs:</strong> Configure backup endpoints for critical lenders</li>
+                <li><strong>Health Checks:</strong> Regular health monitoring and alerting</li>
+                <li><strong>Graceful Degradation:</strong> Fail gracefully when services are unavailable</li>
+            </ul>
+
+            <h3>🤖 AI Model Management</h3>
+            <ul>
+                <li><strong>Regular Retraining:</strong> Retrain models monthly with new data</li>
+                <li><strong>A/B Testing:</strong> Test new models against production models</li>
+                <li><strong>Feature Monitoring:</strong> Monitor feature drift and data quality</li>
+                <li><strong>Model Versioning:</strong> Version and track model deployments</li>
+                <li><strong>Performance Tracking:</strong> Monitor prediction accuracy over time</li>
+            </ul>
+
+            <h3>📊 Monitoring & Alerting</h3>
+            <ul>
+                <li><strong>Key Metrics:</strong> Monitor success rates, response times, error rates</li>
+                <li><strong>Alert Thresholds:</strong> Set appropriate thresholds for different severity levels</li>
+                <li><strong>Dashboard Design:</strong> Create informative, actionable dashboards</li>
+                <li><strong>Incident Response:</strong> Have clear procedures for handling alerts</li>
+                <li><strong>Trend Analysis:</strong> Analyze trends to predict and prevent issues</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Success Metrics:</strong>
+                <ul>
+                    <li>API Success Rate > 99.5%</li>
+                    <li>Average Response Time < 500ms</li>
+                    <li>Prediction Accuracy > 85%</li>
+                    <li>System Uptime > 99.9%</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Complete API documentation and integration guides</p>
+                    <a href="#api-reference" class="button secondary">View API Docs</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎓</div>
+                    <h4>Training</h4>
+                    <p>Comprehensive training materials and best practices</p>
+                    <a href="#best-practices" class="button secondary">Best Practices</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛠️</div>
+                    <h4>Support</h4>
+                    <p>Technical support and troubleshooting assistance</p>
+                    <a href="#troubleshooting" class="button secondary">Troubleshooting</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💡</div>
+                    <h4>Updates</h4>
+                    <p>Stay informed about new features and improvements</p>
+                    <button class="button secondary">Subscribe</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

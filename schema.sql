@@ -4408,6 +4408,56 @@ CREATE TRIGGER update_implementation_progress_trigger
     BEFORE UPDATE ON recommendation_implementations
     FOR EACH ROW EXECUTE FUNCTION update_implementation_progress();
 
+
+-- =============================================
+-- ADVANCED LENDER INTEGRATION MANAGER SCHEMA
+-- =============================================
+
+-- Advanced Lender Integration Manager Tables
+CREATE TABLE IF NOT EXISTS lender_configurations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(100) NOT NULL UNIQUE,
+    api_url TEXT NOT NULL,
+    api_key_encrypted TEXT NOT NULL,
+    backup_api_url TEXT,
+    backup_api_key_encrypted TEXT,
+    supported_products JSONB NOT NULL DEFAULT '[]',
+    max_loan_amount DECIMAL(12,2) NOT NULL,
+    min_loan_amount DECIMAL(12,2) NOT NULL,
+    max_ltv DECIMAL(5,2) NOT NULL,
+    min_income DECIMAL(10,2) NOT NULL,
+    processing_time_days INTEGER NOT NULL,
+    rate_limit_per_hour INTEGER NOT NULL DEFAULT 100,
+    timeout_seconds INTEGER NOT NULL DEFAULT 60,
+    retry_attempts INTEGER NOT NULL DEFAULT 3,
+    circuit_breaker_threshold INTEGER NOT NULL DEFAULT 5,
+    priority_score INTEGER NOT NULL DEFAULT 5,
+    fees JSONB NOT NULL DEFAULT '{}',
+    requirements JSONB NOT NULL DEFAULT '{}',
+    validation_rules JSONB NOT NULL DEFAULT '[]',
+    approval_criteria JSONB NOT NULL DEFAULT '{}',
+    document_requirements JSONB NOT NULL DEFAULT '[]',
+    notification_webhooks JSONB NOT NULL DEFAULT '[]',
+    ssl_verify BOOLEAN NOT NULL DEFAULT true,
+    custom_headers JSONB NOT NULL DEFAULT '{}',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_submissions_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    application_data JSONB NOT NULL,
+    submission_result JSONB,
+    validation_results JSONB,
+    approval_prediction JSONB,
+    lender_reference VARCHAR(255),
+    status VARCHAR(50) NOT NULL,
+    error_message TEXT,
+    response_time_ms INTEGER,
+    retry_count INTEGER DEFAULT 0,
+=======
 -- ============================================================================
 -- DUTCH MARKET INTELLIGENCE INTERFACE TABLES
 -- ============================================================================
@@ -4515,9 +4565,42 @@ CREATE TABLE IF NOT EXISTS market_data_collections (
     metadata JSONB DEFAULT '{}',
     
     -- Timestamps
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+
+CREATE TABLE IF NOT EXISTS lender_health_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    response_time_ms DECIMAL(8,2),
+    success_rate DECIMAL(5,4),
+    error_rate DECIMAL(5,4),
+    consecutive_failures INTEGER DEFAULT 0,
+    uptime_percentage DECIMAL(5,2),
+    rate_limit_remaining INTEGER,
+    circuit_breaker_open BOOLEAN DEFAULT false,
+    last_check TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS validation_rules_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    field VARCHAR(100) NOT NULL,
+    rule_type VARCHAR(50) NOT NULL,
+    parameters JSONB NOT NULL DEFAULT '{}',
+    severity VARCHAR(20) NOT NULL,
+    error_message TEXT NOT NULL,
+    correction_suggestion TEXT,
+    conditions JSONB DEFAULT '[]',
+    priority INTEGER DEFAULT 1,
+    lender_specific VARCHAR(100),
+    is_active BOOLEAN DEFAULT true,
 
 -- Market Trend Analyses - stores results of trend analysis operations
 CREATE TABLE IF NOT EXISTS market_trend_analyses (
@@ -4580,10 +4663,449 @@ CREATE TABLE IF NOT EXISTS market_trend_analyses (
     
     -- Timestamps
     analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE IF NOT EXISTS validation_results_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    submission_id UUID REFERENCES lender_submissions_advanced(id),
+    field VARCHAR(100) NOT NULL,
+    rule_id VARCHAR(100) NOT NULL,
+    is_valid BOOLEAN NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    message TEXT NOT NULL,
+    suggestion TEXT,
+    confidence DECIMAL(3,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS approval_predictions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    submission_id UUID REFERENCES lender_submissions_advanced(id),
+    lender_name VARCHAR(100) NOT NULL,
+    probability DECIMAL(5,4) NOT NULL,
+    confidence_interval_lower DECIMAL(5,4),
+    confidence_interval_upper DECIMAL(5,4),
+    risk_factors JSONB DEFAULT '[]',
+    positive_factors JSONB DEFAULT '[]',
+    recommendation TEXT,
+    model_version VARCHAR(50),
+    feature_importance JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_training_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    application_features JSONB NOT NULL,
+    approved BOOLEAN NOT NULL,
+    rejection_reason VARCHAR(500),
+    processing_time_days INTEGER,
+    final_interest_rate DECIMAL(5,4),
+    loan_amount DECIMAL(12,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type VARCHAR(100) NOT NULL,
+    data JSONB NOT NULL,
+    recipient VARCHAR(255),
+    channel VARCHAR(50) DEFAULT 'database',
+    status VARCHAR(20) DEFAULT 'pending',
+    sent_at TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lender_api_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    endpoint VARCHAR(500) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    request_headers JSONB,
+    request_body JSONB,
+    response_status INTEGER,
+    response_headers JSONB,
+    response_body JSONB,
+    response_time_ms INTEGER,
+    success BOOLEAN,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS circuit_breaker_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lender_name VARCHAR(100) NOT NULL,
+    event_type VARCHAR(20) NOT NULL, -- 'opened', 'closed', 'half_opened'
+    failure_count INTEGER,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_lender_submissions_advanced_lender_name ON lender_submissions_advanced(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_submissions_advanced_status ON lender_submissions_advanced(status);
+CREATE INDEX IF NOT EXISTS idx_lender_submissions_advanced_created_at ON lender_submissions_advanced(created_at);
+CREATE INDEX IF NOT EXISTS idx_lender_health_metrics_lender_name ON lender_health_metrics(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_health_metrics_last_check ON lender_health_metrics(last_check);
+CREATE INDEX IF NOT EXISTS idx_validation_rules_advanced_field ON validation_rules_advanced(field);
+CREATE INDEX IF NOT EXISTS idx_validation_rules_advanced_lender_specific ON validation_rules_advanced(lender_specific);
+CREATE INDEX IF NOT EXISTS idx_validation_results_advanced_submission_id ON validation_results_advanced(submission_id);
+CREATE INDEX IF NOT EXISTS idx_approval_predictions_lender_name ON approval_predictions(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_training_data_lender_name ON lender_training_data(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_api_logs_lender_name ON lender_api_logs(lender_name);
+CREATE INDEX IF NOT EXISTS idx_lender_api_logs_created_at ON lender_api_logs(created_at);
+
+-- =============================================
+-- BKR/NHG INTEGRATION SCHEMA
+-- =============================================
+
+-- BKR/NHG comprehensive checks table
+CREATE TABLE IF NOT EXISTS bkr_nhg_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    application_data JSONB NOT NULL,
+    bkr_results JSONB,
+    nhg_results JSONB,
+    compliance_results JSONB,
+    risk_assessment JSONB,
+    recommendations JSONB,
+    processing_time_ms INTEGER,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- BSN validation results table
+CREATE TABLE IF NOT EXISTS bsn_validations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bsn_hash VARCHAR(64) NOT NULL, -- SHA256 hash for privacy
+    is_valid BOOLEAN NOT NULL,
+    checksum_valid BOOLEAN NOT NULL,
+    format_valid BOOLEAN NOT NULL,
+    blacklist_check BOOLEAN NOT NULL,
+    confidence_score DECIMAL(3,2),
+    error_message TEXT,
+    validation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE
+);
+
+-- BKR credit checks table
+CREATE TABLE IF NOT EXISTS bkr_credit_checks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bsn_hash VARCHAR(64) NOT NULL,
+    check_id VARCHAR(100) NOT NULL UNIQUE,
+    status VARCHAR(50) NOT NULL,
+    credit_score INTEGER,
+    payment_history JSONB,
+    active_loans JSONB DEFAULT '[]',
+    defaults JSONB DEFAULT '[]',
+    inquiries JSONB DEFAULT '[]',
+    debt_to_income_ratio DECIMAL(5,2),
+    total_debt DECIMAL(12,2),
+    risk_indicators JSONB DEFAULT '[]',
+    recommendations JSONB DEFAULT '[]',
+    compliance_flags JSONB DEFAULT '[]',
+    data_sources JSONB DEFAULT '[]',
+    consent_token_hash VARCHAR(64),
+    purpose VARCHAR(100),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NHG eligibility assessments table
+CREATE TABLE IF NOT EXISTS nhg_eligibility_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    property_value DECIMAL(12,2) NOT NULL,
+    loan_amount DECIMAL(12,2) NOT NULL,
+    nhg_limit DECIMAL(12,2) NOT NULL,
+    is_eligible BOOLEAN NOT NULL,
+    eligibility_status VARCHAR(50) NOT NULL,
+    cost_benefit_analysis JSONB,
+    nhg_premium DECIMAL(10,2),
+    interest_rate_benefit DECIMAL(5,4),
+    total_savings DECIMAL(12,2),
+    conditions JSONB DEFAULT '[]',
+    restrictions JSONB DEFAULT '[]',
+    property_requirements JSONB,
+    income_requirements JSONB,
+    compliance_notes JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    validity_period INTEGER DEFAULT 90,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance validation results table
+CREATE TABLE IF NOT EXISTS compliance_validations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    check_id UUID REFERENCES bkr_nhg_checks(id),
+    regulation VARCHAR(50) NOT NULL,
+    article VARCHAR(50) NOT NULL,
+    requirement TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    details TEXT,
+    remediation_actions JSONB DEFAULT '[]',
+    risk_level VARCHAR(20) NOT NULL,
+    impact_assessment TEXT,
+    reviewer_notes TEXT,
+    checked_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk assessments table
+CREATE TABLE IF NOT EXISTS risk_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    check_id UUID REFERENCES bkr_nhg_checks(id),
+    overall_risk_score DECIMAL(3,2) NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    risk_factors JSONB DEFAULT '[]',
+    mitigation_strategies JSONB DEFAULT '[]',
+    compliance_risks JSONB DEFAULT '[]',
+    fraud_indicators JSONB DEFAULT '[]',
+    data_quality_score DECIMAL(3,2),
+    confidence_level DECIMAL(3,2),
+    recommendations JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NHG limits and rates table (for historical tracking)
+CREATE TABLE IF NOT EXISTS nhg_limits_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    standard_limit DECIMAL(12,2) NOT NULL,
+    energy_efficient_bonus DECIMAL(12,2),
+    starter_bonus DECIMAL(12,2),
+    renovation_limit DECIMAL(12,2),
+    premium_rate DECIMAL(5,4),
+    effective_date DATE NOT NULL,
+    end_date DATE,
+    is_current BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- BKR API performance metrics table
+CREATE TABLE IF NOT EXISTS bkr_api_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    endpoint VARCHAR(200) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    response_time_ms INTEGER NOT NULL,
+    status_code INTEGER NOT NULL,
+    success BOOLEAN NOT NULL,
+    error_message TEXT,
+    request_size_bytes INTEGER,
+    response_size_bytes INTEGER,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NHG API performance metrics table
+CREATE TABLE IF NOT EXISTS nhg_api_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    endpoint VARCHAR(200) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    response_time_ms INTEGER NOT NULL,
+    status_code INTEGER NOT NULL,
+    success BOOLEAN NOT NULL,
+    error_message TEXT,
+    eligibility_result VARCHAR(50),
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Consent management table
+CREATE TABLE IF NOT EXISTS data_consent_records (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    bsn_hash VARCHAR(64) NOT NULL,
+    consent_token_hash VARCHAR(64) NOT NULL,
+    consent_type VARCHAR(100) NOT NULL,
+    purpose VARCHAR(200) NOT NULL,
+    scope JSONB NOT NULL,
+    granted_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    withdrawn_at TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    legal_basis VARCHAR(100),
+    retention_period_days INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Audit trail for sensitive operations
+CREATE TABLE IF NOT EXISTS bkr_nhg_audit_trail (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    operation_type VARCHAR(100) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id VARCHAR(100),
+    user_id UUID,
+    operation_details JSONB,
+    ip_address INET,
+    user_agent TEXT,
+    result VARCHAR(50),
+    error_message TEXT,
+    processing_time_ms INTEGER,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Data retention and cleanup tracking
+CREATE TABLE IF NOT EXISTS data_retention_log (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    table_name VARCHAR(100) NOT NULL,
+    cleanup_type VARCHAR(50) NOT NULL,
+    records_processed INTEGER NOT NULL,
+    records_deleted INTEGER NOT NULL,
+    retention_period_days INTEGER NOT NULL,
+    cleanup_criteria JSONB,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(50) DEFAULT 'completed',
+    error_message TEXT
+);
+
+-- Indexes for performance optimization
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_checks_status ON bkr_nhg_checks(status);
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_checks_created_at ON bkr_nhg_checks(created_at);
+CREATE INDEX IF NOT EXISTS idx_bsn_validations_bsn_hash ON bsn_validations(bsn_hash);
+CREATE INDEX IF NOT EXISTS idx_bsn_validations_expires_at ON bsn_validations(expires_at);
+CREATE INDEX IF NOT EXISTS idx_bkr_credit_checks_bsn_hash ON bkr_credit_checks(bsn_hash);
+CREATE INDEX IF NOT EXISTS idx_bkr_credit_checks_check_id ON bkr_credit_checks(check_id);
+CREATE INDEX IF NOT EXISTS idx_bkr_credit_checks_expires_at ON bkr_credit_checks(expires_at);
+CREATE INDEX IF NOT EXISTS idx_nhg_eligibility_assessments_expires_at ON nhg_eligibility_assessments(expires_at);
+CREATE INDEX IF NOT EXISTS idx_compliance_validations_check_id ON compliance_validations(check_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_validations_regulation ON compliance_validations(regulation);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_check_id ON risk_assessments(check_id);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_risk_level ON risk_assessments(risk_level);
+CREATE INDEX IF NOT EXISTS idx_nhg_limits_history_effective_date ON nhg_limits_history(effective_date);
+CREATE INDEX IF NOT EXISTS idx_nhg_limits_history_is_current ON nhg_limits_history(is_current);
+CREATE INDEX IF NOT EXISTS idx_bkr_api_metrics_timestamp ON bkr_api_metrics(timestamp);
+CREATE INDEX IF NOT EXISTS idx_bkr_api_metrics_endpoint ON bkr_api_metrics(endpoint);
+CREATE INDEX IF NOT EXISTS idx_nhg_api_metrics_timestamp ON nhg_api_metrics(timestamp);
+CREATE INDEX IF NOT EXISTS idx_data_consent_records_bsn_hash ON data_consent_records(bsn_hash);
+CREATE INDEX IF NOT EXISTS idx_data_consent_records_is_active ON data_consent_records(is_active);
+CREATE INDEX IF NOT EXISTS idx_data_consent_records_expires_at ON data_consent_records(expires_at);
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_audit_trail_timestamp ON bkr_nhg_audit_trail(timestamp);
+CREATE INDEX IF NOT EXISTS idx_bkr_nhg_audit_trail_operation_type ON bkr_nhg_audit_trail(operation_type);
+CREATE INDEX IF NOT EXISTS idx_data_retention_log_table_name ON data_retention_log(table_name);
+CREATE INDEX IF NOT EXISTS idx_data_retention_log_started_at ON data_retention_log(started_at);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_bkr_nhg_checks_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bkr_nhg_checks_update_timestamp
+    BEFORE UPDATE ON bkr_nhg_checks
+    FOR EACH ROW EXECUTE FUNCTION update_bkr_nhg_checks_timestamp();
+
+-- Function to clean up expired records
+CREATE OR REPLACE FUNCTION cleanup_expired_bkr_nhg_data()
+RETURNS INTEGER AS $$
+DECLARE
+    deleted_count INTEGER := 0;
+    temp_count INTEGER;
+BEGIN
+    -- Clean up expired BSN validations
+    DELETE FROM bsn_validations WHERE expires_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up expired BKR credit checks
+    DELETE FROM bkr_credit_checks WHERE expires_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up expired NHG assessments
+    DELETE FROM nhg_eligibility_assessments WHERE expires_at < CURRENT_TIMESTAMP;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Log cleanup operation
+    INSERT INTO data_retention_log (
+        table_name, cleanup_type, records_processed, records_deleted,
+        retention_period_days, started_at, completed_at
+    ) VALUES (
+        'multiple', 'expired_cleanup', deleted_count, deleted_count,
+        30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    );
+    
+    RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Insert current NHG limits
+INSERT INTO nhg_limits_history (
+    standard_limit, energy_efficient_bonus, starter_bonus, renovation_limit,
+    premium_rate, effective_date, is_current
+) VALUES (
+    435000, 27000, 10000, 50000, 0.007, '2025-01-01', true
+) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- COMPREHENSIVE COMPLIANCE AUDIT TRAIL SCHEMA
+-- =============================================
+
+-- Main compliance audit events table with immutable logging
+CREATE TABLE IF NOT EXISTS compliance_audit_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    event_id UUID NOT NULL UNIQUE,
+    event_type VARCHAR(50) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    user_id UUID,
+    session_id VARCHAR(255),
+    ip_address INET,
+    user_agent TEXT,
+    geo_location JSONB,
+    entity_type VARCHAR(100) NOT NULL,
+    entity_id VARCHAR(255) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    details JSONB NOT NULL,
+    regulation VARCHAR(100),
+    compliance_status VARCHAR(50) NOT NULL DEFAULT 'compliant',
+    severity VARCHAR(20) NOT NULL,
+    risk_score DECIMAL(3,2) DEFAULT 0.0,
+    data_classification VARCHAR(50) DEFAULT 'internal',
+    retention_period INTEGER DEFAULT 2555, -- 7 years in days
+    encryption_key_id VARCHAR(100),
+    hash_chain_previous VARCHAR(64),
+    hash_chain_current VARCHAR(64) NOT NULL,
+    digital_signature VARCHAR(128),
+    investigation_id UUID,
+    tags JSONB DEFAULT '[]',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    -- Immutable: prevent updates after creation
+    CONSTRAINT no_updates CHECK (created_at = created_at)
+);
+
+-- Compliance violations tracking table
+CREATE TABLE IF NOT EXISTS compliance_violations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    violation_id UUID NOT NULL UNIQUE,
+    event_id UUID REFERENCES compliance_audit_events(event_id),
+    regulation VARCHAR(100) NOT NULL,
+    article VARCHAR(50),
+    violation_type VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    risk_impact VARCHAR(20) NOT NULL,
+    affected_entities JSONB DEFAULT '[]',
+    detection_method VARCHAR(100) NOT NULL,
+    detection_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    remediation_actions JSONB DEFAULT '[]',
+    remediation_deadline TIMESTAMP WITH TIME ZONE,
+    remediation_status VARCHAR(50) DEFAULT 'pending',
+    investigation_required BOOLEAN DEFAULT false,
+    notification_sent BOOLEAN DEFAULT false,
+    escalation_level INTEGER DEFAULT 0,
+    compliance_officer_assigned VARCHAR(255),
+    resolution_timestamp TIMESTAMP WITH TIME ZONE,
+    resolution_details TEXT,
+=======
 -- Market Predictive Models - stores predictive model configurations and results
 CREATE TABLE IF NOT EXISTS market_predictive_models (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -4725,10 +5247,37 @@ CREATE TABLE IF NOT EXISTS market_intelligence_insights (
     
     -- Timestamps
     generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- Compliance investigations table
+CREATE TABLE IF NOT EXISTS compliance_investigations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    investigation_id UUID NOT NULL UNIQUE,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    investigation_type VARCHAR(100) NOT NULL,
+    priority VARCHAR(20) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    assigned_investigator VARCHAR(255) NOT NULL,
+    created_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    deadline TIMESTAMP WITH TIME ZONE,
+    related_events JSONB DEFAULT '[]',
+    related_violations JSONB DEFAULT '[]',
+    evidence_collected JSONB DEFAULT '[]',
+    findings JSONB DEFAULT '[]',
+    conclusions TEXT,
+    recommendations JSONB DEFAULT '[]',
+    actions_taken JSONB DEFAULT '[]',
+    timeline JSONB DEFAULT '[]',
+    stakeholders JSONB DEFAULT '[]',
+    confidentiality_level VARCHAR(50) DEFAULT 'internal',
+    tags JSONB DEFAULT '[]',
+=======
 -- Market Intelligence Reports - stores comprehensive market intelligence reports
 CREATE TABLE IF NOT EXISTS market_intelligence_reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -4813,10 +5362,110 @@ CREATE TABLE IF NOT EXISTS market_intelligence_reports (
     report_period_end TIMESTAMP WITH TIME ZONE,
     generated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     published_at TIMESTAMP WITH TIME ZONE,
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+
+-- Compliance reports table
+CREATE TABLE IF NOT EXISTS compliance_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL UNIQUE,
+    report_type VARCHAR(100) NOT NULL,
+    regulation VARCHAR(100),
+    period_start TIMESTAMP WITH TIME ZONE,
+    period_end TIMESTAMP WITH TIME ZONE,
+    generated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    generated_by VARCHAR(255),
+    report_data JSONB NOT NULL,
+    file_path VARCHAR(1000),
+    file_size_bytes BIGINT,
+    access_count INTEGER DEFAULT 0,
+    last_accessed TIMESTAMP WITH TIME ZONE,
+    retention_until TIMESTAMP WITH TIME ZONE,
+    is_archived BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Regulatory changes tracking table
+CREATE TABLE IF NOT EXISTS regulatory_changes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    change_id UUID NOT NULL UNIQUE,
+    regulation VARCHAR(100) NOT NULL,
+    change_type VARCHAR(50) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    effective_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    impact_assessment TEXT,
+    affected_systems JSONB DEFAULT '[]',
+    implementation_required BOOLEAN DEFAULT false,
+    implementation_deadline TIMESTAMP WITH TIME ZONE,
+    implementation_status VARCHAR(50) DEFAULT 'pending',
+    change_source VARCHAR(200),
+    change_document_url TEXT,
+    stakeholders_notified JSONB DEFAULT '[]',
+    impact_score DECIMAL(3,2) DEFAULT 0.0,
+    created_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance patterns and anomalies table
+CREATE TABLE IF NOT EXISTS compliance_patterns (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pattern_id UUID NOT NULL UNIQUE,
+    pattern_type VARCHAR(100) NOT NULL,
+    description TEXT NOT NULL,
+    detection_algorithm VARCHAR(100) NOT NULL,
+    confidence_score DECIMAL(3,2) NOT NULL,
+    event_count INTEGER NOT NULL,
+    time_span_hours DECIMAL(8,2),
+    most_common_action VARCHAR(255),
+    most_common_entity VARCHAR(100),
+    primary_regulation VARCHAR(100),
+    severity_distribution JSONB,
+    average_risk_score DECIMAL(3,2),
+    recommendations JSONB DEFAULT '[]',
+    related_events JSONB DEFAULT '[]',
+    pattern_data JSONB NOT NULL,
+    first_detected TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true
+);
+
+-- Compliance metrics and KPIs table
+CREATE TABLE IF NOT EXISTS compliance_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(10,4) NOT NULL,
+    metric_unit VARCHAR(50),
+    calculation_method TEXT,
+    regulation VARCHAR(100),
+    measurement_period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    measurement_period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    benchmark_value DECIMAL(10,4),
+    target_value DECIMAL(10,4),
+    status VARCHAR(20), -- 'above_target', 'on_target', 'below_target', 'critical'
+    trend VARCHAR(20), -- 'improving', 'stable', 'declining'
+    metadata JSONB DEFAULT '{}',
+    calculated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance stakeholders and roles table
+CREATE TABLE IF NOT EXISTS compliance_stakeholders (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stakeholder_id VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    role VARCHAR(100) NOT NULL,
+    department VARCHAR(100),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    responsibilities JSONB DEFAULT '[]',
+    regulations_assigned JSONB DEFAULT '[]',
+    notification_preferences JSONB DEFAULT '{}',
+    escalation_level INTEGER DEFAULT 1,
+    is_active BOOLEAN DEFAULT true,
+=======
 -- Intelligence Task Executions - stores task execution history and results for market intelligence
 CREATE TABLE IF NOT EXISTS intelligence_task_executions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -4881,9 +5530,154 @@ CREATE TABLE IF NOT EXISTS intelligence_task_executions (
     metadata JSONB DEFAULT '{}',
     
     -- Timestamps
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- Audit trail integrity verification table
+CREATE TABLE IF NOT EXISTS audit_trail_integrity (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    verification_id UUID NOT NULL UNIQUE,
+    verification_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    period_start TIMESTAMP WITH TIME ZONE NOT NULL,
+    period_end TIMESTAMP WITH TIME ZONE NOT NULL,
+    total_events_verified INTEGER NOT NULL,
+    valid_events INTEGER NOT NULL,
+    invalid_events INTEGER NOT NULL,
+    integrity_score DECIMAL(5,2) NOT NULL,
+    integrity_status VARCHAR(20) NOT NULL,
+    verification_details JSONB,
+    hash_verification_method VARCHAR(100),
+    digital_signature_verification BOOLEAN,
+    anomalies_detected JSONB DEFAULT '[]',
+    corrective_actions_required JSONB DEFAULT '[]',
+    verified_by VARCHAR(255),
+    verification_duration_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance notification log table
+CREATE TABLE IF NOT EXISTS compliance_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    notification_id UUID NOT NULL UNIQUE,
+    notification_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    message TEXT NOT NULL,
+    recipients JSONB NOT NULL,
+    channels JSONB DEFAULT '[]', -- email, sms, webhook, slack, etc.
+    related_event_id UUID,
+    related_violation_id UUID,
+    related_investigation_id UUID,
+    trigger_conditions JSONB,
+    delivery_status VARCHAR(50) DEFAULT 'pending',
+    delivery_attempts INTEGER DEFAULT 0,
+    delivered_at TIMESTAMP WITH TIME ZONE,
+    delivery_errors JSONB DEFAULT '[]',
+    read_receipts JSONB DEFAULT '[]',
+    escalation_triggered BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance data lineage table
+CREATE TABLE IF NOT EXISTS compliance_data_lineage (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lineage_id UUID NOT NULL UNIQUE,
+    source_entity_type VARCHAR(100) NOT NULL,
+    source_entity_id VARCHAR(255) NOT NULL,
+    target_entity_type VARCHAR(100) NOT NULL,
+    target_entity_id VARCHAR(255) NOT NULL,
+    transformation_type VARCHAR(100) NOT NULL,
+    transformation_details JSONB,
+    data_classification VARCHAR(50),
+    compliance_impact VARCHAR(100),
+    lineage_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_by VARCHAR(255),
+    validation_status VARCHAR(50) DEFAULT 'pending',
+    retention_inherited BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance search index table for advanced querying
+CREATE TABLE IF NOT EXISTS compliance_search_index (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_id VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    searchable_content TEXT NOT NULL,
+    content_hash VARCHAR(64) NOT NULL,
+    regulation_tags JSONB DEFAULT '[]',
+    risk_tags JSONB DEFAULT '[]',
+    date_tags JSONB DEFAULT '[]',
+    user_tags JSONB DEFAULT '[]',
+    custom_tags JSONB DEFAULT '[]',
+    last_indexed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    index_version INTEGER DEFAULT 1
+);
+
+-- Comprehensive indexes for performance optimization
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_timestamp ON compliance_audit_events(timestamp);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_user_id ON compliance_audit_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_entity_type ON compliance_audit_events(entity_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_entity_id ON compliance_audit_events(entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_regulation ON compliance_audit_events(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_severity ON compliance_audit_events(severity);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_risk_score ON compliance_audit_events(risk_score);
+CREATE INDEX IF NOT EXISTS idx_compliance_audit_events_hash_chain ON compliance_audit_events(hash_chain_current);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_regulation ON compliance_violations(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_severity ON compliance_violations(severity);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_detection_timestamp ON compliance_violations(detection_timestamp);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_remediation_status ON compliance_violations(remediation_status);
+CREATE INDEX IF NOT EXISTS idx_compliance_violations_escalation_level ON compliance_violations(escalation_level);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_status ON compliance_investigations(status);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_priority ON compliance_investigations(priority);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_assigned_investigator ON compliance_investigations(assigned_investigator);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_created_timestamp ON compliance_investigations(created_timestamp);
+CREATE INDEX IF NOT EXISTS idx_compliance_investigations_deadline ON compliance_investigations(deadline);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_report_type ON compliance_reports(report_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_regulation ON compliance_reports(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_generated_at ON compliance_reports(generated_at);
+CREATE INDEX IF NOT EXISTS idx_compliance_reports_period_start ON compliance_reports(period_start);
+
+CREATE INDEX IF NOT EXISTS idx_regulatory_changes_regulation ON regulatory_changes(regulation);
+CREATE INDEX IF NOT EXISTS idx_regulatory_changes_effective_date ON regulatory_changes(effective_date);
+CREATE INDEX IF NOT EXISTS idx_regulatory_changes_implementation_status ON regulatory_changes(implementation_status);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_patterns_pattern_type ON compliance_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_patterns_confidence_score ON compliance_patterns(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_compliance_patterns_first_detected ON compliance_patterns(first_detected);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_metrics_metric_name ON compliance_metrics(metric_name);
+CREATE INDEX IF NOT EXISTS idx_compliance_metrics_regulation ON compliance_metrics(regulation);
+CREATE INDEX IF NOT EXISTS idx_compliance_metrics_calculated_at ON compliance_metrics(calculated_at);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_stakeholders_role ON compliance_stakeholders(role);
+CREATE INDEX IF NOT EXISTS idx_compliance_stakeholders_department ON compliance_stakeholders(department);
+
+CREATE INDEX IF NOT EXISTS idx_audit_trail_integrity_verification_timestamp ON audit_trail_integrity(verification_timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_trail_integrity_integrity_status ON audit_trail_integrity(integrity_status);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_notifications_notification_type ON compliance_notifications(notification_type);
+CREATE INDEX IF NOT EXISTS idx_compliance_notifications_severity ON compliance_notifications(severity);
+CREATE INDEX IF NOT EXISTS idx_compliance_notifications_delivery_status ON compliance_notifications(delivery_status);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_data_lineage_source_entity ON compliance_data_lineage(source_entity_type, source_entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_data_lineage_target_entity ON compliance_data_lineage(target_entity_type, target_entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_data_lineage_timestamp ON compliance_data_lineage(lineage_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_compliance_search_index_entity ON compliance_search_index(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_compliance_search_index_content_hash ON compliance_search_index(content_hash);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_compliance_search_index_unique ON compliance_search_index(entity_id, entity_type, content_hash);
+
+-- Full-text search index for compliance content
+CREATE INDEX IF NOT EXISTS idx_compliance_search_content_gin ON compliance_search_index USING gin(to_tsvector('english', searchable_content));
+
+-- Triggers for automatic updates and integrity protection
+CREATE OR REPLACE FUNCTION update_compliance_violations_timestamp()
 
 -- Market Data Quality Metrics - stores data quality assessments and metrics
 CREATE TABLE IF NOT EXISTS market_data_quality_metrics (
@@ -5037,6 +5831,7 @@ CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_type_status_started 
 
 -- Update timestamps trigger for market_data_sources
 CREATE OR REPLACE FUNCTION update_market_data_sources_updated_at()
+
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
@@ -5044,6 +5839,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE TRIGGER compliance_violations_update_timestamp
+    BEFORE UPDATE ON compliance_violations
+    FOR EACH ROW EXECUTE FUNCTION update_compliance_violations_timestamp();
+
+CREATE OR REPLACE FUNCTION update_compliance_investigations_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_timestamp = CURRENT_TIMESTAMP;
+=======
 CREATE TRIGGER trigger_update_market_data_sources_updated_at
     BEFORE UPDATE ON market_data_sources
     FOR EACH ROW
@@ -5053,11 +5858,188 @@ CREATE TRIGGER trigger_update_market_data_sources_updated_at
 CREATE OR REPLACE FUNCTION update_market_data_collections_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
+
     NEW.updated_at = CURRENT_TIMESTAMP;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE TRIGGER compliance_investigations_update_timestamp
+    BEFORE UPDATE ON compliance_investigations
+    FOR EACH ROW EXECUTE FUNCTION update_compliance_investigations_timestamp();
+
+-- Function to prevent audit event modifications (immutability)
+CREATE OR REPLACE FUNCTION prevent_audit_event_modification()
+RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'Audit events are immutable and cannot be modified';
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER prevent_audit_event_updates
+    BEFORE UPDATE ON compliance_audit_events
+    FOR EACH ROW EXECUTE FUNCTION prevent_audit_event_modification();
+
+CREATE TRIGGER prevent_audit_event_deletes
+    BEFORE DELETE ON compliance_audit_events
+    FOR EACH ROW EXECUTE FUNCTION prevent_audit_event_modification();
+
+-- Function for automated compliance metrics calculation
+CREATE OR REPLACE FUNCTION calculate_compliance_metrics()
+RETURNS VOID AS $$
+DECLARE
+    metric_date DATE := CURRENT_DATE;
+    total_events INTEGER;
+    total_violations INTEGER;
+    compliance_rate DECIMAL(5,2);
+    avg_risk_score DECIMAL(3,2);
+    critical_violations INTEGER;
+BEGIN
+    -- Calculate daily compliance metrics
+    SELECT COUNT(*) INTO total_events
+    FROM compliance_audit_events
+    WHERE DATE(timestamp) = metric_date;
+    
+    SELECT COUNT(*) INTO total_violations
+    FROM compliance_violations
+    WHERE DATE(detection_timestamp) = metric_date;
+    
+    SELECT COUNT(*) INTO critical_violations
+    FROM compliance_violations
+    WHERE DATE(detection_timestamp) = metric_date AND severity = 'critical';
+    
+    -- Calculate compliance rate
+    compliance_rate := CASE 
+        WHEN total_events > 0 THEN ((total_events - total_violations)::DECIMAL / total_events) * 100
+        ELSE 100
+    END;
+    
+    -- Calculate average risk score
+    SELECT COALESCE(AVG(risk_score), 0) INTO avg_risk_score
+    FROM compliance_audit_events
+    WHERE DATE(timestamp) = metric_date;
+    
+    -- Insert daily metrics
+    INSERT INTO compliance_metrics (
+        metric_name, metric_value, metric_unit, regulation,
+        measurement_period_start, measurement_period_end,
+        target_value, status, trend
+    ) VALUES 
+    ('daily_compliance_rate', compliance_rate, 'percentage', 'overall',
+     metric_date::TIMESTAMP, (metric_date + INTERVAL '1 day')::TIMESTAMP,
+     95.0, 
+     CASE WHEN compliance_rate >= 95 THEN 'on_target' 
+          WHEN compliance_rate >= 90 THEN 'below_target'
+          ELSE 'critical' END,
+     'stable'),
+    ('daily_risk_score', avg_risk_score, 'score', 'overall',
+     metric_date::TIMESTAMP, (metric_date + INTERVAL '1 day')::TIMESTAMP,
+     0.3,
+     CASE WHEN avg_risk_score <= 0.3 THEN 'on_target'
+          WHEN avg_risk_score <= 0.5 THEN 'below_target'
+          ELSE 'critical' END,
+     'stable'),
+    ('daily_critical_violations', critical_violations, 'count', 'overall',
+     metric_date::TIMESTAMP, (metric_date + INTERVAL '1 day')::TIMESTAMP,
+     0,
+     CASE WHEN critical_violations = 0 THEN 'on_target'
+          WHEN critical_violations <= 2 THEN 'below_target'
+          ELSE 'critical' END,
+     'stable')
+    ON CONFLICT (metric_name, measurement_period_start, regulation) DO UPDATE SET
+        metric_value = EXCLUDED.metric_value,
+        status = EXCLUDED.status,
+        calculated_at = CURRENT_TIMESTAMP;
+    
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function for automated data retention cleanup
+CREATE OR REPLACE FUNCTION cleanup_expired_compliance_data()
+RETURNS INTEGER AS $$
+DECLARE
+    deleted_count INTEGER := 0;
+    temp_count INTEGER;
+    retention_date TIMESTAMP WITH TIME ZONE;
+BEGIN
+    -- Calculate retention cutoff (7 years ago)
+    retention_date := CURRENT_TIMESTAMP - INTERVAL '7 years';
+    
+    -- Clean up expired audit events (only if explicitly marked for deletion)
+    DELETE FROM compliance_audit_events 
+    WHERE created_at < retention_date 
+    AND data_classification = 'temporary';
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up resolved violations older than retention period
+    DELETE FROM compliance_violations 
+    WHERE resolution_timestamp < retention_date 
+    AND remediation_status = 'completed';
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up old compliance reports
+    DELETE FROM compliance_reports 
+    WHERE created_at < retention_date 
+    AND is_archived = true;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Clean up old patterns that are no longer active
+    DELETE FROM compliance_patterns 
+    WHERE last_updated < CURRENT_TIMESTAMP - INTERVAL '1 year' 
+    AND is_active = false;
+    GET DIAGNOSTICS temp_count = ROW_COUNT;
+    deleted_count := deleted_count + temp_count;
+    
+    -- Log cleanup operation
+    INSERT INTO data_retention_log (
+        table_name, cleanup_type, records_processed, records_deleted,
+        retention_period_days, started_at, completed_at
+    ) VALUES (
+        'compliance_audit_trail', 'retention_cleanup', deleted_count, deleted_count,
+        2555, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    );
+    
+    RETURN deleted_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to automatically update search index
+CREATE OR REPLACE FUNCTION update_compliance_search_index()
+RETURNS TRIGGER AS $$
+DECLARE
+    searchable_text TEXT;
+    content_hash VARCHAR(64);
+BEGIN
+    -- Build searchable content
+    searchable_text := COALESCE(NEW.action, '') || ' ' ||
+                      COALESCE(NEW.entity_type, '') || ' ' ||
+                      COALESCE(NEW.entity_id, '') || ' ' ||
+                      COALESCE(NEW.regulation, '') || ' ' ||
+                      COALESCE(NEW.details::TEXT, '');
+    
+    -- Calculate content hash
+    content_hash := encode(digest(searchable_text, 'sha256'), 'hex');
+    
+    -- Insert or update search index
+    INSERT INTO compliance_search_index (
+        entity_id, entity_type, searchable_content, content_hash,
+        regulation_tags, risk_tags, date_tags, user_tags
+    ) VALUES (
+        NEW.event_id::TEXT, 'compliance_event', searchable_text, content_hash,
+        CASE WHEN NEW.regulation IS NOT NULL THEN jsonb_build_array(NEW.regulation) ELSE '[]' END,
+        jsonb_build_array(NEW.severity),
+        jsonb_build_array(to_char(NEW.timestamp, 'YYYY-MM-DD')),
+        CASE WHEN NEW.user_id IS NOT NULL THEN jsonb_build_array(NEW.user_id) ELSE '[]' END
+    ) ON CONFLICT (entity_id, entity_type, content_hash) DO UPDATE SET
+        last_indexed = CURRENT_TIMESTAMP,
+        index_version = compliance_search_index.index_version + 1;
+    
+=======
 CREATE TRIGGER trigger_update_market_data_collections_updated_at
     BEFORE UPDATE ON market_data_collections
     FOR EACH ROW
@@ -5110,10 +6092,396 @@ CREATE OR REPLACE FUNCTION update_market_intelligence_reports_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE TRIGGER update_compliance_search_index_trigger
+    AFTER INSERT ON compliance_audit_events
+    FOR EACH ROW EXECUTE FUNCTION update_compliance_search_index();
+
+-- Views for common compliance queries
+CREATE OR REPLACE VIEW compliance_dashboard_summary AS
+SELECT 
+    DATE(timestamp) as date,
+    regulation,
+    COUNT(*) as total_events,
+    COUNT(CASE WHEN compliance_status != 'compliant' THEN 1 END) as violations,
+    AVG(risk_score) as avg_risk_score,
+    COUNT(CASE WHEN severity = 'critical' THEN 1 END) as critical_events,
+    COUNT(CASE WHEN severity = 'high' THEN 1 END) as high_events
+FROM compliance_audit_events
+WHERE timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(timestamp), regulation
+ORDER BY date DESC, regulation;
+
+CREATE OR REPLACE VIEW active_compliance_violations AS
+SELECT 
+    cv.*,
+    cae.user_id,
+    cae.timestamp as event_timestamp,
+    cae.entity_type,
+    cae.action
+FROM compliance_violations cv
+JOIN compliance_audit_events cae ON cv.event_id = cae.event_id
+WHERE cv.remediation_status != 'completed'
+AND cv.resolution_timestamp IS NULL
+ORDER BY cv.detection_timestamp DESC;
+
+CREATE OR REPLACE VIEW compliance_investigation_summary AS
+SELECT 
+    ci.*,
+    COUNT(cv.violation_id) as related_violations_count,
+    COUNT(cae.event_id) as related_events_count
+FROM compliance_investigations ci
+LEFT JOIN compliance_violations cv ON cv.investigation_id = ci.investigation_id
+LEFT JOIN compliance_audit_events cae ON cae.investigation_id = ci.investigation_id
+GROUP BY ci.investigation_id, ci.title, ci.description, ci.investigation_type, 
+         ci.priority, ci.status, ci.assigned_investigator, ci.created_timestamp,
+         ci.updated_timestamp, ci.deadline, ci.related_events, ci.related_violations,
+         ci.evidence_collected, ci.findings, ci.conclusions, ci.recommendations,
+         ci.actions_taken, ci.timeline, ci.stakeholders, ci.confidentiality_level,
+         ci.tags, ci.created_at, ci.updated_at
+ORDER BY ci.created_timestamp DESC;
+
+-- =============================================
+-- ADVANCED RISK ASSESSMENT ENGINE SCHEMA
+-- =============================================
+
+-- Advanced risk assessments table
+CREATE TABLE IF NOT EXISTS risk_assessments_advanced (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    entity_id VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    overall_risk_score DECIMAL(5,4) NOT NULL,
+    risk_level VARCHAR(20) NOT NULL,
+    confidence_interval_lower DECIMAL(5,4),
+    confidence_interval_upper DECIMAL(5,4),
+    risk_factors JSONB NOT NULL,
+    category_scores JSONB NOT NULL,
+    predicted_default_probability DECIMAL(8,6),
+    expected_loss DECIMAL(15,2),
+    value_at_risk DECIMAL(15,2),
+    stress_test_results JSONB,
+    mitigation_recommendations JSONB DEFAULT '[]',
+    monitoring_alerts JSONB DEFAULT '[]',
+    model_version VARCHAR(50),
+    data_quality_score DECIMAL(3,2),
+    risk_appetite_alignment VARCHAR(50),
+    regulatory_capital_impact DECIMAL(15,2),
+    next_review_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk factors historical tracking
+CREATE TABLE IF NOT EXISTS risk_factors_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    factor_id VARCHAR(100) NOT NULL,
+    factor_name VARCHAR(200) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    weight DECIMAL(5,4) NOT NULL,
+    raw_value DECIMAL(12,4),
+    normalized_value DECIMAL(5,4) NOT NULL,
+    confidence DECIMAL(3,2) NOT NULL,
+    data_quality DECIMAL(3,2) NOT NULL,
+    source VARCHAR(100),
+    methodology VARCHAR(100),
+    benchmark DECIMAL(12,4),
+    threshold_low DECIMAL(12,4),
+    threshold_high DECIMAL(12,4),
+    calculation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk mitigation strategies table
+CREATE TABLE IF NOT EXISTS risk_mitigation_strategies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    strategy_id UUID NOT NULL,
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    risk_category VARCHAR(50) NOT NULL,
+    strategy_type VARCHAR(100) NOT NULL,
+    name VARCHAR(300) NOT NULL,
+    description TEXT NOT NULL,
+    implementation_cost DECIMAL(12,2),
+    expected_risk_reduction DECIMAL(5,4),
+    implementation_time_weeks INTEGER,
+    effectiveness_score DECIMAL(3,2),
+    prerequisites JSONB DEFAULT '[]',
+    success_metrics JSONB DEFAULT '[]',
+    monitoring_requirements JSONB DEFAULT '[]',
+    implementation_status VARCHAR(50) DEFAULT 'recommended',
+    implementation_start_date TIMESTAMP WITH TIME ZONE,
+    implementation_completion_date TIMESTAMP WITH TIME ZONE,
+    actual_risk_reduction DECIMAL(5,4),
+    cost_effectiveness_ratio DECIMAL(8,4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Stress testing scenarios table
+CREATE TABLE IF NOT EXISTS stress_test_scenarios (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    scenario_id UUID NOT NULL UNIQUE,
+    name VARCHAR(300) NOT NULL,
+    description TEXT NOT NULL,
+    scenario_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(50) NOT NULL,
+    probability DECIMAL(5,4) NOT NULL,
+    parameters JSONB NOT NULL,
+    impact_factors JSONB NOT NULL,
+    duration_months INTEGER NOT NULL,
+    recovery_assumptions JSONB,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Stress testing results table
+CREATE TABLE IF NOT EXISTS stress_test_results (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    test_id UUID NOT NULL,
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    scenario_id UUID REFERENCES stress_test_scenarios(scenario_id),
+    baseline_risk_score DECIMAL(5,4) NOT NULL,
+    stressed_risk_score DECIMAL(5,4) NOT NULL,
+    risk_impact DECIMAL(5,4) NOT NULL,
+    baseline_default_probability DECIMAL(8,6),
+    stressed_default_probability DECIMAL(8,6),
+    expected_loss_baseline DECIMAL(15,2),
+    expected_loss_stressed DECIMAL(15,2),
+    capital_impact DECIMAL(15,2),
+    test_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    test_duration_ms INTEGER,
+    model_version VARCHAR(50)
+);
+
+-- Risk model performance tracking
+CREATE TABLE IF NOT EXISTS risk_model_performance (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_type VARCHAR(100) NOT NULL,
+    model_version VARCHAR(50) NOT NULL,
+    training_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    training_samples INTEGER NOT NULL,
+    validation_samples INTEGER NOT NULL,
+    mse DECIMAL(8,6),
+    mae DECIMAL(8,6),
+    r2_score DECIMAL(5,4),
+    rmse DECIMAL(8,6),
+    feature_importance JSONB,
+    hyperparameters JSONB,
+    cross_validation_scores JSONB,
+    model_file_path VARCHAR(1000),
+    is_active BOOLEAN DEFAULT true,
+    performance_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk appetite and thresholds configuration
+CREATE TABLE IF NOT EXISTS risk_appetite_config (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    risk_category VARCHAR(50) NOT NULL,
+    risk_metric VARCHAR(100) NOT NULL,
+    threshold_type VARCHAR(50) NOT NULL, -- 'warning', 'limit', 'ceiling'
+    threshold_value DECIMAL(8,4) NOT NULL,
+    threshold_description TEXT,
+    business_justification TEXT,
+    approval_level VARCHAR(100),
+    review_frequency_days INTEGER DEFAULT 90,
+    escalation_procedures JSONB,
+    effective_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    approved_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk correlation matrix table
+CREATE TABLE IF NOT EXISTS risk_correlation_matrix (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    factor1_id VARCHAR(100) NOT NULL,
+    factor2_id VARCHAR(100) NOT NULL,
+    correlation_coefficient DECIMAL(6,4) NOT NULL,
+    correlation_strength VARCHAR(20), -- 'weak', 'moderate', 'strong'
+    statistical_significance DECIMAL(5,4),
+    sample_size INTEGER,
+    calculation_method VARCHAR(100),
+    calculation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_current BOOLEAN DEFAULT true
+);
+
+-- Risk assessment historical data for model training
+CREATE TABLE IF NOT EXISTS risk_assessment_historical_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    entity_id VARCHAR(255) NOT NULL,
+    entity_type VARCHAR(100) NOT NULL,
+    assessment_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    credit_score INTEGER,
+    debt_to_income_ratio DECIMAL(5,2),
+    loan_to_value_ratio DECIMAL(5,2),
+    employment_stability DECIMAL(4,1),
+    payment_history DECIMAL(5,2),
+    property_value_volatility DECIMAL(5,2),
+    interest_rate_sensitivity DECIMAL(5,2),
+    regulatory_compliance_score DECIMAL(5,2),
+    liquidity_coverage_ratio DECIMAL(6,2),
+    concentration_risk_score DECIMAL(5,2),
+    operational_risk_incidents INTEGER,
+    fraud_indicators DECIMAL(5,2),
+    data_quality_score DECIMAL(5,2),
+    customer_satisfaction DECIMAL(5,2),
+    regulatory_changes_impact DECIMAL(5,2),
+    actual_default_occurred BOOLEAN,
+    default_date TIMESTAMP WITH TIME ZONE,
+    actual_loss_amount DECIMAL(15,2),
+    recovery_amount DECIMAL(15,2),
+    recovery_rate DECIMAL(5,4),
+    loan_amount DECIMAL(15,2),
+    property_value DECIMAL(15,2),
+    final_outcome VARCHAR(100),
+    data_source VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk monitoring alerts table
+CREATE TABLE IF NOT EXISTS risk_monitoring_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    risk_factor_id VARCHAR(100),
+    threshold_breached DECIMAL(8,4),
+    current_value DECIMAL(8,4),
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(50) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    escalation_level INTEGER DEFAULT 1,
+    notification_sent BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk portfolio aggregation table
+CREATE TABLE IF NOT EXISTS risk_portfolio_aggregation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    portfolio_id UUID NOT NULL,
+    portfolio_name VARCHAR(300) NOT NULL,
+    aggregation_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    total_exposure DECIMAL(18,2) NOT NULL,
+    weighted_average_risk_score DECIMAL(5,4) NOT NULL,
+    portfolio_default_probability DECIMAL(8,6),
+    portfolio_expected_loss DECIMAL(18,2),
+    portfolio_var_99 DECIMAL(18,2),
+    concentration_metrics JSONB,
+    correlation_adjustments JSONB,
+    diversification_benefit DECIMAL(8,4),
+    stress_test_summary JSONB,
+    capital_requirement DECIMAL(18,2),
+    risk_appetite_utilization DECIMAL(5,4),
+    number_of_exposures INTEGER,
+    largest_exposure_percentage DECIMAL(5,2),
+    top_10_exposure_percentage DECIMAL(5,2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk factor benchmarks and calibration
+CREATE TABLE IF NOT EXISTS risk_factor_benchmarks (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    factor_id VARCHAR(100) NOT NULL,
+    benchmark_type VARCHAR(50) NOT NULL, -- 'industry', 'peer', 'regulatory', 'internal'
+    benchmark_value DECIMAL(12,4) NOT NULL,
+    benchmark_source VARCHAR(200),
+    confidence_level DECIMAL(3,2),
+    sample_size INTEGER,
+    calculation_methodology TEXT,
+    effective_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    is_current BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk assessment audit trail
+CREATE TABLE IF NOT EXISTS risk_assessment_audit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID REFERENCES risk_assessments_advanced(assessment_id),
+    audit_action VARCHAR(100) NOT NULL,
+    previous_values JSONB,
+    new_values JSONB,
+    changed_by VARCHAR(255),
+    change_reason TEXT,
+    approval_required BOOLEAN DEFAULT false,
+    approved_by VARCHAR(255),
+    approved_at TIMESTAMP WITH TIME ZONE,
+    audit_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_entity ON risk_assessments_advanced(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_risk_level ON risk_assessments_advanced(risk_level);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_risk_score ON risk_assessments_advanced(overall_risk_score);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_created_at ON risk_assessments_advanced(created_at);
+CREATE INDEX IF NOT EXISTS idx_risk_assessments_advanced_next_review ON risk_assessments_advanced(next_review_date);
+
+CREATE INDEX IF NOT EXISTS idx_risk_factors_history_assessment_id ON risk_factors_history(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_factors_history_factor_id ON risk_factors_history(factor_id);
+CREATE INDEX IF NOT EXISTS idx_risk_factors_history_category ON risk_factors_history(category);
+
+CREATE INDEX IF NOT EXISTS idx_risk_mitigation_strategies_assessment_id ON risk_mitigation_strategies(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_mitigation_strategies_category ON risk_mitigation_strategies(risk_category);
+CREATE INDEX IF NOT EXISTS idx_risk_mitigation_strategies_status ON risk_mitigation_strategies(implementation_status);
+
+CREATE INDEX IF NOT EXISTS idx_stress_test_scenarios_scenario_type ON stress_test_scenarios(scenario_type);
+CREATE INDEX IF NOT EXISTS idx_stress_test_scenarios_severity ON stress_test_scenarios(severity);
+CREATE INDEX IF NOT EXISTS idx_stress_test_scenarios_is_active ON stress_test_scenarios(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_stress_test_results_assessment_id ON stress_test_results(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_stress_test_results_scenario_id ON stress_test_results(scenario_id);
+CREATE INDEX IF NOT EXISTS idx_stress_test_results_test_timestamp ON stress_test_results(test_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_risk_model_performance_model_type ON risk_model_performance(model_type);
+CREATE INDEX IF NOT EXISTS idx_risk_model_performance_is_active ON risk_model_performance(is_active);
+CREATE INDEX IF NOT EXISTS idx_risk_model_performance_training_date ON risk_model_performance(training_date);
+
+CREATE INDEX IF NOT EXISTS idx_risk_appetite_config_category ON risk_appetite_config(risk_category);
+CREATE INDEX IF NOT EXISTS idx_risk_appetite_config_effective_date ON risk_appetite_config(effective_date);
+CREATE INDEX IF NOT EXISTS idx_risk_appetite_config_is_active ON risk_appetite_config(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_risk_correlation_matrix_factors ON risk_correlation_matrix(factor1_id, factor2_id);
+CREATE INDEX IF NOT EXISTS idx_risk_correlation_matrix_is_current ON risk_correlation_matrix(is_current);
+
+CREATE INDEX IF NOT EXISTS idx_risk_historical_data_entity ON risk_assessment_historical_data(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_risk_historical_data_assessment_date ON risk_assessment_historical_data(assessment_date);
+CREATE INDEX IF NOT EXISTS idx_risk_historical_data_default_occurred ON risk_assessment_historical_data(actual_default_occurred);
+
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_assessment_id ON risk_monitoring_alerts(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_severity ON risk_monitoring_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_status ON risk_monitoring_alerts(alert_status);
+CREATE INDEX IF NOT EXISTS idx_risk_monitoring_alerts_created_at ON risk_monitoring_alerts(created_at);
+
+CREATE INDEX IF NOT EXISTS idx_risk_portfolio_aggregation_portfolio_id ON risk_portfolio_aggregation(portfolio_id);
+CREATE INDEX IF NOT EXISTS idx_risk_portfolio_aggregation_date ON risk_portfolio_aggregation(aggregation_date);
+
+CREATE INDEX IF NOT EXISTS idx_risk_factor_benchmarks_factor_id ON risk_factor_benchmarks(factor_id);
+CREATE INDEX IF NOT EXISTS idx_risk_factor_benchmarks_is_current ON risk_factor_benchmarks(is_current);
+
+CREATE INDEX IF NOT EXISTS idx_risk_assessment_audit_assessment_id ON risk_assessment_audit(assessment_id);
+CREATE INDEX IF NOT EXISTS idx_risk_assessment_audit_timestamp ON risk_assessment_audit(audit_timestamp);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_risk_assessments_timestamp()
+=======
 CREATE TRIGGER trigger_update_market_intelligence_reports_updated_at
     BEFORE UPDATE ON market_intelligence_reports
     FOR EACH ROW
@@ -5135,6 +6503,7 @@ CREATE TRIGGER trigger_update_intelligence_task_executions_updated_at
 
 -- Update timestamps trigger for market_data_quality_metrics
 CREATE OR REPLACE FUNCTION update_market_data_quality_metrics_updated_at()
+
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = CURRENT_TIMESTAMP;
@@ -5142,7 +6511,2237 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
+CREATE TRIGGER risk_assessments_update_timestamp
+    BEFORE UPDATE ON risk_assessments_advanced
+    FOR EACH ROW EXECUTE FUNCTION update_risk_assessments_timestamp();
+
+CREATE OR REPLACE FUNCTION update_risk_mitigation_strategies_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER risk_mitigation_strategies_update_timestamp
+    BEFORE UPDATE ON risk_mitigation_strategies
+    FOR EACH ROW EXECUTE FUNCTION update_risk_mitigation_strategies_timestamp();
+
+-- Function to calculate portfolio risk metrics
+CREATE OR REPLACE FUNCTION calculate_portfolio_risk_metrics(portfolio_id_param UUID)
+RETURNS TABLE(
+    total_exposure DECIMAL(18,2),
+    weighted_avg_risk DECIMAL(5,4),
+    portfolio_var DECIMAL(18,2),
+    concentration_risk DECIMAL(5,4)
+) AS $$
+DECLARE
+    total_exp DECIMAL(18,2) := 0;
+    weighted_risk DECIMAL(5,4) := 0;
+    var_99 DECIMAL(18,2) := 0;
+    concentration DECIMAL(5,4) := 0;
+BEGIN
+    -- Calculate total exposure and weighted average risk
+    SELECT 
+        COALESCE(SUM(CAST(rf.details->>'loan_amount' AS DECIMAL)), 0),
+        COALESCE(AVG(ra.overall_risk_score), 0)
+    INTO total_exp, weighted_risk
+    FROM risk_assessments_advanced ra
+    JOIN LATERAL jsonb_array_elements(ra.risk_factors) AS rf(details) ON true
+    WHERE ra.entity_id = portfolio_id_param::TEXT;
+    
+    -- Calculate portfolio VaR (simplified)
+    var_99 := total_exp * weighted_risk * 2.33 * 0.1;
+    
+    -- Calculate concentration risk (largest exposure as percentage)
+    SELECT COALESCE(MAX(CAST(rf.details->>'loan_amount' AS DECIMAL)) / NULLIF(total_exp, 0), 0)
+    INTO concentration
+    FROM risk_assessments_advanced ra
+    JOIN LATERAL jsonb_array_elements(ra.risk_factors) AS rf(details) ON true
+    WHERE ra.entity_id = portfolio_id_param::TEXT;
+    
+    RETURN QUERY SELECT total_exp, weighted_risk, var_99, concentration;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function for automated risk alert generation
+CREATE OR REPLACE FUNCTION generate_risk_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    risk_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for high-risk assessments without alerts
+    FOR risk_record IN 
+        SELECT ra.assessment_id, ra.entity_id, ra.overall_risk_score, ra.risk_level
+        FROM risk_assessments_advanced ra
+        LEFT JOIN risk_monitoring_alerts rma ON ra.assessment_id = rma.assessment_id AND rma.alert_status = 'active'
+        WHERE ra.overall_risk_score > 0.7 
+        AND ra.created_at > NOW() - INTERVAL '24 hours'
+        AND rma.assessment_id IS NULL
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO risk_monitoring_alerts (
+            alert_id, assessment_id, alert_type, severity, title, description,
+            threshold_breached, current_value, recommended_actions, escalation_level
+        ) VALUES (
+            alert_id, risk_record.assessment_id, 'high_risk_score', 'high',
+            'High Risk Score Detected',
+            'Risk assessment shows elevated risk level requiring attention',
+            0.7, risk_record.overall_risk_score,
+            '["Review risk factors", "Implement mitigation strategies", "Enhanced monitoring"]',
+            CASE WHEN risk_record.overall_risk_score > 0.9 THEN 3
+                 WHEN risk_record.overall_risk_score > 0.8 THEN 2
+                 ELSE 1 END
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common risk queries
+CREATE OR REPLACE VIEW risk_dashboard_summary AS
+SELECT 
+    DATE(created_at) as assessment_date,
+    risk_level,
+    COUNT(*) as assessment_count,
+    AVG(overall_risk_score) as avg_risk_score,
+    AVG(predicted_default_probability) as avg_default_probability,
+    AVG(expected_loss) as avg_expected_loss,
+    AVG(data_quality_score) as avg_data_quality
+FROM risk_assessments_advanced
+WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(created_at), risk_level
+ORDER BY assessment_date DESC, risk_level;
+
+CREATE OR REPLACE VIEW active_risk_alerts AS
+SELECT 
+    rma.*,
+    ra.entity_id,
+    ra.entity_type,
+    ra.overall_risk_score,
+    ra.risk_level
+FROM risk_monitoring_alerts rma
+JOIN risk_assessments_advanced ra ON rma.assessment_id = ra.assessment_id
+WHERE rma.alert_status = 'active'
+AND rma.resolved_at IS NULL
+ORDER BY rma.severity DESC, rma.created_at DESC;
+
+CREATE OR REPLACE VIEW risk_mitigation_effectiveness AS
+SELECT 
+    rms.risk_category,
+    rms.strategy_type,
+    COUNT(*) as strategies_implemented,
+    AVG(rms.expected_risk_reduction) as avg_expected_reduction,
+    AVG(rms.actual_risk_reduction) as avg_actual_reduction,
+    AVG(rms.cost_effectiveness_ratio) as avg_cost_effectiveness,
+    COUNT(CASE WHEN rms.implementation_status = 'completed' THEN 1 END) as completed_strategies
+FROM risk_mitigation_strategies rms
+WHERE rms.implementation_start_date IS NOT NULL
+GROUP BY rms.risk_category, rms.strategy_type
+ORDER BY avg_cost_effectiveness DESC;
+
+-- Insert default stress test scenarios
+INSERT INTO stress_test_scenarios (
+    scenario_id, name, description, scenario_type, severity, probability,
+    parameters, impact_factors, duration_months, recovery_assumptions, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Severe Economic Downturn', 
+    'GDP decline of 5%, unemployment increase to 12%', 
+    'macroeconomic', 'severe', 0.05,
+    '{"gdp_decline": -5.0, "unemployment_rate": 12.0}',
+    '{"credit_score": 1.3, "debt_to_income_ratio": 1.4, "employment_stability": 1.6, "property_value_volatility": 2.0}',
+    18, '{"recovery_time_months": 36, "recovery_shape": "U"}', 'system'
+),
+(
+    gen_random_uuid(), 'Interest Rate Shock',
+    'Interest rates increase by 300 basis points',
+    'market', 'moderate', 0.15,
+    '{"interest_rate_increase": 3.0}',
+    '{"interest_rate_sensitivity": 2.5, "debt_to_income_ratio": 1.2, "property_value_volatility": 1.4}',
+    12, '{"recovery_time_months": 24, "recovery_shape": "V"}', 'system'
+),
+(
+    gen_random_uuid(), 'Property Market Crash',
+    'Property values decline by 25%',
+    'market', 'severe', 0.08,
+    '{"property_value_decline": -25.0}',
+    '{"loan_to_value_ratio": 1.8, "property_value_volatility": 3.0, "liquidity_coverage_ratio": 1.3}',
+    24, '{"recovery_time_months": 60, "recovery_shape": "L"}', 'system'
+) ON CONFLICT DO NOTHING;
+
+-- Insert default risk appetite thresholds
+INSERT INTO risk_appetite_config (
+    risk_category, risk_metric, threshold_type, threshold_value,
+    threshold_description, effective_date, created_by
+) VALUES 
+('credit_risk', 'overall_risk_score', 'warning', 0.6, 'Warning threshold for credit risk', CURRENT_TIMESTAMP, 'system'),
+('credit_risk', 'overall_risk_score', 'limit', 0.8, 'Maximum acceptable credit risk', CURRENT_TIMESTAMP, 'system'),
+('market_risk', 'value_at_risk', 'limit', 0.05, 'Maximum VaR as percentage of portfolio', CURRENT_TIMESTAMP, 'system'),
+('operational_risk', 'incident_rate', 'warning', 0.02, 'Warning threshold for operational incidents', CURRENT_TIMESTAMP, 'system'),
+('compliance_risk', 'compliance_score', 'limit', 0.95, 'Minimum compliance score requirement', CURRENT_TIMESTAMP, 'system')
+ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- DOCUMENT AUTHENTICITY CHECKER SCHEMA
+-- =============================================
+
+-- Document verification results table
+CREATE TABLE IF NOT EXISTS document_authenticity_verifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID NOT NULL UNIQUE,
+    verification_id UUID NOT NULL UNIQUE,
+    document_type VARCHAR(100) NOT NULL,
+    authenticity_status VARCHAR(50) NOT NULL,
+    confidence_score DECIMAL(5,4) NOT NULL,
+    fraud_indicators JSONB DEFAULT '[]',
+    verification_methods JSONB NOT NULL,
+    file_name VARCHAR(500),
+    file_size BIGINT,
+    file_type VARCHAR(100),
+    mime_type VARCHAR(200),
+    document_hash_md5 VARCHAR(32),
+    document_hash_sha256 VARCHAR(64) NOT NULL,
+    document_hash_sha512 VARCHAR(128),
+    processing_time_ms INTEGER,
+    verification_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    analyst_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document metadata analysis table
+CREATE TABLE IF NOT EXISTS document_metadata_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    creation_date TIMESTAMP WITH TIME ZONE,
+    modification_date TIMESTAMP WITH TIME ZONE,
+    author VARCHAR(500),
+    software VARCHAR(500),
+    camera_info JSONB,
+    gps_coordinates POINT,
+    digital_signature TEXT,
+    certificate_chain JSONB,
+    encryption_status BOOLEAN DEFAULT false,
+    compression_info JSONB,
+    metadata_integrity_score DECIMAL(3,2),
+    suspicious_metadata_flags JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- OCR analysis results table
+CREATE TABLE IF NOT EXISTS document_ocr_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    extracted_text TEXT,
+    confidence_score DECIMAL(5,4),
+    language_detected VARCHAR(50),
+    text_regions JSONB,
+    font_analysis JSONB,
+    layout_analysis JSONB,
+    suspicious_patterns JSONB DEFAULT '[]',
+    validation_errors JSONB DEFAULT '[]',
+    structured_data_extraction JSONB,
+    ocr_processing_time_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Image forensics analysis table
+CREATE TABLE IF NOT EXISTS document_image_forensics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    ela_analysis JSONB,
+    copy_move_detection JSONB,
+    noise_analysis JSONB,
+    compression_analysis JSONB,
+    color_analysis JSONB,
+    edge_analysis JSONB,
+    texture_analysis JSONB,
+    geometric_analysis JSONB,
+    tampering_indicators JSONB DEFAULT '[]',
+    authenticity_score DECIMAL(5,4),
+    forensics_processing_time_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Biometric analysis results table
+CREATE TABLE IF NOT EXISTS document_biometric_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    face_detection JSONB,
+    face_recognition JSONB,
+    signature_analysis JSONB,
+    handwriting_analysis JSONB,
+    biometric_consistency DECIMAL(3,2),
+    identity_verification JSONB,
+    biometric_processing_time_ms INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Blockchain verification table
+CREATE TABLE IF NOT EXISTS document_blockchain_verification (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    blockchain_hash VARCHAR(64) NOT NULL,
+    transaction_id VARCHAR(66),
+    block_number BIGINT,
+    smart_contract_address VARCHAR(42),
+    gas_used INTEGER,
+    confirmations INTEGER DEFAULT 0,
+    ipfs_hash VARCHAR(100),
+    verification_status BOOLEAN NOT NULL,
+    blockchain_timestamp TIMESTAMP WITH TIME ZONE,
+    registration_cost DECIMAL(18,8),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Digital signature verification table
+CREATE TABLE IF NOT EXISTS document_digital_signatures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    signature_algorithm VARCHAR(100),
+    signature_value TEXT,
+    certificate_subject VARCHAR(500),
+    certificate_issuer VARCHAR(500),
+    certificate_serial_number VARCHAR(100),
+    certificate_valid_from TIMESTAMP WITH TIME ZONE,
+    certificate_valid_to TIMESTAMP WITH TIME ZONE,
+    signature_valid BOOLEAN NOT NULL,
+    certificate_valid BOOLEAN NOT NULL,
+    certificate_chain_valid BOOLEAN NOT NULL,
+    revocation_status VARCHAR(50),
+    trust_level VARCHAR(50),
+    verification_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Fraud detection analysis table
+CREATE TABLE IF NOT EXISTS document_fraud_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    fraud_classification VARCHAR(50) NOT NULL,
+    overall_fraud_probability DECIMAL(5,4) NOT NULL,
+    structure_fraud_score DECIMAL(5,4),
+    content_fraud_score DECIMAL(5,4),
+    technical_fraud_score DECIMAL(5,4),
+    ml_fraud_score DECIMAL(5,4),
+    fraud_indicators JSONB DEFAULT '[]',
+    confidence_scores JSONB,
+    recommended_actions JSONB DEFAULT '[]',
+    false_positive_probability DECIMAL(5,4),
+    fraud_analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document verification audit trail
+CREATE TABLE IF NOT EXISTS document_verification_audit (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    audit_action VARCHAR(100) NOT NULL,
+    performed_by VARCHAR(255),
+    action_details JSONB,
+    previous_status VARCHAR(50),
+    new_status VARCHAR(50),
+    reason TEXT,
+    supporting_evidence JSONB,
+    audit_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document template database for comparison
+CREATE TABLE IF NOT EXISTS document_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id UUID NOT NULL UNIQUE,
+    template_name VARCHAR(300) NOT NULL,
+    document_type VARCHAR(100) NOT NULL,
+    issuing_authority VARCHAR(300),
+    template_version VARCHAR(50),
+    valid_from TIMESTAMP WITH TIME ZONE NOT NULL,
+    valid_to TIMESTAMP WITH TIME ZONE,
+    template_features JSONB NOT NULL,
+    security_features JSONB,
+    layout_specifications JSONB,
+    font_specifications JSONB,
+    color_specifications JSONB,
+    template_hash VARCHAR(64),
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Known fraud patterns database
+CREATE TABLE IF NOT EXISTS fraud_patterns (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pattern_id UUID NOT NULL UNIQUE,
+    pattern_name VARCHAR(300) NOT NULL,
+    pattern_type VARCHAR(100) NOT NULL,
+    fraud_category VARCHAR(100) NOT NULL,
+    pattern_description TEXT NOT NULL,
+    detection_algorithm VARCHAR(200),
+    pattern_indicators JSONB NOT NULL,
+    confidence_threshold DECIMAL(3,2) DEFAULT 0.7,
+    false_positive_rate DECIMAL(5,4),
+    pattern_effectiveness DECIMAL(3,2),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document verification statistics
+CREATE TABLE IF NOT EXISTS document_verification_stats (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stat_date DATE NOT NULL,
+    document_type VARCHAR(100),
+    total_verifications INTEGER NOT NULL DEFAULT 0,
+    authentic_documents INTEGER NOT NULL DEFAULT 0,
+    suspicious_documents INTEGER NOT NULL DEFAULT 0,
+    fraudulent_documents INTEGER NOT NULL DEFAULT 0,
+    inconclusive_documents INTEGER NOT NULL DEFAULT 0,
+    avg_processing_time_ms INTEGER,
+    avg_confidence_score DECIMAL(5,4),
+    fraud_detection_rate DECIMAL(5,4),
+    false_positive_rate DECIMAL(5,4),
+    blockchain_verifications INTEGER DEFAULT 0,
+    manual_reviews_required INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(stat_date, document_type)
+);
+
+-- Document verification machine learning models
+CREATE TABLE IF NOT EXISTS document_ml_models (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_id UUID NOT NULL UNIQUE,
+    model_name VARCHAR(300) NOT NULL,
+    model_type VARCHAR(100) NOT NULL,
+    model_version VARCHAR(50) NOT NULL,
+    training_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    training_samples INTEGER NOT NULL,
+    validation_samples INTEGER NOT NULL,
+    test_samples INTEGER NOT NULL,
+    accuracy DECIMAL(5,4),
+    precision DECIMAL(5,4),
+    recall DECIMAL(5,4),
+    f1_score DECIMAL(5,4),
+    auc_score DECIMAL(5,4),
+    feature_importance JSONB,
+    hyperparameters JSONB,
+    model_file_path VARCHAR(1000),
+    model_size_bytes BIGINT,
+    inference_time_ms INTEGER,
+    is_active BOOLEAN DEFAULT true,
+    deployment_date TIMESTAMP WITH TIME ZONE,
+    performance_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Document verification alerts
+CREATE TABLE IF NOT EXISTS document_verification_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    document_id UUID REFERENCES document_authenticity_verifications(document_id),
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    fraud_probability DECIMAL(5,4),
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(50) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    escalation_level INTEGER DEFAULT 1,
+    notification_sent BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_document_type ON document_authenticity_verifications(document_type);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_authenticity_status ON document_authenticity_verifications(authenticity_status);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_verification_timestamp ON document_authenticity_verifications(verification_timestamp);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_confidence_score ON document_authenticity_verifications(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_document_authenticity_verifications_hash ON document_authenticity_verifications(document_hash_sha256);
+
+CREATE INDEX IF NOT EXISTS idx_document_metadata_analysis_document_id ON document_metadata_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_metadata_analysis_creation_date ON document_metadata_analysis(creation_date);
+CREATE INDEX IF NOT EXISTS idx_document_metadata_analysis_software ON document_metadata_analysis(software);
+
+CREATE INDEX IF NOT EXISTS idx_document_ocr_analysis_document_id ON document_ocr_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_ocr_analysis_confidence_score ON document_ocr_analysis(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_document_ocr_analysis_language ON document_ocr_analysis(language_detected);
+
+CREATE INDEX IF NOT EXISTS idx_document_image_forensics_document_id ON document_image_forensics(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_image_forensics_authenticity_score ON document_image_forensics(authenticity_score);
+
+CREATE INDEX IF NOT EXISTS idx_document_biometric_analysis_document_id ON document_biometric_analysis(document_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_blockchain_verification_document_id ON document_blockchain_verification(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_blockchain_verification_blockchain_hash ON document_blockchain_verification(blockchain_hash);
+CREATE INDEX IF NOT EXISTS idx_document_blockchain_verification_transaction_id ON document_blockchain_verification(transaction_id);
+
+CREATE INDEX IF NOT EXISTS idx_document_digital_signatures_document_id ON document_digital_signatures(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_digital_signatures_signature_valid ON document_digital_signatures(signature_valid);
+CREATE INDEX IF NOT EXISTS idx_document_digital_signatures_certificate_valid ON document_digital_signatures(certificate_valid);
+
+CREATE INDEX IF NOT EXISTS idx_document_fraud_analysis_document_id ON document_fraud_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_fraud_analysis_fraud_classification ON document_fraud_analysis(fraud_classification);
+CREATE INDEX IF NOT EXISTS idx_document_fraud_analysis_fraud_probability ON document_fraud_analysis(overall_fraud_probability);
+
+CREATE INDEX IF NOT EXISTS idx_document_verification_audit_document_id ON document_verification_audit(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_verification_audit_timestamp ON document_verification_audit(audit_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_document_templates_document_type ON document_templates(document_type);
+CREATE INDEX IF NOT EXISTS idx_document_templates_issuing_authority ON document_templates(issuing_authority);
+CREATE INDEX IF NOT EXISTS idx_document_templates_is_active ON document_templates(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_fraud_patterns_pattern_type ON fraud_patterns(pattern_type);
+CREATE INDEX IF NOT EXISTS idx_fraud_patterns_fraud_category ON fraud_patterns(fraud_category);
+CREATE INDEX IF NOT EXISTS idx_fraud_patterns_is_active ON fraud_patterns(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_document_verification_stats_stat_date ON document_verification_stats(stat_date);
+CREATE INDEX IF NOT EXISTS idx_document_verification_stats_document_type ON document_verification_stats(document_type);
+
+CREATE INDEX IF NOT EXISTS idx_document_ml_models_model_type ON document_ml_models(model_type);
+CREATE INDEX IF NOT EXISTS idx_document_ml_models_is_active ON document_ml_models(is_active);
+CREATE INDEX IF NOT EXISTS idx_document_ml_models_training_date ON document_ml_models(training_date);
+
+CREATE INDEX IF NOT EXISTS idx_document_verification_alerts_document_id ON document_verification_alerts(document_id);
+CREATE INDEX IF NOT EXISTS idx_document_verification_alerts_severity ON document_verification_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_document_verification_alerts_alert_status ON document_verification_alerts(alert_status);
+
+-- Full-text search index for extracted text
+CREATE INDEX IF NOT EXISTS idx_document_ocr_text_gin ON document_ocr_analysis USING gin(to_tsvector('english', extracted_text));
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_document_templates_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER document_templates_update_timestamp
+    BEFORE UPDATE ON document_templates
+    FOR EACH ROW EXECUTE FUNCTION update_document_templates_timestamp();
+
+-- Function to calculate daily verification statistics
+CREATE OR REPLACE FUNCTION calculate_document_verification_stats()
+RETURNS VOID AS $$
+DECLARE
+    stat_date DATE := CURRENT_DATE;
+    doc_type_record RECORD;
+BEGIN
+    -- Calculate stats for each document type
+    FOR doc_type_record IN 
+        SELECT DISTINCT document_type FROM document_authenticity_verifications
+        WHERE DATE(verification_timestamp) = stat_date
+    LOOP
+        INSERT INTO document_verification_stats (
+            stat_date, document_type, total_verifications, authentic_documents,
+            suspicious_documents, fraudulent_documents, inconclusive_documents,
+            avg_processing_time_ms, avg_confidence_score, fraud_detection_rate
+        )
+        SELECT 
+            stat_date,
+            doc_type_record.document_type,
+            COUNT(*) as total_verifications,
+            COUNT(CASE WHEN authenticity_status = 'authentic' THEN 1 END) as authentic_documents,
+            COUNT(CASE WHEN authenticity_status = 'suspicious' THEN 1 END) as suspicious_documents,
+            COUNT(CASE WHEN authenticity_status = 'fraudulent' THEN 1 END) as fraudulent_documents,
+            COUNT(CASE WHEN authenticity_status = 'inconclusive' THEN 1 END) as inconclusive_documents,
+            AVG(processing_time_ms)::INTEGER as avg_processing_time_ms,
+            AVG(confidence_score) as avg_confidence_score,
+            (COUNT(CASE WHEN authenticity_status IN ('suspicious', 'fraudulent') THEN 1 END)::DECIMAL / COUNT(*)) as fraud_detection_rate
+        FROM document_authenticity_verifications
+        WHERE DATE(verification_timestamp) = stat_date
+        AND document_type = doc_type_record.document_type
+        ON CONFLICT (stat_date, document_type) DO UPDATE SET
+            total_verifications = EXCLUDED.total_verifications,
+            authentic_documents = EXCLUDED.authentic_documents,
+            suspicious_documents = EXCLUDED.suspicious_documents,
+            fraudulent_documents = EXCLUDED.fraudulent_documents,
+            inconclusive_documents = EXCLUDED.inconclusive_documents,
+            avg_processing_time_ms = EXCLUDED.avg_processing_time_ms,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            fraud_detection_rate = EXCLUDED.fraud_detection_rate;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate document verification alerts
+CREATE OR REPLACE FUNCTION generate_document_verification_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    verification_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for high-risk documents without alerts
+    FOR verification_record IN 
+        SELECT dav.document_id, dav.authenticity_status, dav.confidence_score, dfa.overall_fraud_probability
+        FROM document_authenticity_verifications dav
+        LEFT JOIN document_fraud_analysis dfa ON dav.document_id = dfa.document_id
+        LEFT JOIN document_verification_alerts dva ON dav.document_id = dva.document_id AND dva.alert_status = 'active'
+        WHERE (dav.authenticity_status IN ('suspicious', 'fraudulent') 
+               OR dfa.overall_fraud_probability > 0.7)
+        AND dav.verification_timestamp > NOW() - INTERVAL '24 hours'
+        AND dva.document_id IS NULL
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO document_verification_alerts (
+            alert_id, document_id, alert_type, severity, title, description,
+            fraud_probability, recommended_actions, escalation_level
+        ) VALUES (
+            alert_id, verification_record.document_id, 'fraud_detection', 
+            CASE WHEN verification_record.authenticity_status = 'fraudulent' THEN 'critical'
+                 WHEN verification_record.overall_fraud_probability > 0.8 THEN 'high'
+                 ELSE 'medium' END,
+            'Document Fraud Alert',
+            'Document verification detected potential fraud or authenticity issues',
+            verification_record.overall_fraud_probability,
+            '["Manual review required", "Verify with issuing authority", "Request additional documentation"]',
+            CASE WHEN verification_record.authenticity_status = 'fraudulent' THEN 3
+                 WHEN verification_record.overall_fraud_probability > 0.8 THEN 2
+                 ELSE 1 END
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common document verification queries
+CREATE OR REPLACE VIEW document_verification_summary AS
+SELECT 
+    DATE(verification_timestamp) as verification_date,
+    document_type,
+    authenticity_status,
+    COUNT(*) as document_count,
+    AVG(confidence_score) as avg_confidence,
+    AVG(processing_time_ms) as avg_processing_time,
+    COUNT(CASE WHEN jsonb_array_length(fraud_indicators) > 0 THEN 1 END) as documents_with_fraud_indicators
+FROM document_authenticity_verifications
+WHERE verification_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(verification_timestamp), document_type, authenticity_status
+ORDER BY verification_date DESC, document_type, authenticity_status;
+
+CREATE OR REPLACE VIEW active_document_alerts AS
+SELECT 
+    dva.*,
+    dav.document_type,
+    dav.authenticity_status,
+    dav.verification_timestamp
+FROM document_verification_alerts dva
+JOIN document_authenticity_verifications dav ON dva.document_id = dav.document_id
+WHERE dva.alert_status = 'active'
+AND dva.resolved_at IS NULL
+ORDER BY dva.severity DESC, dva.created_at DESC;
+
+CREATE OR REPLACE VIEW document_fraud_trends AS
+SELECT 
+    DATE_TRUNC('week', verification_timestamp) as week_start,
+    document_type,
+    COUNT(*) as total_documents,
+    COUNT(CASE WHEN authenticity_status IN ('suspicious', 'fraudulent') THEN 1 END) as fraud_documents,
+    (COUNT(CASE WHEN authenticity_status IN ('suspicious', 'fraudulent') THEN 1 END)::DECIMAL / COUNT(*)) * 100 as fraud_rate,
+    AVG(confidence_score) as avg_confidence
+FROM document_authenticity_verifications
+WHERE verification_timestamp >= CURRENT_DATE - INTERVAL '12 weeks'
+GROUP BY DATE_TRUNC('week', verification_timestamp), document_type
+ORDER BY week_start DESC, document_type;
+
+-- Insert default fraud patterns
+INSERT INTO fraud_patterns (
+    pattern_id, pattern_name, pattern_type, fraud_category, pattern_description,
+    detection_algorithm, pattern_indicators, confidence_threshold, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Copy-Move Forgery Pattern', 'image_manipulation', 'forgery',
+    'Detection of copy-move forgery where parts of an image are copied and pasted elsewhere',
+    'block_matching_correlation', 
+    '{"correlation_threshold": 0.8, "min_block_pairs": 5, "block_size": 16}',
+    0.8, 'system'
+),
+(
+    gen_random_uuid(), 'Font Inconsistency Pattern', 'text_manipulation', 'alteration',
+    'Detection of inconsistent fonts indicating text replacement or modification',
+    'font_analysis_variance',
+    '{"font_size_variance_threshold": 25, "font_type_consistency": true}',
+    0.7, 'system'
+),
+(
+    gen_random_uuid(), 'Metadata Manipulation Pattern', 'metadata_tampering', 'fabrication',
+    'Detection of manipulated or inconsistent document metadata',
+    'metadata_consistency_analysis',
+    '{"creation_modification_order": true, "software_whitelist": ["Word", "Excel", "PDF"]}',
+    0.75, 'system'
+),
+(
+    gen_random_uuid(), 'Template Fraud Pattern', 'document_structure', 'template_fraud',
+    'Detection of documents generated from fraudulent templates',
+    'template_matching_analysis',
+    '{"template_similarity_threshold": 0.9, "structure_variance_threshold": 0.1}',
+    0.85, 'system'
+) ON CONFLICT DO NOTHING;
+
+-- Insert default document templates (Dutch government documents)
+INSERT INTO document_templates (
+    template_id, template_name, document_type, issuing_authority, template_version,
+    valid_from, template_features, security_features, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Dutch Passport', 'identity_document', 'Government of Netherlands', '2021.1',
+    '2021-01-01', 
+    '{"page_count": 32, "dimensions": {"width": 125, "height": 88}, "color_scheme": "burgundy"}',
+    '{"hologram": true, "rfid_chip": true, "biometric_data": true, "security_thread": true}',
+    'system'
+),
+(
+    gen_random_uuid(), 'Dutch ID Card', 'identity_document', 'Government of Netherlands', '2021.1',
+    '2021-01-01',
+    '{"page_count": 1, "dimensions": {"width": 85.6, "height": 54}, "color_scheme": "blue_white"}',
+    '{"hologram": true, "rfid_chip": true, "biometric_photo": true, "security_features": true}',
+    'system'
+),
+(
+    gen_random_uuid(), 'Bank Statement Template', 'financial_statement', 'Dutch Banks', '2024.1',
+    '2024-01-01',
+    '{"format": "A4", "logo_position": "top_left", "account_info_section": "header"}',
+    '{"watermark": true, "digital_signature": true, "security_code": true}',
+    'system'
+) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- NLP CONTENT ANALYZER SCHEMA
+-- =============================================
+
+-- Main NLP content analysis table
+CREATE TABLE IF NOT EXISTS nlp_content_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL UNIQUE,
+    document_id VARCHAR(255) NOT NULL,
+    text_content_sample TEXT,
+    language_detected VARCHAR(20) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    confidence_score DECIMAL(5,4) NOT NULL,
+    processing_time_ms INTEGER,
+    model_versions JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Named entities extraction table
+CREATE TABLE IF NOT EXISTS nlp_named_entities (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    entity_text VARCHAR(500) NOT NULL,
+    entity_type VARCHAR(50) NOT NULL,
+    start_position INTEGER NOT NULL,
+    end_position INTEGER NOT NULL,
+    confidence DECIMAL(5,4) NOT NULL,
+    context TEXT,
+    normalized_value VARCHAR(500),
+    validation_status BOOLEAN DEFAULT true,
+    source_sentence TEXT,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Semantic analysis results table
+CREATE TABLE IF NOT EXISTS nlp_semantic_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    key_topics JSONB DEFAULT '[]',
+    semantic_similarity_scores JSONB DEFAULT '{}',
+    content_coherence DECIMAL(5,4),
+    readability_score DECIMAL(5,4),
+    complexity_score DECIMAL(5,4),
+    formality_score DECIMAL(5,4),
+    technical_terminology_ratio DECIMAL(5,4),
+    sentence_structures JSONB DEFAULT '{}',
+    paragraph_analysis JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Sentiment analysis results table
+CREATE TABLE IF NOT EXISTS nlp_sentiment_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    overall_sentiment VARCHAR(50) NOT NULL,
+    sentiment_score DECIMAL(5,4),
+    confidence DECIMAL(5,4),
+    sentence_sentiments JSONB DEFAULT '[]',
+    emotional_indicators JSONB DEFAULT '[]',
+    stress_indicators JSONB DEFAULT '[]',
+    positive_indicators JSONB DEFAULT '[]',
+    neutral_indicators JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Risk indicator analysis table
+CREATE TABLE IF NOT EXISTS nlp_risk_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    risk_indicators JSONB DEFAULT '[]',
+    risk_phrases JSONB DEFAULT '[]',
+    risk_score DECIMAL(5,4) NOT NULL,
+    confidence DECIMAL(5,4),
+    context_analysis JSONB DEFAULT '{}',
+    mitigation_suggestions JSONB DEFAULT '[]',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Content validation results table
+CREATE TABLE IF NOT EXISTS nlp_content_validation (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    is_valid BOOLEAN NOT NULL,
+    validation_errors JSONB DEFAULT '[]',
+    consistency_score DECIMAL(5,4),
+    completeness_score DECIMAL(5,4),
+    accuracy_indicators JSONB DEFAULT '[]',
+    suspicious_patterns JSONB DEFAULT '[]',
+    regulatory_compliance JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Topic modeling results table
+CREATE TABLE IF NOT EXISTS nlp_topic_modeling (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    topics JSONB NOT NULL,
+    topic_distribution JSONB,
+    coherence_score DECIMAL(5,4),
+    perplexity_score DECIMAL(8,4),
+    num_topics INTEGER,
+    modeling_algorithm VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Relationship extraction table
+CREATE TABLE IF NOT EXISTS nlp_relationship_extraction (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    entity1_text VARCHAR(500) NOT NULL,
+    entity1_type VARCHAR(50) NOT NULL,
+    entity2_text VARCHAR(500) NOT NULL,
+    entity2_type VARCHAR(50) NOT NULL,
+    relationship_type VARCHAR(100) NOT NULL,
+    confidence DECIMAL(5,4),
+    context TEXT,
+    distance INTEGER,
+    validation_status BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NLP model performance tracking
+CREATE TABLE IF NOT EXISTS nlp_model_performance (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    model_name VARCHAR(200) NOT NULL,
+    model_type VARCHAR(100) NOT NULL,
+    model_version VARCHAR(50) NOT NULL,
+    language VARCHAR(20) NOT NULL,
+    task_type VARCHAR(100) NOT NULL,
+    accuracy DECIMAL(5,4),
+    precision DECIMAL(5,4),
+    recall DECIMAL(5,4),
+    f1_score DECIMAL(5,4),
+    processing_speed_ms INTEGER,
+    memory_usage_mb INTEGER,
+    training_date TIMESTAMP WITH TIME ZONE,
+    evaluation_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    test_samples INTEGER,
+    is_active BOOLEAN DEFAULT true,
+    performance_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Text classification rules and patterns
+CREATE TABLE IF NOT EXISTS nlp_classification_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rule_id UUID NOT NULL UNIQUE,
+    rule_name VARCHAR(300) NOT NULL,
+    classification_type VARCHAR(100) NOT NULL,
+    target_class VARCHAR(100) NOT NULL,
+    rule_pattern TEXT NOT NULL,
+    rule_type VARCHAR(50) NOT NULL, -- 'regex', 'keyword', 'ml_model'
+    confidence_threshold DECIMAL(3,2) DEFAULT 0.7,
+    priority INTEGER DEFAULT 1,
+    language VARCHAR(20),
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- NLP analysis statistics
+CREATE TABLE IF NOT EXISTS nlp_analysis_statistics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    stat_date DATE NOT NULL,
+    language VARCHAR(20),
+    content_type VARCHAR(100),
+    total_analyses INTEGER NOT NULL DEFAULT 0,
+    successful_analyses INTEGER NOT NULL DEFAULT 0,
+    failed_analyses INTEGER NOT NULL DEFAULT 0,
+    avg_processing_time_ms INTEGER,
+    avg_confidence_score DECIMAL(5,4),
+    avg_entities_extracted DECIMAL(6,2),
+    risk_indicators_detected INTEGER DEFAULT 0,
+    compliance_issues_found INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(stat_date, language, content_type)
+);
+
+-- NLP alerts and notifications
+CREATE TABLE IF NOT EXISTS nlp_analysis_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    analysis_id UUID REFERENCES nlp_content_analysis(analysis_id),
+    alert_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    risk_score DECIMAL(5,4),
+    entities_involved JSONB DEFAULT '[]',
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(50) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_document_id ON nlp_content_analysis(document_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_language ON nlp_content_analysis(language_detected);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_content_type ON nlp_content_analysis(content_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_created_at ON nlp_content_analysis(created_at);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_analysis_confidence ON nlp_content_analysis(confidence_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_analysis_id ON nlp_named_entities(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_entity_type ON nlp_named_entities(entity_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_validation_status ON nlp_named_entities(validation_status);
+CREATE INDEX IF NOT EXISTS idx_nlp_named_entities_normalized_value ON nlp_named_entities(normalized_value);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_semantic_analysis_analysis_id ON nlp_semantic_analysis(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_semantic_analysis_coherence ON nlp_semantic_analysis(content_coherence);
+CREATE INDEX IF NOT EXISTS idx_nlp_semantic_analysis_readability ON nlp_semantic_analysis(readability_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_sentiment_analysis_analysis_id ON nlp_sentiment_analysis(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_sentiment_analysis_sentiment ON nlp_sentiment_analysis(overall_sentiment);
+CREATE INDEX IF NOT EXISTS idx_nlp_sentiment_analysis_score ON nlp_sentiment_analysis(sentiment_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_risk_analysis_analysis_id ON nlp_risk_analysis(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_risk_analysis_risk_score ON nlp_risk_analysis(risk_score);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_content_validation_analysis_id ON nlp_content_validation(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_content_validation_is_valid ON nlp_content_validation(is_valid);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_topic_modeling_analysis_id ON nlp_topic_modeling(analysis_id);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_relationship_extraction_analysis_id ON nlp_relationship_extraction(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_relationship_extraction_type ON nlp_relationship_extraction(relationship_type);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_model_performance_model_name ON nlp_model_performance(model_name);
+CREATE INDEX IF NOT EXISTS idx_nlp_model_performance_task_type ON nlp_model_performance(task_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_model_performance_is_active ON nlp_model_performance(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_classification_rules_classification_type ON nlp_classification_rules(classification_type);
+CREATE INDEX IF NOT EXISTS idx_nlp_classification_rules_is_active ON nlp_classification_rules(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_statistics_stat_date ON nlp_analysis_statistics(stat_date);
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_statistics_language ON nlp_analysis_statistics(language);
+
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_alerts_analysis_id ON nlp_analysis_alerts(analysis_id);
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_alerts_severity ON nlp_analysis_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_nlp_analysis_alerts_status ON nlp_analysis_alerts(alert_status);
+
+-- Full-text search indexes
+CREATE INDEX IF NOT EXISTS idx_nlp_content_text_gin ON nlp_content_analysis USING gin(to_tsvector('english', text_content_sample));
+CREATE INDEX IF NOT EXISTS idx_nlp_entities_text_gin ON nlp_named_entities USING gin(to_tsvector('english', entity_text));
+
+-- Function to calculate daily NLP statistics
+CREATE OR REPLACE FUNCTION calculate_nlp_analysis_stats()
+RETURNS VOID AS $$
+DECLARE
+    stat_date DATE := CURRENT_DATE;
+    lang_type_record RECORD;
+BEGIN
+    -- Calculate stats for each language and content type combination
+    FOR lang_type_record IN 
+        SELECT DISTINCT language_detected, content_type 
+        FROM nlp_content_analysis
+        WHERE DATE(created_at) = stat_date
+    LOOP
+        INSERT INTO nlp_analysis_statistics (
+            stat_date, language, content_type, total_analyses, successful_analyses,
+            failed_analyses, avg_processing_time_ms, avg_confidence_score, avg_entities_extracted
+        )
+        SELECT 
+            stat_date,
+            lang_type_record.language_detected,
+            lang_type_record.content_type,
+            COUNT(*) as total_analyses,
+            COUNT(CASE WHEN confidence_score > 0.5 THEN 1 END) as successful_analyses,
+            COUNT(CASE WHEN confidence_score <= 0.5 THEN 1 END) as failed_analyses,
+            AVG(processing_time_ms)::INTEGER as avg_processing_time_ms,
+            AVG(confidence_score) as avg_confidence_score,
+            (SELECT AVG(entity_count) FROM (
+                SELECT COUNT(*) as entity_count
+                FROM nlp_named_entities ne
+                WHERE ne.analysis_id IN (
+                    SELECT nca.analysis_id FROM nlp_content_analysis nca
+                    WHERE DATE(nca.created_at) = stat_date
+                    AND nca.language_detected = lang_type_record.language_detected
+                    AND nca.content_type = lang_type_record.content_type
+                )
+                GROUP BY ne.analysis_id
+            ) entity_counts) as avg_entities_extracted
+        FROM nlp_content_analysis
+        WHERE DATE(created_at) = stat_date
+        AND language_detected = lang_type_record.language_detected
+        AND content_type = lang_type_record.content_type
+        ON CONFLICT (stat_date, language, content_type) DO UPDATE SET
+            total_analyses = EXCLUDED.total_analyses,
+            successful_analyses = EXCLUDED.successful_analyses,
+            failed_analyses = EXCLUDED.failed_analyses,
+            avg_processing_time_ms = EXCLUDED.avg_processing_time_ms,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            avg_entities_extracted = EXCLUDED.avg_entities_extracted;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate NLP alerts
+CREATE OR REPLACE FUNCTION generate_nlp_analysis_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    analysis_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for high-risk analyses without alerts
+    FOR analysis_record IN 
+        SELECT nca.analysis_id, nca.document_id, nra.risk_score, nca.confidence_score
+        FROM nlp_content_analysis nca
+        JOIN nlp_risk_analysis nra ON nca.analysis_id = nra.analysis_id
+        LEFT JOIN nlp_analysis_alerts naa ON nca.analysis_id = naa.analysis_id AND naa.alert_status = 'active'
+        WHERE nra.risk_score > 0.6
+        AND nca.created_at > NOW() - INTERVAL '24 hours'
+        AND naa.analysis_id IS NULL
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO nlp_analysis_alerts (
+            alert_id, analysis_id, alert_type, severity, title, description,
+            risk_score, recommended_actions
+        ) VALUES (
+            alert_id, analysis_record.analysis_id, 'high_risk_content', 
+            CASE WHEN analysis_record.risk_score > 0.8 THEN 'high'
+                 WHEN analysis_record.risk_score > 0.6 THEN 'medium'
+                 ELSE 'low' END,
+            'High Risk Content Detected',
+            'NLP analysis detected high-risk indicators in document content',
+            analysis_record.risk_score,
+            '["Manual content review required", "Verify extracted information", "Enhanced due diligence"]'
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common NLP queries
+CREATE OR REPLACE VIEW nlp_analysis_summary AS
+SELECT 
+    DATE(nca.created_at) as analysis_date,
+    nca.language_detected,
+    nca.content_type,
+    COUNT(*) as total_analyses,
+    AVG(nca.confidence_score) as avg_confidence,
+    AVG(nca.processing_time_ms) as avg_processing_time,
+    COUNT(CASE WHEN nra.risk_score > 0.5 THEN 1 END) as high_risk_analyses,
+    AVG(nsa.content_coherence) as avg_coherence,
+    AVG(nsa.readability_score) as avg_readability
+FROM nlp_content_analysis nca
+LEFT JOIN nlp_risk_analysis nra ON nca.analysis_id = nra.analysis_id
+LEFT JOIN nlp_semantic_analysis nsa ON nca.analysis_id = nsa.analysis_id
+WHERE nca.created_at >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(nca.created_at), nca.language_detected, nca.content_type
+ORDER BY analysis_date DESC, nca.language_detected, nca.content_type;
+
+-- Insert default classification rules
+INSERT INTO nlp_classification_rules (
+    rule_id, rule_name, classification_type, target_class, rule_pattern, rule_type, language, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Dutch Financial Statement Detection', 'content_type', 'financial_statement',
+    '\\b(bankrekening|saldo|transactie|betaling|rente|hypotheek)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Dutch Identity Document Detection', 'content_type', 'identity_document',
+    '\\b(paspoort|identiteit|geboren|nationaliteit|BSN)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Employment Document Detection', 'content_type', 'employment_document',
+    '\\b(werkgever|salaris|contract|arbeidsovereenkomst|loonstrook)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Financial Distress Indicator', 'risk_indicator', 'financial_distress',
+    '\\b(betalingsproblemen|schulden|financiële problemen|insolvent)\\b', 'regex', 'nl', 'system'
+),
+(
+    gen_random_uuid(), 'Employment Instability Indicator', 'risk_indicator', 'employment_instability',
+    '\\b(werkloos|ontslagen|tijdelijk contract|zzp)\\b', 'regex', 'nl', 'system'
+) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- MORTGAGE ADVICE GENERATOR SCHEMA
+-- =============================================
+
+-- Personalized mortgage advice table
+CREATE TABLE IF NOT EXISTS mortgage_advice_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    advice_id UUID NOT NULL UNIQUE,
+    customer_id VARCHAR(255) NOT NULL,
+    advice_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    customer_profile JSONB NOT NULL,
+    suitability_assessment JSONB,
+    product_recommendations JSONB DEFAULT '[]',
+    advice_recommendations JSONB DEFAULT '[]',
+    risk_assessment JSONB,
+    compliance_validations JSONB DEFAULT '[]',
+    cost_benefit_analysis JSONB,
+    alternative_scenarios JSONB DEFAULT '[]',
+    required_disclosures JSONB DEFAULT '[]',
+    next_steps JSONB DEFAULT '[]',
+    review_date TIMESTAMP WITH TIME ZONE,
+    advice_complexity VARCHAR(50),
+    language VARCHAR(20) DEFAULT 'dutch',
+    approval_status VARCHAR(50) DEFAULT 'draft',
+    advisor_id VARCHAR(255),
+    advisor_notes TEXT,
+    processing_time_ms INTEGER,
+    confidence_score DECIMAL(5,4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Suitability assessment results table
+CREATE TABLE IF NOT EXISTS suitability_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    customer_id VARCHAR(255) NOT NULL,
+    product_id VARCHAR(255) NOT NULL,
+    financial_situation_score DECIMAL(5,4),
+    customer_objectives_score DECIMAL(5,4),
+    knowledge_experience_score DECIMAL(5,4),
+    overall_suitability_score DECIMAL(5,4),
+    suitability_classification VARCHAR(50),
+    assessment_details JSONB NOT NULL,
+    rule_evaluations JSONB DEFAULT '[]',
+    required_actions JSONB DEFAULT '[]',
+    compliance_flags JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    assessor_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice recommendations table
+CREATE TABLE IF NOT EXISTS advice_recommendations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    recommendation_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    advice_type VARCHAR(100) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    summary TEXT,
+    detailed_explanation TEXT NOT NULL,
+    rationale TEXT NOT NULL,
+    benefits JSONB DEFAULT '[]',
+    risks JSONB DEFAULT '[]',
+    cost_implications JSONB DEFAULT '{}',
+    implementation_steps JSONB DEFAULT '[]',
+    timeline VARCHAR(200),
+    priority INTEGER DEFAULT 1,
+    confidence_score DECIMAL(5,4),
+    regulatory_basis JSONB DEFAULT '[]',
+    supporting_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Mortgage product catalog table
+CREATE TABLE IF NOT EXISTS mortgage_products_catalog (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    product_id UUID NOT NULL UNIQUE,
+    product_name VARCHAR(300) NOT NULL,
+    lender VARCHAR(200) NOT NULL,
+    product_type VARCHAR(100) NOT NULL,
+    interest_rate DECIMAL(6,4) NOT NULL,
+    interest_type VARCHAR(50) NOT NULL,
+    interest_period INTEGER,
+    max_ltv DECIMAL(5,2) NOT NULL,
+    max_loan_amount DECIMAL(15,2) NOT NULL,
+    min_loan_amount DECIMAL(15,2) NOT NULL,
+    fees JSONB DEFAULT '{}',
+    features JSONB DEFAULT '[]',
+    restrictions JSONB DEFAULT '[]',
+    suitability_criteria JSONB DEFAULT '{}',
+    nhg_eligible BOOLEAN DEFAULT false,
+    sustainability_features JSONB DEFAULT '[]',
+    product_description TEXT,
+    terms_and_conditions TEXT,
+    effective_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    expiry_date TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Compliance validation results table
+CREATE TABLE IF NOT EXISTS advice_compliance_validations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    validation_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    compliance_requirement VARCHAR(100) NOT NULL,
+    is_compliant BOOLEAN NOT NULL,
+    validation_details TEXT,
+    required_disclosures JSONB DEFAULT '[]',
+    documentation_requirements JSONB DEFAULT '[]',
+    remediation_actions JSONB DEFAULT '[]',
+    compliance_score DECIMAL(5,4),
+    validation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    validator_id VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer knowledge assessment table
+CREATE TABLE IF NOT EXISTS customer_knowledge_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    customer_id VARCHAR(255) NOT NULL,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    financial_knowledge_score DECIMAL(5,4),
+    mortgage_knowledge_score DECIMAL(5,4),
+    risk_understanding_score DECIMAL(5,4),
+    product_complexity_tolerance VARCHAR(50),
+    assessment_method VARCHAR(100),
+    assessment_questions JSONB,
+    assessment_responses JSONB,
+    knowledge_gaps JSONB DEFAULT '[]',
+    recommended_education JSONB DEFAULT '[]',
+    assessment_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice formatting and delivery table
+CREATE TABLE IF NOT EXISTS advice_formatting (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    format_type VARCHAR(50) NOT NULL,
+    formatted_content TEXT NOT NULL,
+    file_path VARCHAR(1000),
+    file_size BIGINT,
+    generation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    delivery_status VARCHAR(50) DEFAULT 'generated',
+    delivery_timestamp TIMESTAMP WITH TIME ZONE,
+    delivery_method VARCHAR(100),
+    recipient_confirmation BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Cost-benefit analysis table
+CREATE TABLE IF NOT EXISTS advice_cost_benefit_analysis (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    product_id VARCHAR(255) NOT NULL,
+    loan_amount DECIMAL(15,2) NOT NULL,
+    loan_term_years INTEGER NOT NULL,
+    monthly_payment DECIMAL(10,2) NOT NULL,
+    total_interest_cost DECIMAL(15,2),
+    total_loan_cost DECIMAL(15,2),
+    upfront_costs JSONB DEFAULT '{}',
+    ongoing_costs JSONB DEFAULT '{}',
+    tax_implications JSONB DEFAULT '{}',
+    nhg_cost_benefit JSONB,
+    alternative_scenarios JSONB DEFAULT '[]',
+    break_even_analysis JSONB,
+    sensitivity_analysis JSONB,
+    recommendation VARCHAR(500),
+    analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice audit trail table
+CREATE TABLE IF NOT EXISTS advice_audit_trail (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    audit_action VARCHAR(100) NOT NULL,
+    performed_by VARCHAR(255),
+    action_details JSONB,
+    previous_values JSONB,
+    new_values JSONB,
+    reason TEXT,
+    compliance_impact VARCHAR(100),
+    audit_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Regulatory disclosure tracking table
+CREATE TABLE IF NOT EXISTS regulatory_disclosures (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    disclosure_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    disclosure_type VARCHAR(100) NOT NULL,
+    regulation VARCHAR(100) NOT NULL,
+    disclosure_content TEXT NOT NULL,
+    is_mandatory BOOLEAN DEFAULT true,
+    customer_acknowledgment BOOLEAN DEFAULT false,
+    acknowledgment_timestamp TIMESTAMP WITH TIME ZONE,
+    acknowledgment_method VARCHAR(100),
+    disclosure_language VARCHAR(20),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Advice performance metrics table
+CREATE TABLE IF NOT EXISTS advice_performance_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_date DATE NOT NULL,
+    advice_type VARCHAR(100),
+    language VARCHAR(20),
+    total_advice_generated INTEGER DEFAULT 0,
+    avg_generation_time_ms INTEGER,
+    avg_confidence_score DECIMAL(5,4),
+    compliance_rate DECIMAL(5,4),
+    customer_satisfaction_score DECIMAL(3,2),
+    advice_acceptance_rate DECIMAL(5,4),
+    suitability_assessment_rate DECIMAL(5,4),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(metric_date, advice_type, language)
+);
+
+-- Advice templates and rules table
+CREATE TABLE IF NOT EXISTS advice_templates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    template_id UUID NOT NULL UNIQUE,
+    template_name VARCHAR(300) NOT NULL,
+    advice_type VARCHAR(100) NOT NULL,
+    language VARCHAR(20) NOT NULL,
+    complexity_level VARCHAR(50) NOT NULL,
+    template_content TEXT NOT NULL,
+    template_variables JSONB DEFAULT '[]',
+    regulatory_requirements JSONB DEFAULT '[]',
+    usage_guidelines TEXT,
+    is_active BOOLEAN DEFAULT true,
+    version VARCHAR(50) DEFAULT '1.0',
+    created_by VARCHAR(255),
+    approved_by VARCHAR(255),
+    approval_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customer feedback on advice table
+CREATE TABLE IF NOT EXISTS advice_customer_feedback (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    feedback_id UUID NOT NULL UNIQUE,
+    advice_id UUID REFERENCES mortgage_advice_sessions(advice_id),
+    customer_id VARCHAR(255) NOT NULL,
+    satisfaction_score INTEGER CHECK (satisfaction_score >= 1 AND satisfaction_score <= 5),
+    clarity_score INTEGER CHECK (clarity_score >= 1 AND clarity_score <= 5),
+    usefulness_score INTEGER CHECK (usefulness_score >= 1 AND usefulness_score <= 5),
+    completeness_score INTEGER CHECK (completeness_score >= 1 AND completeness_score <= 5),
+    feedback_comments TEXT,
+    improvement_suggestions TEXT,
+    would_recommend BOOLEAN,
+    advice_followed BOOLEAN,
+    follow_up_needed BOOLEAN DEFAULT false,
+    feedback_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_customer_id ON mortgage_advice_sessions(customer_id);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_advice_timestamp ON mortgage_advice_sessions(advice_timestamp);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_approval_status ON mortgage_advice_sessions(approval_status);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_advisor_id ON mortgage_advice_sessions(advisor_id);
+CREATE INDEX IF NOT EXISTS idx_mortgage_advice_sessions_language ON mortgage_advice_sessions(language);
+
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_advice_id ON suitability_assessments(advice_id);
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_customer_id ON suitability_assessments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_product_id ON suitability_assessments(product_id);
+CREATE INDEX IF NOT EXISTS idx_suitability_assessments_suitability_score ON suitability_assessments(overall_suitability_score);
+
+CREATE INDEX IF NOT EXISTS idx_advice_recommendations_advice_id ON advice_recommendations(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_recommendations_advice_type ON advice_recommendations(advice_type);
+CREATE INDEX IF NOT EXISTS idx_advice_recommendations_priority ON advice_recommendations(priority);
+
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_lender ON mortgage_products_catalog(lender);
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_product_type ON mortgage_products_catalog(product_type);
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_interest_rate ON mortgage_products_catalog(interest_rate);
+CREATE INDEX IF NOT EXISTS idx_mortgage_products_catalog_is_active ON mortgage_products_catalog(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_advice_compliance_validations_advice_id ON advice_compliance_validations(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_compliance_validations_requirement ON advice_compliance_validations(compliance_requirement);
+CREATE INDEX IF NOT EXISTS idx_advice_compliance_validations_is_compliant ON advice_compliance_validations(is_compliant);
+
+CREATE INDEX IF NOT EXISTS idx_customer_knowledge_assessments_customer_id ON customer_knowledge_assessments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_knowledge_assessments_advice_id ON customer_knowledge_assessments(advice_id);
+
+CREATE INDEX IF NOT EXISTS idx_advice_formatting_advice_id ON advice_formatting(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_formatting_format_type ON advice_formatting(format_type);
+CREATE INDEX IF NOT EXISTS idx_advice_formatting_delivery_status ON advice_formatting(delivery_status);
+
+CREATE INDEX IF NOT EXISTS idx_advice_cost_benefit_analysis_advice_id ON advice_cost_benefit_analysis(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_cost_benefit_analysis_product_id ON advice_cost_benefit_analysis(product_id);
+
+CREATE INDEX IF NOT EXISTS idx_advice_audit_trail_advice_id ON advice_audit_trail(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_audit_trail_audit_timestamp ON advice_audit_trail(audit_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_regulatory_disclosures_advice_id ON regulatory_disclosures(advice_id);
+CREATE INDEX IF NOT EXISTS idx_regulatory_disclosures_regulation ON regulatory_disclosures(regulation);
+CREATE INDEX IF NOT EXISTS idx_regulatory_disclosures_acknowledgment ON regulatory_disclosures(customer_acknowledgment);
+
+CREATE INDEX IF NOT EXISTS idx_advice_performance_metrics_metric_date ON advice_performance_metrics(metric_date);
+CREATE INDEX IF NOT EXISTS idx_advice_performance_metrics_advice_type ON advice_performance_metrics(advice_type);
+
+CREATE INDEX IF NOT EXISTS idx_advice_templates_advice_type ON advice_templates(advice_type);
+CREATE INDEX IF NOT EXISTS idx_advice_templates_language ON advice_templates(language);
+CREATE INDEX IF NOT EXISTS idx_advice_templates_is_active ON advice_templates(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_advice_customer_feedback_advice_id ON advice_customer_feedback(advice_id);
+CREATE INDEX IF NOT EXISTS idx_advice_customer_feedback_satisfaction_score ON advice_customer_feedback(satisfaction_score);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_mortgage_advice_sessions_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER mortgage_advice_sessions_update_timestamp
+    BEFORE UPDATE ON mortgage_advice_sessions
+    FOR EACH ROW EXECUTE FUNCTION update_mortgage_advice_sessions_timestamp();
+
+CREATE OR REPLACE FUNCTION update_mortgage_products_catalog_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER mortgage_products_catalog_update_timestamp
+    BEFORE UPDATE ON mortgage_products_catalog
+    FOR EACH ROW EXECUTE FUNCTION update_mortgage_products_catalog_timestamp();
+
+CREATE OR REPLACE FUNCTION update_advice_templates_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER advice_templates_update_timestamp
+    BEFORE UPDATE ON advice_templates
+    FOR EACH ROW EXECUTE FUNCTION update_advice_templates_timestamp();
+
+-- Function to calculate daily advice metrics
+CREATE OR REPLACE FUNCTION calculate_advice_performance_metrics()
+RETURNS VOID AS $$
+DECLARE
+    metric_date DATE := CURRENT_DATE;
+    advice_type_record RECORD;
+BEGIN
+    -- Calculate metrics for each advice type and language combination
+    FOR advice_type_record IN 
+        SELECT DISTINCT 
+            (SELECT jsonb_array_elements_text(advice_recommendations) FROM mortgage_advice_sessions WHERE id = mas.id LIMIT 1) as advice_type,
+            mas.language
+        FROM mortgage_advice_sessions mas
+        WHERE DATE(mas.advice_timestamp) = metric_date
+    LOOP
+        INSERT INTO advice_performance_metrics (
+            metric_date, advice_type, language, total_advice_generated,
+            avg_generation_time_ms, avg_confidence_score, compliance_rate
+        )
+        SELECT 
+            metric_date,
+            advice_type_record.advice_type,
+            advice_type_record.language,
+            COUNT(*) as total_advice_generated,
+            AVG(processing_time_ms)::INTEGER as avg_generation_time_ms,
+            AVG(confidence_score) as avg_confidence_score,
+            (COUNT(CASE WHEN jsonb_array_length(compliance_validations) > 0 THEN 1 END)::DECIMAL / COUNT(*)) as compliance_rate
+        FROM mortgage_advice_sessions
+        WHERE DATE(advice_timestamp) = metric_date
+        AND language = advice_type_record.language
+        ON CONFLICT (metric_date, advice_type, language) DO UPDATE SET
+            total_advice_generated = EXCLUDED.total_advice_generated,
+            avg_generation_time_ms = EXCLUDED.avg_generation_time_ms,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            compliance_rate = EXCLUDED.compliance_rate;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate advice alerts
+CREATE OR REPLACE FUNCTION generate_advice_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    advice_record RECORD;
+BEGIN
+    -- Check for non-compliant advice
+    FOR advice_record IN 
+        SELECT mas.advice_id, mas.customer_id, acv.compliance_requirement
+        FROM mortgage_advice_sessions mas
+        JOIN advice_compliance_validations acv ON mas.advice_id = acv.advice_id
+        WHERE acv.is_compliant = false
+        AND mas.advice_timestamp > NOW() - INTERVAL '24 hours'
+        AND mas.approval_status = 'draft'
+    LOOP
+        -- Generate compliance alert (would integrate with alert system)
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common advice queries
+CREATE OR REPLACE VIEW advice_dashboard_summary AS
+SELECT 
+    DATE(mas.advice_timestamp) as advice_date,
+    mas.language,
+    mas.advice_complexity,
+    COUNT(*) as total_advice,
+    AVG(mas.confidence_score) as avg_confidence,
+    AVG(mas.processing_time_ms) as avg_processing_time,
+    COUNT(CASE WHEN mas.approval_status = 'approved' THEN 1 END) as approved_advice,
+    AVG(sa.overall_suitability_score) as avg_suitability_score
+FROM mortgage_advice_sessions mas
+LEFT JOIN suitability_assessments sa ON mas.advice_id = sa.advice_id
+WHERE mas.advice_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(mas.advice_timestamp), mas.language, mas.advice_complexity
+ORDER BY advice_date DESC;
+
+CREATE OR REPLACE VIEW customer_advice_history AS
+SELECT 
+    mas.customer_id,
+    mas.advice_id,
+    mas.advice_timestamp,
+    mas.approval_status,
+    mas.confidence_score,
+    COUNT(ar.recommendation_id) as recommendation_count,
+    AVG(sa.overall_suitability_score) as avg_suitability,
+    bool_and(acv.is_compliant) as fully_compliant
+FROM mortgage_advice_sessions mas
+LEFT JOIN advice_recommendations ar ON mas.advice_id = ar.advice_id
+LEFT JOIN suitability_assessments sa ON mas.advice_id = sa.advice_id
+LEFT JOIN advice_compliance_validations acv ON mas.advice_id = acv.advice_id
+GROUP BY mas.customer_id, mas.advice_id, mas.advice_timestamp, mas.approval_status, mas.confidence_score
+ORDER BY mas.advice_timestamp DESC;
+
+-- Insert default mortgage products
+INSERT INTO mortgage_products_catalog (
+    product_id, product_name, lender, product_type, interest_rate, interest_type,
+    interest_period, max_ltv, max_loan_amount, min_loan_amount, fees, features,
+    nhg_eligible, product_description, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'ING Fixed 10 Years', 'ING Bank', 'fixed_rate', 3.20, 'fixed',
+    10, 100.00, 1000000.00, 50000.00, 
+    '{"origination_fee": 1500, "appraisal_fee": 400, "notary_fee": 800}',
+    '["NHG eligible", "Flexible repayment", "Interest-only option", "Sustainability bonus"]',
+    true, 'Fixed interest rate mortgage with 10-year rate guarantee', 'system'
+),
+(
+    gen_random_uuid(), 'Rabobank Sustainable 20 Years', 'Rabobank', 'fixed_rate', 3.15, 'fixed',
+    20, 100.00, 1000000.00, 75000.00,
+    '{"origination_fee": 1200, "appraisal_fee": 350, "sustainability_assessment": 200}',
+    '["Sustainability discount", "Energy improvement loan", "NHG eligible", "Green mortgage"]',
+    true, 'Sustainable mortgage with energy efficiency benefits', 'system'
+),
+(
+    gen_random_uuid(), 'ABN AMRO Variable Plus', 'ABN AMRO', 'variable_rate', 2.95, 'variable',
+    0, 90.00, 800000.00, 100000.00,
+    '{"origination_fee": 1800, "appraisal_fee": 450, "rate_cap_fee": 300}',
+    '["Rate cap option", "Flexible payments", "Offset account", "Online management"]',
+    false, 'Variable rate mortgage with rate cap protection option', 'system'
+) ON CONFLICT DO NOTHING;
+
+-- Insert default advice templates
+INSERT INTO advice_templates (
+    template_id, template_name, advice_type, language, complexity_level,
+    template_content, template_variables, regulatory_requirements, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'Product Recommendation Template - Dutch', 'product_recommendation', 'nl', 'intermediate',
+    'Gebaseerd op uw financiële situatie adviseren wij het volgende hypotheekproduct: {{product_name}} van {{lender}} met een rente van {{interest_rate}}%.',
+    '["product_name", "lender", "interest_rate", "monthly_payment", "total_cost"]',
+    '["wft_article_86f", "afm_disclosure"]',
+    'system'
+),
+(
+    gen_random_uuid(), 'Risk Disclosure Template - Dutch', 'risk_analysis', 'nl', 'accessible',
+    'Belangrijke risico''s: Rentewijzigingen kunnen uw maandlasten beïnvloeden. Woningwaarde kan fluctueren.',
+    '["risk_factors", "mitigation_strategies", "impact_scenarios"]',
+    '["wft_article_86f", "afm_disclosure", "bgfo_article_8_1"]',
+    'system'
+),
+(
+    gen_random_uuid(), 'Affordability Assessment Template - Dutch', 'affordability_assessment', 'nl', 'intermediate',
+    'Betaalbaarheidsanalyse: Op basis van uw inkomen van €{{monthly_income}} en uitgaven van €{{monthly_expenses}} kunt u een hypotheek van maximaal €{{max_mortgage}} aan.',
+    '["monthly_income", "monthly_expenses", "max_mortgage", "affordability_ratio"]',
+    '["wft_article_86f"]',
+    'system'
+) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- USER COMPREHENSION VALIDATOR SCHEMA
+-- =============================================
+
+-- Assessment questions bank
+CREATE TABLE IF NOT EXISTS assessment_questions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    question_id UUID NOT NULL UNIQUE,
+    knowledge_domain VARCHAR(100) NOT NULL,
+    question_type VARCHAR(50) NOT NULL,
+    difficulty_level VARCHAR(50) NOT NULL,
+    question_text TEXT NOT NULL,
+    question_context TEXT,
+    options JSONB,
+    correct_answer JSONB NOT NULL,
+    explanation TEXT,
+    learning_objectives JSONB DEFAULT '[]',
+    regulatory_relevance JSONB DEFAULT '[]',
+    estimated_time_minutes INTEGER DEFAULT 2,
+    multimedia_content JSONB,
+    adaptive_parameters JSONB DEFAULT '{}',
+    tags JSONB DEFAULT '[]',
+    usage_count INTEGER DEFAULT 0,
+    correct_rate DECIMAL(5,4) DEFAULT 0.5,
+    avg_response_time INTEGER DEFAULT 120,
+    is_active BOOLEAN DEFAULT true,
+    created_by VARCHAR(255),
+    reviewed_by VARCHAR(255),
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Assessment sessions table
+CREATE TABLE IF NOT EXISTS assessment_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    session_id UUID NOT NULL UNIQUE,
+    user_id VARCHAR(255) NOT NULL,
+    assessment_goals JSONB NOT NULL,
+    user_preferences JSONB DEFAULT '{}',
+    session_status VARCHAR(50) DEFAULT 'active',
+    target_domains JSONB DEFAULT '[]',
+    adaptive_algorithm VARCHAR(50) DEFAULT 'cat',
+    target_precision DECIMAL(3,2) DEFAULT 0.3,
+    max_questions INTEGER DEFAULT 20,
+    min_questions INTEGER DEFAULT 5,
+    time_limit_minutes INTEGER,
+    started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    session_duration_minutes INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User responses table
+CREATE TABLE IF NOT EXISTS user_responses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    response_id UUID NOT NULL UNIQUE,
+    session_id UUID REFERENCES assessment_sessions(session_id),
+    question_id UUID REFERENCES assessment_questions(question_id),
+    user_answer JSONB NOT NULL,
+    is_correct BOOLEAN NOT NULL,
+    confidence_level INTEGER CHECK (confidence_level >= 1 AND confidence_level <= 5),
+    response_time_seconds INTEGER NOT NULL,
+    attempt_number INTEGER DEFAULT 1,
+    hint_used BOOLEAN DEFAULT false,
+    explanation_viewed BOOLEAN DEFAULT false,
+    response_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    device_info JSONB DEFAULT '{}',
+    interaction_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Knowledge assessments table
+CREATE TABLE IF NOT EXISTS knowledge_assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL UNIQUE,
+    user_id VARCHAR(255) NOT NULL,
+    session_id UUID REFERENCES assessment_sessions(session_id),
+    assessment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    domain_scores JSONB NOT NULL,
+    overall_comprehension_level VARCHAR(50) NOT NULL,
+    overall_score DECIMAL(5,4) NOT NULL,
+    confidence_interval_lower DECIMAL(5,4),
+    confidence_interval_upper DECIMAL(5,4),
+    strengths JSONB DEFAULT '[]',
+    weaknesses JSONB DEFAULT '[]',
+    knowledge_gaps JSONB DEFAULT '[]',
+    learning_recommendations JSONB DEFAULT '[]',
+    estimated_learning_time INTEGER,
+    regulatory_compliance_score DECIMAL(5,4),
+    adaptive_parameters JSONB DEFAULT '{}',
+    next_assessment_date TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Learning paths table
+CREATE TABLE IF NOT EXISTS learning_paths (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    path_id UUID NOT NULL UNIQUE,
+    user_id VARCHAR(255) NOT NULL,
+    assessment_id UUID REFERENCES knowledge_assessments(assessment_id),
+    learning_objectives JSONB NOT NULL,
+    recommended_modules JSONB NOT NULL,
+    estimated_completion_time INTEGER,
+    difficulty_progression JSONB DEFAULT '[]',
+    learning_style_adaptations JSONB DEFAULT '{}',
+    milestone_checkpoints JSONB DEFAULT '[]',
+    progress_tracking JSONB DEFAULT '{}',
+    adaptive_adjustments JSONB DEFAULT '[]',
+    gamification_elements JSONB DEFAULT '{}',
+    accessibility_accommodations JSONB DEFAULT '[]',
+    path_status VARCHAR(50) DEFAULT 'active',
+    started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    last_accessed TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Learning modules table
+CREATE TABLE IF NOT EXISTS learning_modules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    module_id UUID NOT NULL UNIQUE,
+    module_name VARCHAR(300) NOT NULL,
+    module_type VARCHAR(100) NOT NULL,
+    knowledge_domain VARCHAR(100) NOT NULL,
+    difficulty_level VARCHAR(50) NOT NULL,
+    estimated_time_minutes INTEGER NOT NULL,
+    learning_objectives JSONB NOT NULL,
+    prerequisites JSONB DEFAULT '[]',
+    content_types JSONB DEFAULT '[]',
+    module_content TEXT,
+    multimedia_resources JSONB DEFAULT '{}',
+    assessment_criteria JSONB DEFAULT '{}',
+    completion_requirements JSONB DEFAULT '{}',
+    is_active BOOLEAN DEFAULT true,
+    version VARCHAR(50) DEFAULT '1.0',
+    created_by VARCHAR(255),
+    reviewed_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User learning progress table
+CREATE TABLE IF NOT EXISTS user_learning_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id VARCHAR(255) NOT NULL,
+    path_id UUID REFERENCES learning_paths(path_id),
+    module_id UUID REFERENCES learning_modules(module_id),
+    progress_percentage DECIMAL(5,2) DEFAULT 0.00,
+    time_spent_minutes INTEGER DEFAULT 0,
+    completion_status VARCHAR(50) DEFAULT 'not_started',
+    last_activity TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    module_score DECIMAL(5,4),
+    attempts INTEGER DEFAULT 0,
+    mastery_achieved BOOLEAN DEFAULT false,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_domain ON assessment_questions(knowledge_domain);
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_difficulty ON assessment_questions(difficulty_level);
+CREATE INDEX IF NOT EXISTS idx_assessment_questions_is_active ON assessment_questions(is_active);
+
+CREATE INDEX IF NOT EXISTS idx_assessment_sessions_user_id ON assessment_sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_assessment_sessions_status ON assessment_sessions(session_status);
+
+CREATE INDEX IF NOT EXISTS idx_user_responses_session_id ON user_responses(session_id);
+CREATE INDEX IF NOT EXISTS idx_user_responses_question_id ON user_responses(question_id);
+CREATE INDEX IF NOT EXISTS idx_user_responses_is_correct ON user_responses(is_correct);
+
+CREATE INDEX IF NOT EXISTS idx_knowledge_assessments_user_id ON knowledge_assessments(user_id);
+CREATE INDEX IF NOT EXISTS idx_knowledge_assessments_comprehension_level ON knowledge_assessments(overall_comprehension_level);
+
+CREATE INDEX IF NOT EXISTS idx_learning_paths_user_id ON learning_paths(user_id);
+CREATE INDEX IF NOT EXISTS idx_learning_paths_path_status ON learning_paths(path_status);
+
+CREATE INDEX IF NOT EXISTS idx_user_learning_progress_user_id ON user_learning_progress(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_learning_progress_completion_status ON user_learning_progress(completion_status);
+
+-- Insert default assessment questions
+INSERT INTO assessment_questions (
+    question_id, knowledge_domain, question_type, difficulty_level, question_text,
+    options, correct_answer, explanation, learning_objectives, regulatory_relevance,
+    estimated_time_minutes, tags, created_by
+) VALUES 
+(
+    gen_random_uuid(), 'mortgage_basics', 'multiple_choice', 'beginner',
+    'What is a mortgage?',
+    '["A type of savings account", "A loan secured by property", "An investment product", "A type of insurance"]',
+    '"A loan secured by property"',
+    'A mortgage is a loan that is secured by real estate property. The property serves as collateral for the loan.',
+    '["Understand basic mortgage definition", "Recognize mortgage as secured loan"]',
+    '["wft_article_86f"]',
+    2, '["definition", "basics", "security"]', 'system'
+),
+(
+    gen_random_uuid(), 'interest_rates', 'multiple_choice', 'intermediate',
+    'What happens to your monthly payment if interest rates increase on a variable rate mortgage?',
+    '["Payment stays the same", "Payment decreases", "Payment increases", "Payment becomes variable"]',
+    '"Payment increases"',
+    'With a variable rate mortgage, your monthly payment will increase when interest rates rise, as the interest portion of your payment increases.',
+    '["Understand variable rate impact", "Recognize payment risk"]',
+    '["afm_disclosure", "risk_disclosure"]',
+    3, '["variable_rate", "payment_risk", "interest_impact"]', 'system'
+) ON CONFLICT DO NOTHING;
+
+-- =============================================
+-- DUTCH MARKET INTELLIGENCE SCHEMA
+-- =============================================
+
+-- Market data points table
+CREATE TABLE IF NOT EXISTS market_data_points (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    data_id UUID NOT NULL UNIQUE,
+    data_source VARCHAR(50) NOT NULL,
+    market_segment VARCHAR(50) NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    value DECIMAL(20,6) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    region VARCHAR(100),
+    metadata JSONB DEFAULT '{}',
+    confidence_score DECIMAL(3,2) DEFAULT 0.85,
+    data_quality VARCHAR(20) DEFAULT 'medium',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market trend analyses table
+CREATE TABLE IF NOT EXISTS market_trend_analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL UNIQUE,
+    market_segment VARCHAR(50) NOT NULL,
+    analysis_period VARCHAR(50) NOT NULL,
+    trend_direction VARCHAR(30) NOT NULL,
+    trend_strength DECIMAL(5,4) NOT NULL,
+    statistical_significance DECIMAL(5,4),
+    correlation_factors JSONB DEFAULT '{}',
+    seasonal_patterns JSONB DEFAULT '{}',
+    volatility_index DECIMAL(5,4),
+    confidence_interval_lower DECIMAL(20,6),
+    confidence_interval_upper DECIMAL(20,6),
+    key_drivers JSONB DEFAULT '[]',
+    risk_factors JSONB DEFAULT '[]',
+    analysis_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Predictive insights table
+CREATE TABLE IF NOT EXISTS predictive_insights (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    insight_id UUID NOT NULL UNIQUE,
+    market_segment VARCHAR(50) NOT NULL,
+    prediction_horizon VARCHAR(30) NOT NULL,
+    predicted_value DECIMAL(20,6) NOT NULL,
+    prediction_interval_lower DECIMAL(20,6),
+    prediction_interval_upper DECIMAL(20,6),
+    confidence_score DECIMAL(5,4) NOT NULL,
+    model_used VARCHAR(100) NOT NULL,
+    key_assumptions JSONB DEFAULT '[]',
+    risk_scenarios JSONB DEFAULT '{}',
+    business_impact TEXT,
+    recommended_actions JSONB DEFAULT '[]',
+    validation_metrics JSONB DEFAULT '{}',
+    insight_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market intelligence reports table
+CREATE TABLE IF NOT EXISTS market_intelligence_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_id UUID NOT NULL UNIQUE,
+    report_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    reporting_period VARCHAR(50) NOT NULL,
+    market_overview JSONB NOT NULL,
+    risk_assessment JSONB DEFAULT '{}',
+    competitive_intelligence JSONB DEFAULT '{}',
+    regulatory_impact JSONB DEFAULT '{}',
+    recommendations JSONB DEFAULT '[]',
+    data_sources_used JSONB DEFAULT '[]',
+    report_confidence DECIMAL(5,4),
+    processing_time_ms INTEGER,
+    report_status VARCHAR(30) DEFAULT 'generated',
+    created_by VARCHAR(255),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market data sources configuration table
+CREATE TABLE IF NOT EXISTS market_data_sources (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_id UUID NOT NULL UNIQUE,
+    source_name VARCHAR(100) NOT NULL,
+    source_type VARCHAR(50) NOT NULL,
+    base_url VARCHAR(500),
+    api_key_required BOOLEAN DEFAULT false,
+    rate_limit INTEGER DEFAULT 100,
+    data_formats JSONB DEFAULT '["json"]',
+    endpoints JSONB DEFAULT '{}',
+    collection_schedule VARCHAR(50) DEFAULT 'daily',
+    is_active BOOLEAN DEFAULT true,
+    last_collection TIMESTAMP WITH TIME ZONE,
+    collection_count INTEGER DEFAULT 0,
+    error_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market segments configuration table
+CREATE TABLE IF NOT EXISTS market_segments_config (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    segment_id UUID NOT NULL UNIQUE,
+    segment_name VARCHAR(100) NOT NULL,
+    segment_type VARCHAR(50) NOT NULL,
+    description TEXT,
+    key_indicators JSONB DEFAULT '[]',
+    data_sources JSONB DEFAULT '[]',
+    analysis_methods JSONB DEFAULT '[]',
+    update_frequency VARCHAR(30) DEFAULT 'daily',
+    importance_weight DECIMAL(3,2) DEFAULT 1.00,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market intelligence alerts table
+CREATE TABLE IF NOT EXISTS market_intelligence_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    alert_id UUID NOT NULL UNIQUE,
+    alert_type VARCHAR(50) NOT NULL,
+    market_segment VARCHAR(50) NOT NULL,
+    severity VARCHAR(20) NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description TEXT NOT NULL,
+    trigger_conditions JSONB DEFAULT '{}',
+    alert_data JSONB DEFAULT '{}',
+    recommended_actions JSONB DEFAULT '[]',
+    alert_status VARCHAR(30) DEFAULT 'active',
+    acknowledged_by VARCHAR(255),
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolution_notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Market performance metrics table
+CREATE TABLE IF NOT EXISTS market_performance_metrics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    metric_date DATE NOT NULL,
+    market_segment VARCHAR(50) NOT NULL,
+    data_points_collected INTEGER DEFAULT 0,
+    trends_analyzed INTEGER DEFAULT 0,
+    predictions_generated INTEGER DEFAULT 0,
+    avg_confidence_score DECIMAL(5,4),
+    avg_processing_time_ms INTEGER,
+    data_quality_score DECIMAL(3,2),
+    prediction_accuracy DECIMAL(5,4),
+    alert_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(metric_date, market_segment)
+);
+
+-- Economic indicators table
+CREATE TABLE IF NOT EXISTS economic_indicators (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    indicator_id UUID NOT NULL UNIQUE,
+    indicator_name VARCHAR(100) NOT NULL,
+    indicator_type VARCHAR(50) NOT NULL,
+    value DECIMAL(20,6) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    reference_period DATE NOT NULL,
+    source VARCHAR(50) NOT NULL,
+    region VARCHAR(100) DEFAULT 'Netherlands',
+    seasonal_adjustment BOOLEAN DEFAULT false,
+    revision_status VARCHAR(30) DEFAULT 'final',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Comprehensive indexes for performance
+CREATE INDEX IF NOT EXISTS idx_market_data_points_source ON market_data_points(data_source);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_segment ON market_data_points(market_segment);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_timestamp ON market_data_points(timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_region ON market_data_points(region);
+CREATE INDEX IF NOT EXISTS idx_market_data_points_quality ON market_data_points(data_quality);
+
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_segment ON market_trend_analyses(market_segment);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_period ON market_trend_analyses(analysis_period);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_direction ON market_trend_analyses(trend_direction);
+CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_timestamp ON market_trend_analyses(analysis_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_segment ON predictive_insights(market_segment);
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_horizon ON predictive_insights(prediction_horizon);
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_confidence ON predictive_insights(confidence_score);
+CREATE INDEX IF NOT EXISTS idx_predictive_insights_timestamp ON predictive_insights(insight_timestamp);
+
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_period ON market_intelligence_reports(reporting_period);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_timestamp ON market_intelligence_reports(report_timestamp);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_reports_status ON market_intelligence_reports(report_status);
+
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_type ON market_data_sources(source_type);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_active ON market_data_sources(is_active);
+CREATE INDEX IF NOT EXISTS idx_market_data_sources_schedule ON market_data_sources(collection_schedule);
+
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_type ON market_intelligence_alerts(alert_type);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_segment ON market_intelligence_alerts(market_segment);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_severity ON market_intelligence_alerts(severity);
+CREATE INDEX IF NOT EXISTS idx_market_intelligence_alerts_status ON market_intelligence_alerts(alert_status);
+
+CREATE INDEX IF NOT EXISTS idx_market_performance_metrics_date ON market_performance_metrics(metric_date);
+CREATE INDEX IF NOT EXISTS idx_market_performance_metrics_segment ON market_performance_metrics(market_segment);
+
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_type ON economic_indicators(indicator_type);
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_period ON economic_indicators(reference_period);
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_source ON economic_indicators(source);
+CREATE INDEX IF NOT EXISTS idx_economic_indicators_region ON economic_indicators(region);
+
+-- Triggers for automatic updates
+CREATE OR REPLACE FUNCTION update_market_data_sources_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER market_data_sources_update_timestamp
+    BEFORE UPDATE ON market_data_sources
+    FOR EACH ROW EXECUTE FUNCTION update_market_data_sources_timestamp();
+
+-- Function to calculate daily market metrics
+CREATE OR REPLACE FUNCTION calculate_daily_market_metrics()
+RETURNS VOID AS $$
+DECLARE
+    metric_date DATE := CURRENT_DATE;
+    segment_record RECORD;
+BEGIN
+    -- Calculate metrics for each market segment
+    FOR segment_record IN 
+        SELECT DISTINCT market_segment FROM market_data_points 
+        WHERE DATE(timestamp) = metric_date
+    LOOP
+        INSERT INTO market_performance_metrics (
+            metric_date, market_segment, data_points_collected, trends_analyzed,
+            predictions_generated, avg_confidence_score, data_quality_score
+        )
+        SELECT 
+            metric_date,
+            segment_record.market_segment,
+            COUNT(mdp.id) as data_points_collected,
+            COUNT(DISTINCT mta.analysis_id) as trends_analyzed,
+            COUNT(DISTINCT pi.insight_id) as predictions_generated,
+            AVG(mdp.confidence_score) as avg_confidence_score,
+            AVG(CASE 
+                WHEN mdp.data_quality = 'very_high' THEN 1.0
+                WHEN mdp.data_quality = 'high' THEN 0.8
+                WHEN mdp.data_quality = 'medium' THEN 0.6
+                WHEN mdp.data_quality = 'low' THEN 0.4
+                ELSE 0.2 END) as data_quality_score
+        FROM market_data_points mdp
+        LEFT JOIN market_trend_analyses mta ON mdp.market_segment = mta.market_segment 
+            AND DATE(mta.analysis_timestamp) = metric_date
+        LEFT JOIN predictive_insights pi ON mdp.market_segment = pi.market_segment 
+            AND DATE(pi.insight_timestamp) = metric_date
+        WHERE mdp.market_segment = segment_record.market_segment
+        AND DATE(mdp.timestamp) = metric_date
+        GROUP BY mdp.market_segment
+        ON CONFLICT (metric_date, market_segment) DO UPDATE SET
+            data_points_collected = EXCLUDED.data_points_collected,
+            trends_analyzed = EXCLUDED.trends_analyzed,
+            predictions_generated = EXCLUDED.predictions_generated,
+            avg_confidence_score = EXCLUDED.avg_confidence_score,
+            data_quality_score = EXCLUDED.data_quality_score;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to generate market intelligence alerts
+CREATE OR REPLACE FUNCTION generate_market_intelligence_alerts()
+RETURNS INTEGER AS $$
+DECLARE
+    alert_count INTEGER := 0;
+    trend_record RECORD;
+    insight_record RECORD;
+    alert_id UUID;
+BEGIN
+    -- Check for significant trend changes
+    FOR trend_record IN 
+        SELECT mta.market_segment, mta.trend_direction, mta.trend_strength, mta.volatility_index
+        FROM market_trend_analyses mta
+        WHERE mta.analysis_timestamp > NOW() - INTERVAL '24 hours'
+        AND (mta.trend_strength > 0.8 OR mta.volatility_index > 0.7)
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO market_intelligence_alerts (
+            alert_id, alert_type, market_segment, severity, title, description,
+            trigger_conditions, recommended_actions
+        ) VALUES (
+            alert_id, 'trend_change', trend_record.market_segment,
+            CASE WHEN trend_record.trend_strength > 0.9 THEN 'high'
+                 WHEN trend_record.trend_strength > 0.8 THEN 'medium'
+                 ELSE 'low' END,
+            'Significant Market Trend Detected',
+            'A significant trend change has been detected in ' || trend_record.market_segment,
+            jsonb_build_object('trend_strength', trend_record.trend_strength, 'volatility', trend_record.volatility_index),
+            '["Monitor market conditions closely", "Review investment strategies", "Consider risk mitigation"]'
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    -- Check for high confidence predictions with significant changes
+    FOR insight_record IN 
+        SELECT pi.market_segment, pi.predicted_value, pi.confidence_score
+        FROM predictive_insights pi
+        WHERE pi.insight_timestamp > NOW() - INTERVAL '24 hours'
+        AND pi.confidence_score > 0.8
+    LOOP
+        alert_id := gen_random_uuid();
+        
+        INSERT INTO market_intelligence_alerts (
+            alert_id, alert_type, market_segment, severity, title, description,
+            trigger_conditions, recommended_actions
+        ) VALUES (
+            alert_id, 'prediction_alert', insight_record.market_segment, 'medium',
+            'High Confidence Market Prediction',
+            'High confidence prediction generated for ' || insight_record.market_segment,
+            jsonb_build_object('confidence_score', insight_record.confidence_score, 'predicted_value', insight_record.predicted_value),
+            '["Review prediction details", "Assess business impact", "Plan strategic response"]'
+        );
+        
+        alert_count := alert_count + 1;
+    END LOOP;
+    
+    RETURN alert_count;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Views for common market intelligence queries
+CREATE OR REPLACE VIEW market_intelligence_dashboard AS
+SELECT 
+    DATE(mdp.timestamp) as data_date,
+    mdp.market_segment,
+    COUNT(mdp.id) as data_points_count,
+    AVG(mdp.value) as avg_value,
+    AVG(mdp.confidence_score) as avg_confidence,
+    COUNT(DISTINCT mta.analysis_id) as trend_analyses_count,
+    COUNT(DISTINCT pi.insight_id) as predictions_count,
+    COUNT(CASE WHEN mia.severity = 'high' THEN 1 END) as high_severity_alerts
+FROM market_data_points mdp
+LEFT JOIN market_trend_analyses mta ON mdp.market_segment = mta.market_segment 
+    AND DATE(mta.analysis_timestamp) = DATE(mdp.timestamp)
+LEFT JOIN predictive_insights pi ON mdp.market_segment = pi.market_segment 
+    AND DATE(pi.insight_timestamp) = DATE(mdp.timestamp)
+LEFT JOIN market_intelligence_alerts mia ON mdp.market_segment = mia.market_segment 
+    AND DATE(mia.created_at) = DATE(mdp.timestamp) AND mia.alert_status = 'active'
+WHERE mdp.timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(mdp.timestamp), mdp.market_segment
+ORDER BY data_date DESC, mdp.market_segment;
+
+CREATE OR REPLACE VIEW market_trend_summary AS
+SELECT 
+    mta.market_segment,
+    mta.trend_direction,
+    AVG(mta.trend_strength) as avg_trend_strength,
+    AVG(mta.statistical_significance) as avg_statistical_significance,
+    AVG(mta.volatility_index) as avg_volatility,
+    COUNT(*) as analysis_count,
+    MAX(mta.analysis_timestamp) as latest_analysis
+FROM market_trend_analyses mta
+WHERE mta.analysis_timestamp >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY mta.market_segment, mta.trend_direction
+ORDER BY avg_trend_strength DESC;
+
+-- Insert default market data sources
+INSERT INTO market_data_sources (
+    source_id, source_name, source_type, base_url, api_key_required, rate_limit,
+    endpoints, collection_schedule, is_active
+) VALUES 
+(
+    gen_random_uuid(), 'Statistics Netherlands (CBS)', 'government', 'https://opendata.cbs.nl/ODataApi/odata/',
+    true, 100, '{"house_prices": "83906NED/TypedDataSet", "mortgage_data": "83913NED/TypedDataSet"}',
+    'daily', true
+),
+(
+    gen_random_uuid(), 'Dutch Central Bank (DNB)', 'central_bank', 'https://www.dnb.nl/',
+    true, 50, '{"interest_rates": "statistiek-dnb/api/data/rates", "mortgage_lending": "statistiek-dnb/api/data/mortgage"}',
+    'daily', true
+),
+(
+    gen_random_uuid(), 'Dutch Land Registry (Kadaster)', 'government', 'https://api.kadaster.nl/',
+    true, 200, '{"property_prices": "lvbag/individuelebevragingen/v2/adressen", "transactions": "kik-inzage-api/v4/kadastraalonroerendezaken"}',
+    'daily', true
+),
+(
+    gen_random_uuid(), 'National Mortgage Guarantee (NHG)', 'financial', 'https://www.nhg.nl/',
+    true, 30, '{"guarantee_stats": "api/statistics/guarantees", "market_conditions": "api/market/conditions"}',
+    'weekly', true
+) ON CONFLICT DO NOTHING;
+
+-- Insert default market segments configuration
+INSERT INTO market_segments_config (
+    segment_id, segment_name, segment_type, description, key_indicators,
+    data_sources, analysis_methods, importance_weight
+) VALUES 
+(
+    gen_random_uuid(), 'Residential Mortgage Market', 'mortgage', 'Dutch residential mortgage market analysis',
+    '["mortgage_volume", "approval_rates", "interest_rates", "ltv_ratios"]',
+    '["dnb", "nhg", "cbs"]', '["trend_analysis", "predictive_modeling", "correlation_analysis"]', 1.00
+),
+(
+    gen_random_uuid(), 'Property Prices', 'property', 'Dutch residential property price analysis',
+    '["average_price", "price_growth", "regional_variations", "transaction_volume"]',
+    '["cbs", "kadaster", "nvm"]', '["trend_analysis", "seasonal_analysis", "regional_analysis"]', 0.90
+),
+(
+    gen_random_uuid(), 'Interest Rates', 'financial', 'Dutch mortgage interest rate analysis',
+    '["fixed_rates", "variable_rates", "rate_spreads", "yield_curve"]',
+    '["dnb", "ecb"]', '["time_series_analysis", "yield_curve_analysis", "spread_analysis"]', 0.95
+),
+(
+    gen_random_uuid(), 'Economic Indicators', 'economic', 'Dutch economic indicators affecting mortgage market',
+    '["gdp_growth", "unemployment", "inflation", "consumer_confidence"]',
+    '["cbs", "eurostat", "ecb"]', '["correlation_analysis", "leading_indicators", "economic_modeling"]', 0.85
+) ON CONFLICT DO NOTHING;
+
 CREATE TRIGGER trigger_update_market_data_quality_metrics_updated_at
     BEFORE UPDATE ON market_data_quality_metrics
     FOR EACH ROW
     EXECUTE FUNCTION update_market_data_quality_metrics_updated_at();
+

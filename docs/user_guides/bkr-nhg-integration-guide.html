@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BKR/NHG Integration - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .section h3 {
+            color: var(--secondary-color);
+            font-size: 1.4rem;
+            margin: 2rem 0 1rem 0;
+        }
+
+        .section h4 {
+            color: var(--text-color);
+            font-size: 1.2rem;
+            margin: 1.5rem 0 0.75rem 0;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button.secondary {
+            background: var(--secondary-color);
+        }
+
+        .button.secondary:hover {
+            background: #475569;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+            list-style: none;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .tabs {
+            margin: 2rem 0;
+        }
+
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav ul {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🛡️ BKR/NHG Integration</h1>
+            <p>Real-time Dutch credit bureau and mortgage guarantee integration with comprehensive compliance validation</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#getting-started">Getting Started</a></li>
+                <li><a href="#bsn-validation">BSN Validation</a></li>
+                <li><a href="#bkr-integration">BKR Credit Checks</a></li>
+                <li><a href="#nhg-integration">NHG Eligibility</a></li>
+                <li><a href="#compliance">Compliance Validation</a></li>
+                <li><a href="#risk-assessment">Risk Assessment</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+                <li><a href="#security">Security & Privacy</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The BKR/NHG Integration system provides real-time integration with Dutch financial institutions and regulatory bodies, enabling comprehensive credit assessment and mortgage guarantee validation for the Dutch market.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>BSN Validation</h4>
+                    <p>Advanced BSN validation with 11-proof algorithm, format checking, and blacklist verification for maximum accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">💳</div>
+                    <h4>BKR Credit Checks</h4>
+                    <p>Real-time credit bureau integration with comprehensive payment history, debt analysis, and risk assessment.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🏠</div>
+                    <h4>NHG Eligibility</h4>
+                    <p>Live mortgage guarantee assessment with cost-benefit analysis and eligibility determination.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Compliance Validation</h4>
+                    <p>Automated compliance checking against Wft, BGfo, GDPR/AVG, and NHG regulations.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Production Ready:</strong> This system is built with enterprise-grade architecture, including proper error handling, comprehensive logging, advanced security measures, and full regulatory compliance.
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+
+            <h3>🔍 Advanced BSN Validation</h3>
+            <ul>
+                <li><strong>11-Proof Algorithm:</strong> Comprehensive checksum validation using Dutch BSN standards</li>
+                <li><strong>Format Validation:</strong> Strict format checking and digit verification</li>
+                <li><strong>Blacklist Checking:</strong> Real-time verification against known invalid BSNs</li>
+                <li><strong>Confidence Scoring:</strong> Statistical confidence assessment for validation results</li>
+                <li><strong>Privacy Protection:</strong> BSN hashing and secure storage for GDPR compliance</li>
+            </ul>
+
+            <h3>💳 Real-Time BKR Integration</h3>
+            <ul>
+                <li><strong>Credit Score Analysis:</strong> Comprehensive credit scoring with historical trends</li>
+                <li><strong>Payment History:</strong> Detailed payment behavior analysis and risk indicators</li>
+                <li><strong>Active Loans Tracking:</strong> Real-time monitoring of existing financial obligations</li>
+                <li><strong>Default Detection:</strong> Automatic identification of payment defaults and their impact</li>
+                <li><strong>Debt-to-Income Calculation:</strong> Advanced DTI ratio analysis for affordability assessment</li>
+                <li><strong>Risk Profiling:</strong> Multi-dimensional risk assessment with mitigation recommendations</li>
+            </ul>
+
+            <h3>🏠 Comprehensive NHG Integration</h3>
+            <ul>
+                <li><strong>Eligibility Assessment:</strong> Real-time evaluation against current NHG criteria</li>
+                <li><strong>Cost-Benefit Analysis:</strong> Detailed financial analysis of NHG benefits vs. costs</li>
+                <li><strong>Premium Calculation:</strong> Accurate NHG premium calculation based on loan parameters</li>
+                <li><strong>Interest Rate Benefits:</strong> Analysis of interest rate reductions with NHG guarantee</li>
+                <li><strong>Property Requirements:</strong> Validation of property-specific NHG criteria</li>
+                <li><strong>Income Verification:</strong> Comprehensive income requirement validation</li>
+            </ul>
+
+            <h3>⚖️ Regulatory Compliance</h3>
+            <ul>
+                <li><strong>Wft Article 86f:</strong> Suitability assessment compliance validation</li>
+                <li><strong>BGfo Article 8.1:</strong> Customer due diligence requirement checking</li>
+                <li><strong>GDPR/AVG Compliance:</strong> Data protection and privacy regulation adherence</li>
+                <li><strong>NHG Regulations:</strong> Mortgage guarantee regulation compliance verification</li>
+                <li><strong>Audit Trails:</strong> Comprehensive logging for regulatory reporting</li>
+            </ul>
+        </div>
+
+        <!-- Getting Started Section -->
+        <div class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+
+            <h3>Prerequisites</h3>
+            <ul>
+                <li>Docker and Docker Compose installed</li>
+                <li>Valid BKR API credentials</li>
+                <li>NHG API access permissions</li>
+                <li>PostgreSQL database (handled by Docker)</li>
+                <li>Redis cache (handled by Docker)</li>
+            </ul>
+
+            <h3>Installation Steps</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Configure Environment Variables</strong>
+                    <div class="code-block">
+<span class="comment"># BKR Configuration</span>
+BKR_API_URL=https://api.bkr.nl/v2
+BKR_API_KEY=your_bkr_api_key
+BKR_CLIENT_ID=your_client_id
+BKR_CLIENT_SECRET=your_client_secret
+
+<span class="comment"># NHG Configuration</span>
+NHG_API_URL=https://api.nhg.nl/v3
+NHG_API_KEY=your_nhg_api_key
+NHG_ORGANIZATION_ID=your_org_id
+
+<span class="comment"># Security</span>
+ENCRYPTION_KEY=your_32_character_encryption_key
+                    </div>
+                </li>
+                <li>
+                    <strong>Start the System</strong>
+                    <div class="code-block">docker-compose up -d</div>
+                    <p>This starts all required services including the BKR/NHG integration system.</p>
+                </li>
+                <li>
+                    <strong>Verify Installation</strong>
+                    <div class="code-block">curl http://localhost:3000/api/bkr-nhg/health</div>
+                    <p>Check that the BKR/NHG integration service is running properly.</p>
+                </li>
+                <li>
+                    <strong>Access the UI</strong>
+                    <p>Navigate to <code>http://localhost:3001</code> and find the "BKR/NHG Integration" section.</p>
+                </li>
+            </ol>
+
+            <div class="alert success">
+                <strong>✅ Quick Test:</strong> Use the demo functionality in the UI to test BSN validation and NHG eligibility checks with sample data.
+            </div>
+        </div>
+
+        <!-- BSN Validation Section -->
+        <div class="section" id="bsn-validation">
+            <h2>🔍 BSN Validation</h2>
+
+            <h3>Overview</h3>
+            <p>The BSN (Burgerservicenummer) validation system provides comprehensive validation of Dutch social security numbers using multiple verification methods.</p>
+
+            <h3>Validation Process</h3>
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('bsn-format')">Format Check</button>
+                    <button class="tab-button" onclick="showTab('bsn-checksum')">Checksum Validation</button>
+                    <button class="tab-button" onclick="showTab('bsn-blacklist')">Blacklist Check</button>
+                </div>
+
+                <div id="bsn-format" class="tab-content active">
+                    <h4>Format Validation</h4>
+                    <ul>
+                        <li>Must be exactly 9 digits</li>
+                        <li>Cannot start with 0</li>
+                        <li>No letters or special characters allowed</li>
+                        <li>Spaces and hyphens are automatically removed</li>
+                    </ul>
+                </div>
+
+                <div id="bsn-checksum" class="tab-content">
+                    <h4>11-Proof Algorithm</h4>
+                    <p>The BSN checksum validation uses the Dutch 11-proof algorithm:</p>
+                    <ol>
+                        <li>Multiply each digit by its weight (9, 8, 7, 6, 5, 4, 3, 2, -1)</li>
+                        <li>Sum all products</li>
+                        <li>Check if sum is divisible by 11</li>
+                    </ol>
+                    <div class="code-block">
+<span class="comment"># Example: BSN 123456782</span>
+(1×9) + (2×8) + (3×7) + (4×6) + (5×5) + (6×4) + (7×3) + (8×2) + (2×-1) = 0
+0 % 11 = 0 ✓ Valid BSN
+                    </div>
+                </div>
+
+                <div id="bsn-blacklist" class="tab-content">
+                    <h4>Blacklist Verification</h4>
+                    <p>The system checks against a maintained blacklist of:</p>
+                    <ul>
+                        <li>Test BSNs used in development</li>
+                        <li>Known invalid BSNs</li>
+                        <li>Restricted or blocked numbers</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>API Usage</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/bkr-nhg/validate-bsn</span>
+{
+  <span class="string">"bsn"</span>: <span class="string">"123456782"</span>
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"validation"</span>: {
+    <span class="string">"bsn"</span>: <span class="string">"123456782"</span>,
+    <span class="string">"is_valid"</span>: <span class="keyword">true</span>,
+    <span class="string">"checksum_valid"</span>: <span class="keyword">true</span>,
+    <span class="string">"format_valid"</span>: <span class="keyword">true</span>,
+    <span class="string">"blacklist_check"</span>: <span class="keyword">true</span>,
+    <span class="string">"confidence_score"</span>: 1.0,
+    <span class="string">"validation_timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>
+  }
+}
+            </div>
+
+            <div class="alert warning">
+                <strong>🔐 Privacy Note:</strong> BSNs are hashed using SHA-256 before storage. The system never stores plain-text BSNs in the database.
+            </div>
+        </div>
+
+        <!-- BKR Integration Section -->
+        <div class="section" id="bkr-integration">
+            <h2>💳 BKR Credit Checks</h2>
+
+            <h3>Overview</h3>
+            <p>The BKR (Bureau Krediet Registratie) integration provides real-time access to Dutch credit bureau data for comprehensive credit assessment.</p>
+
+            <h3>Credit Check Process</h3>
+            <ol class="step-list">
+                <li>
+                    <strong>Consent Verification</strong>
+                    <p>Verify that valid consent has been obtained from the applicant for credit data access.</p>
+                </li>
+                <li>
+                    <strong>BSN Validation</strong>
+                    <p>Validate the BSN using the comprehensive validation system.</p>
+                </li>
+                <li>
+                    <strong>API Authentication</strong>
+                    <p>Authenticate with BKR API using OAuth 2.0 client credentials flow.</p>
+                </li>
+                <li>
+                    <strong>Credit Data Retrieval</strong>
+                    <p>Retrieve comprehensive credit information including payment history, active loans, and defaults.</p>
+                </li>
+                <li>
+                    <strong>Risk Analysis</strong>
+                    <p>Analyze credit data to identify risk factors and generate recommendations.</p>
+                </li>
+            </ol>
+
+            <h3>Credit Check API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/bkr-nhg/bkr-credit-check</span>
+{
+  <span class="string">"bsn"</span>: <span class="string">"123456782"</span>,
+  <span class="string">"consent_token"</span>: <span class="string">"consent_token_12345"</span>,
+  <span class="string">"purpose"</span>: <span class="string">"mortgage_application"</span>
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"bkr_check"</span>: {
+    <span class="string">"check_id"</span>: <span class="string">"BKR_abc123_1706345400"</span>,
+    <span class="string">"status"</span>: <span class="string">"completed"</span>,
+    <span class="string">"credit_score"</span>: 720,
+    <span class="string">"payment_history"</span>: {
+      <span class="string">"on_time_payments"</span>: 95.5,
+      <span class="string">"late_payments"</span>: 4.5,
+      <span class="string">"defaults"</span>: 0
+    },
+    <span class="string">"active_loans"</span>: [
+      {
+        <span class="string">"type"</span>: <span class="string">"personal_loan"</span>,
+        <span class="string">"outstanding_amount"</span>: 15000,
+        <span class="string">"monthly_payment"</span>: 350,
+        <span class="string">"remaining_term"</span>: 36
+      }
+    ],
+    <span class="string">"total_debt"</span>: 15000,
+    <span class="string">"debt_to_income_ratio"</span>: 28.5,
+    <span class="string">"risk_indicators"</span>: [],
+    <span class="string">"recommendations"</span>: [
+      <span class="string">"Good credit profile for mortgage application"</span>
+    ],
+    <span class="string">"expires_at"</span>: <span class="string">"2025-02-26T10:30:00Z"</span>
+  },
+  <span class="string">"processing_time_ms"</span>: 1250
+}
+            </div>
+
+            <h3>Credit Score Interpretation</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Score Range</th>
+                        <th>Rating</th>
+                        <th>Description</th>
+                        <th>Mortgage Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>750-850</td>
+                        <td>Excellent</td>
+                        <td>Outstanding credit history</td>
+                        <td>Best rates available</td>
+                    </tr>
+                    <tr>
+                        <td>700-749</td>
+                        <td>Good</td>
+                        <td>Good credit history</td>
+                        <td>Favorable rates</td>
+                    </tr>
+                    <tr>
+                        <td>650-699</td>
+                        <td>Fair</td>
+                        <td>Average credit history</td>
+                        <td>Standard rates</td>
+                    </tr>
+                    <tr>
+                        <td>600-649</td>
+                        <td>Poor</td>
+                        <td>Below average credit</td>
+                        <td>Higher rates/restrictions</td>
+                    </tr>
+                    <tr>
+                        <td>Below 600</td>
+                        <td>Very Poor</td>
+                        <td>Significant credit issues</td>
+                        <td>May require special programs</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- NHG Integration Section -->
+        <div class="section" id="nhg-integration">
+            <h2>🏠 NHG Eligibility Assessment</h2>
+
+            <h3>Overview</h3>
+            <p>The NHG (Nationale Hypotheek Garantie) integration provides real-time mortgage guarantee eligibility assessment with comprehensive cost-benefit analysis.</p>
+
+            <h3>Current NHG Limits (2025)</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>Standard Limit</h4>
+                    <p><strong>€435,000</strong></p>
+                    <p>Base property value limit for NHG eligibility</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Energy Bonus</h4>
+                    <p><strong>€27,000</strong></p>
+                    <p>Additional limit for energy-efficient homes (A+ label or higher)</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Starter Bonus</h4>
+                    <p><strong>€10,000</strong></p>
+                    <p>Extra limit for first-time homebuyers</p>
+                </div>
+                <div class="feature-card">
+                    <h4>Premium Rate</h4>
+                    <p><strong>0.7%</strong></p>
+                    <p>NHG premium as percentage of loan amount</p>
+                </div>
+            </div>
+
+            <h3>Eligibility Assessment API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/bkr-nhg/nhg-eligibility</span>
+{
+  <span class="string">"property_data"</span>: {
+    <span class="string">"value"</span>: 400000,
+    <span class="string">"type"</span>: <span class="string">"house"</span>,
+    <span class="string">"energy_label"</span>: <span class="string">"B"</span>,
+    <span class="string">"construction_year"</span>: 2010,
+    <span class="string">"country"</span>: <span class="string">"Netherlands"</span>
+  },
+  <span class="string">"applicant_data"</span>: {
+    <span class="string">"first_time_buyer"</span>: <span class="keyword">true</span>,
+    <span class="string">"gross_annual_income"</span>: 60000,
+    <span class="string">"employment_type"</span>: <span class="string">"permanent"</span>,
+    <span class="string">"employment_years"</span>: 5
+  },
+  <span class="string">"loan_data"</span>: {
+    <span class="string">"amount"</span>: 320000,
+    <span class="string">"term_years"</span>: 30,
+    <span class="string">"interest_rate"</span>: 3.5,
+    <span class="string">"purpose"</span>: <span class="string">"primary_residence"</span>
+  }
+}
+            </div>
+
+            <h3>Eligibility Response</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"nhg_eligibility"</span>: {
+    <span class="string">"property_value"</span>: 400000,
+    <span class="string">"loan_amount"</span>: 320000,
+    <span class="string">"nhg_limit"</span>: 445000,
+    <span class="string">"is_eligible"</span>: <span class="keyword">true</span>,
+    <span class="string">"eligibility_status"</span>: <span class="string">"eligible"</span>,
+    <span class="string">"cost_benefit_analysis"</span>: {
+      <span class="string">"nhg_premium"</span>: 2240,
+      <span class="string">"interest_rate_benefit"</span>: 0.2,
+      <span class="string">"monthly_savings"</span>: 42.50,
+      <span class="string">"total_interest_savings"</span>: 15300,
+      <span class="string">"total_savings"</span>: 13060,
+      <span class="string">"break_even_months"</span>: 53,
+      <span class="string">"recommendation"</span>: <span class="string">"recommended"</span>,
+      <span class="string">"roi_percentage"</span>: 583.0
+    },
+    <span class="string">"conditions"</span>: [
+      <span class="string">"Property must be used as primary residence"</span>,
+      <span class="string">"NHG premium must be paid before mortgage completion"</span>
+    ],
+    <span class="string">"validity_period"</span>: 90
+  }
+}
+            </div>
+
+            <h3>Cost-Benefit Analysis</h3>
+            <p>The NHG cost-benefit analysis includes:</p>
+            <ul>
+                <li><strong>NHG Premium:</strong> One-time fee (typically 0.7% of loan amount)</li>
+                <li><strong>Interest Rate Benefit:</strong> Reduction in mortgage rate (typically 0.1-0.3%)</li>
+                <li><strong>Monthly Savings:</strong> Reduction in monthly mortgage payment</li>
+                <li><strong>Total Savings:</strong> Lifetime savings minus premium cost</li>
+                <li><strong>Break-even Point:</strong> Number of months to recover premium cost</li>
+                <li><strong>ROI Percentage:</strong> Return on investment over loan term</li>
+            </ul>
+        </div>
+
+        <!-- Compliance Section -->
+        <div class="section" id="compliance">
+            <h2>⚖️ Compliance Validation</h2>
+
+            <h3>Regulatory Framework</h3>
+            <p>The system validates compliance against multiple Dutch financial regulations:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Wft (Wet op het financieel toezicht)</h4>
+                    <p>Financial supervision law compliance, including suitability assessment requirements.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔍</div>
+                    <h4>BGfo (Besluit Gedragstoezicht)</h4>
+                    <p>Conduct supervision regulations for customer due diligence and documentation.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h4>GDPR/AVG</h4>
+                    <p>Data protection and privacy regulations for handling personal and financial data.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🏠</div>
+                    <h4>NHG Regulations</h4>
+                    <p>Mortgage guarantee specific regulations and eligibility requirements.</p>
+                </div>
+            </div>
+
+            <h3>Compliance Validation API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/bkr-nhg/validate-compliance</span>
+{
+  <span class="string">"application_data"</span>: {
+    <span class="string">"income_verified"</span>: <span class="keyword">true</span>,
+    <span class="string">"expenses_analyzed"</span>: <span class="keyword">true</span>,
+    <span class="string">"affordability_calculated"</span>: <span class="keyword">true</span>,
+    <span class="string">"identity_verified"</span>: <span class="keyword">true</span>,
+    <span class="string">"knowledge_assessed"</span>: <span class="keyword">true</span>,
+    <span class="string">"data_consent_given"</span>: <span class="keyword">true</span>,
+    <span class="string">"data_minimization_applied"</span>: <span class="keyword">true</span>
+  },
+  <span class="string">"regulation_type"</span>: <span class="string">"all"</span>
+}
+            </div>
+
+            <h3>Compliance Levels</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Description</th>
+                        <th>Action Required</th>
+                        <th>Risk Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Compliant</td>
+                        <td>Meets all regulatory requirements</td>
+                        <td>None</td>
+                        <td>Low</td>
+                    </tr>
+                    <tr>
+                        <td>Warning</td>
+                        <td>Minor compliance concerns</td>
+                        <td>Review recommended</td>
+                        <td>Low-Medium</td>
+                    </tr>
+                    <tr>
+                        <td>Non-Compliant</td>
+                        <td>Fails regulatory requirements</td>
+                        <td>Remediation required</td>
+                        <td>Medium-High</td>
+                    </tr>
+                    <tr>
+                        <td>Critical</td>
+                        <td>Serious regulatory violations</td>
+                        <td>Immediate action required</td>
+                        <td>High</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Remediation Actions</h3>
+            <p>The system provides specific remediation actions for compliance issues:</p>
+            <ul>
+                <li><strong>Wft Article 86f:</strong> Complete missing suitability assessment components</li>
+                <li><strong>BGfo Article 8.1:</strong> Verify customer identity and assess knowledge/experience</li>
+                <li><strong>GDPR/AVG:</strong> Obtain explicit consent and implement data minimization</li>
+                <li><strong>NHG Regulations:</strong> Verify eligibility criteria and documentation requirements</li>
+            </ul>
+        </div>
+
+        <!-- Risk Assessment Section -->
+        <div class="section" id="risk-assessment">
+            <h2>⚠️ Risk Assessment</h2>
+
+            <h3>Multi-Dimensional Risk Analysis</h3>
+            <p>The system performs comprehensive risk assessment using multiple data sources and advanced algorithms.</p>
+
+            <h3>Risk Factors</h3>
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="showTab('credit-risk')">Credit Risk</button>
+                    <button class="tab-button" onclick="showTab('compliance-risk')">Compliance Risk</button>
+                    <button class="tab-button" onclick="showTab('fraud-risk')">Fraud Risk</button>
+                </div>
+
+                <div id="credit-risk" class="tab-content active">
+                    <h4>Credit Risk Factors</h4>
+                    <ul>
+                        <li><strong>Low Credit Score:</strong> Below 650 indicates higher risk</li>
+                        <li><strong>Payment Defaults:</strong> History of missed payments or defaults</li>
+                        <li><strong>High DTI Ratio:</strong> Debt-to-income ratio above 40%</li>
+                        <li><strong>Multiple Active Loans:</strong> High number of existing financial obligations</li>
+                        <li><strong>Recent Credit Inquiries:</strong> Multiple recent credit applications</li>
+                    </ul>
+                </div>
+
+                <div id="compliance-risk" class="tab-content">
+                    <h4>Compliance Risk Factors</h4>
+                    <ul>
+                        <li><strong>Missing Documentation:</strong> Incomplete regulatory documentation</li>
+                        <li><strong>Consent Issues:</strong> Invalid or expired data processing consent</li>
+                        <li><strong>Suitability Gaps:</strong> Incomplete suitability assessment</li>
+                        <li><strong>Data Quality:</strong> Poor quality or inconsistent data</li>
+                    </ul>
+                </div>
+
+                <div id="fraud-risk" class="tab-content">
+                    <h4>Fraud Risk Indicators</h4>
+                    <ul>
+                        <li><strong>Identity Inconsistencies:</strong> Mismatched personal information</li>
+                        <li><strong>Document Anomalies:</strong> Suspicious document characteristics</li>
+                        <li><strong>Behavioral Patterns:</strong> Unusual application behavior</li>
+                        <li><strong>Data Discrepancies:</strong> Inconsistent information across sources</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Risk Scoring</h3>
+            <div class="code-block">
+{
+  <span class="string">"risk_assessment"</span>: {
+    <span class="string">"overall_risk_score"</span>: 0.35,
+    <span class="string">"risk_level"</span>: <span class="string">"medium"</span>,
+    <span class="string">"risk_factors"</span>: [
+      {
+        <span class="string">"type"</span>: <span class="string">"high_dti"</span>,
+        <span class="string">"severity"</span>: <span class="string">"medium"</span>,
+        <span class="string">"description"</span>: <span class="string">"High debt-to-income ratio: 42.5%"</span>,
+        <span class="string">"impact"</span>: 0.2
+      }
+    ],
+    <span class="string">"mitigation_strategies"</span>: [
+      <span class="string">"Consider requiring additional collateral"</span>,
+      <span class="string">"Implement enhanced monitoring procedures"</span>
+    ],
+    <span class="string">"confidence_level"</span>: 0.85
+  }
+}
+            </div>
+
+            <h3>Risk Levels</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Risk Level</th>
+                        <th>Score Range</th>
+                        <th>Description</th>
+                        <th>Recommended Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Low</td>
+                        <td>0.0 - 0.2</td>
+                        <td>Minimal risk factors</td>
+                        <td>Standard processing</td>
+                    </tr>
+                    <tr>
+                        <td>Medium</td>
+                        <td>0.2 - 0.4</td>
+                        <td>Some risk factors present</td>
+                        <td>Enhanced due diligence</td>
+                    </tr>
+                    <tr>
+                        <td>High</td>
+                        <td>0.4 - 0.7</td>
+                        <td>Significant risk factors</td>
+                        <td>Additional verification required</td>
+                    </tr>
+                    <tr>
+                        <td>Critical</td>
+                        <td>0.7 - 1.0</td>
+                        <td>Multiple high-risk factors</td>
+                        <td>Manual review required</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- API Reference Section -->
+        <div class="section" id="api-reference">
+            <h2>📚 API Reference</h2>
+
+            <h3>Base URL</h3>
+            <div class="code-block">https://your-domain.com/api/bkr-nhg</div>
+
+            <h3>Authentication</h3>
+            <p>All API requests require authentication via JWT token or API key:</p>
+            <div class="code-block">
+Authorization: Bearer your_jwt_token
+<span class="comment"># or</span>
+X-API-Key: your_api_key
+            </div>
+
+            <h3>Core Endpoints</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>POST</td>
+                        <td>/validate-bsn</td>
+                        <td>Validate Dutch BSN</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/validate-bsn-batch</td>
+                        <td>Batch BSN validation</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/bkr-credit-check</td>
+                        <td>Perform BKR credit check</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/bkr-credit-check/{checkId}</td>
+                        <td>Get BKR check status</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/nhg-eligibility</td>
+                        <td>Check NHG eligibility</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/nhg-limits</td>
+                        <td>Get current NHG limits</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/validate-compliance</td>
+                        <td>Validate regulatory compliance</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/comprehensive-check</td>
+                        <td>Perform comprehensive check</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/health</td>
+                        <td>Get system health status</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Error Handling</h3>
+            <p>Error responses include detailed information for debugging:</p>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Invalid BSN format"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"BSN_VALIDATION_ERROR"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"field"</span>: <span class="string">"bsn"</span>,
+    <span class="string">"message"</span>: <span class="string">"BSN must be exactly 9 digits"</span>
+  },
+  <span class="string">"timestamp"</span>: <span class="string">"2025-01-27T10:30:00Z"</span>
+}
+            </div>
+
+            <h3>Rate Limiting</h3>
+            <p>API requests are rate limited to prevent abuse:</p>
+            <ul>
+                <li><strong>BSN Validation:</strong> 1000 requests per hour</li>
+                <li><strong>BKR Checks:</strong> 100 requests per hour</li>
+                <li><strong>NHG Assessments:</strong> 500 requests per hour</li>
+                <li><strong>Comprehensive Checks:</strong> 50 requests per hour</li>
+            </ul>
+        </div>
+
+        <!-- Troubleshooting Section -->
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Common Issues</h3>
+
+            <h4>🔴 BSN Validation Failures</h4>
+            <div class="alert error">
+                <strong>Symptoms:</strong> BSN validation returns false negatives or errors
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Verify BSN format (exactly 9 digits, no leading zeros)</li>
+                <li>Check for spaces or special characters in input</li>
+                <li>Validate using online BSN checker tools</li>
+                <li>Review blacklist configuration</li>
+            </ul>
+
+            <h4>🟡 BKR API Connection Issues</h4>
+            <div class="alert warning">
+                <strong>Symptoms:</strong> BKR credit checks failing with connection errors
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Verify BKR API credentials and permissions</li>
+                <li>Check network connectivity to BKR endpoints</li>
+                <li>Review OAuth token expiration and refresh logic</li>
+                <li>Validate SSL certificate configuration</li>
+            </ul>
+
+            <h4>🔵 NHG Limit Updates</h4>
+            <div class="alert info">
+                <strong>Symptoms:</strong> NHG eligibility using outdated limits
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Update NHG limits in database manually</li>
+                <li>Verify NHG API integration for automatic updates</li>
+                <li>Check effective dates for limit changes</li>
+                <li>Clear cached eligibility assessments</li>
+            </ul>
+
+            <h4>🟠 Compliance Validation Errors</h4>
+            <div class="alert warning">
+                <strong>Symptoms:</strong> False compliance violations or missed issues
+            </div>
+            <p><strong>Solutions:</strong></p>
+            <ul>
+                <li>Review compliance rules configuration</li>
+                <li>Update regulation requirements</li>
+                <li>Validate input data completeness</li>
+                <li>Check regulation version compatibility</li>
+            </ul>
+
+            <h3>Diagnostic Commands</h3>
+            <div class="code-block">
+<span class="comment"># Check system health</span>
+curl -X GET http://localhost:3000/api/bkr-nhg/health
+
+<span class="comment"># Test BSN validation</span>
+curl -X POST http://localhost:3000/api/bkr-nhg/validate-bsn \
+  -H "Content-Type: application/json" \
+  -d '{"bsn":"123456782"}'
+
+<span class="comment"># Get current NHG limits</span>
+curl -X GET http://localhost:3000/api/bkr-nhg/nhg-limits
+
+<span class="comment"># Check performance metrics</span>
+curl -X GET http://localhost:3000/api/bkr-nhg/performance-metrics
+            </div>
+
+            <h3>Log Analysis</h3>
+            <p>Important log files to monitor:</p>
+            <ul>
+                <li><strong>/app/logs/bkr-nhg-integration.log</strong> - Main service logs</li>
+                <li><strong>/app/logs/bkr-api.log</strong> - BKR API interaction logs</li>
+                <li><strong>/app/logs/nhg-api.log</strong> - NHG API interaction logs</li>
+                <li><strong>/app/logs/compliance.log</strong> - Compliance validation logs</li>
+            </ul>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🔒 Security & Privacy</h3>
+            <ul>
+                <li><strong>BSN Protection:</strong> Always hash BSNs before storage, never log plain-text BSNs</li>
+                <li><strong>Consent Management:</strong> Verify valid consent before performing credit checks</li>
+                <li><strong>Data Minimization:</strong> Only collect and store necessary data for the specific purpose</li>
+                <li><strong>Encryption:</strong> Use strong encryption for sensitive data at rest and in transit</li>
+                <li><strong>Access Control:</strong> Implement proper authentication and authorization</li>
+                <li><strong>Audit Trails:</strong> Maintain comprehensive logs for regulatory compliance</li>
+            </ul>
+
+            <h3>⚡ Performance Optimization</h3>
+            <ul>
+                <li><strong>Caching:</strong> Implement intelligent caching for BSN validations and NHG limits</li>
+                <li><strong>Connection Pooling:</strong> Use connection pools for database and API connections</li>
+                <li><strong>Batch Processing:</strong> Use batch APIs for multiple BSN validations</li>
+                <li><strong>Async Processing:</strong> Process non-critical operations asynchronously</li>
+                <li><strong>Rate Limiting:</strong> Implement proper rate limiting to prevent API abuse</li>
+            </ul>
+
+            <h3>🔄 Reliability & Monitoring</h3>
+            <ul>
+                <li><strong>Health Checks:</strong> Implement comprehensive health monitoring</li>
+                <li><strong>Error Handling:</strong> Provide meaningful error messages and recovery options</li>
+                <li><strong>Retry Logic:</strong> Implement exponential backoff for API failures</li>
+                <li><strong>Circuit Breakers:</strong> Use circuit breakers for external API calls</li>
+                <li><strong>Monitoring:</strong> Monitor key metrics like response times and success rates</li>
+            </ul>
+
+            <h3>⚖️ Compliance Management</h3>
+            <ul>
+                <li><strong>Regular Updates:</strong> Keep regulation rules up to date</li>
+                <li><strong>Documentation:</strong> Maintain comprehensive compliance documentation</li>
+                <li><strong>Testing:</strong> Regularly test compliance validation logic</li>
+                <li><strong>Training:</strong> Ensure staff understand regulatory requirements</li>
+                <li><strong>Reviews:</strong> Conduct regular compliance reviews and audits</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Success Metrics:</strong>
+                <ul>
+                    <li>BSN Validation Accuracy > 99.9%</li>
+                    <li>BKR API Success Rate > 99.5%</li>
+                    <li>NHG Assessment Accuracy > 99.8%</li>
+                    <li>Average Response Time < 2 seconds</li>
+                    <li>Compliance Validation Coverage = 100%</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="section" id="security">
+            <h2>🔐 Security & Privacy</h2>
+
+            <h3>Data Protection Measures</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🔐</div>
+                    <h4>Encryption</h4>
+                    <p>All sensitive data encrypted using AES-256 encryption at rest and TLS 1.3 in transit.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔒</div>
+                    <h4>BSN Hashing</h4>
+                    <p>BSNs are hashed using SHA-256 with salt before storage, ensuring privacy protection.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⏰</div>
+                    <h4>Data Retention</h4>
+                    <p>Automatic data cleanup based on configurable retention policies and regulatory requirements.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📝</div>
+                    <h4>Audit Logging</h4>
+                    <p>Comprehensive audit trails for all sensitive operations and data access.</p>
+                </div>
+            </div>
+
+            <h3>GDPR/AVG Compliance</h3>
+            <ul>
+                <li><strong>Lawful Basis:</strong> Explicit consent or legitimate interest for data processing</li>
+                <li><strong>Data Minimization:</strong> Only collect data necessary for the specific purpose</li>
+                <li><strong>Purpose Limitation:</strong> Use data only for the stated purpose</li>
+                <li><strong>Storage Limitation:</strong> Retain data only as long as necessary</li>
+                <li><strong>Data Subject Rights:</strong> Support for access, rectification, erasure, and portability</li>
+                <li><strong>Privacy by Design:</strong> Built-in privacy protection from the ground up</li>
+            </ul>
+
+            <h3>Access Control</h3>
+            <p>The system implements multi-layered access control:</p>
+            <ul>
+                <li><strong>Authentication:</strong> JWT tokens or API keys for all requests</li>
+                <li><strong>Authorization:</strong> Role-based access control (RBAC)</li>
+                <li><strong>API Rate Limiting:</strong> Prevent abuse and ensure fair usage</li>
+                <li><strong>IP Whitelisting:</strong> Restrict access to approved IP addresses</li>
+                <li><strong>Session Management:</strong> Secure session handling with automatic timeout</li>
+            </ul>
+
+            <h3>Incident Response</h3>
+            <p>In case of security incidents:</p>
+            <ol class="step-list">
+                <li>
+                    <strong>Detection</strong>
+                    <p>Automated monitoring detects potential security issues.</p>
+                </li>
+                <li>
+                    <strong>Assessment</strong>
+                    <p>Evaluate the scope and impact of the incident.</p>
+                </li>
+                <li>
+                    <strong>Containment</strong>
+                    <p>Isolate affected systems to prevent further damage.</p>
+                </li>
+                <li>
+                    <strong>Notification</strong>
+                    <p>Notify relevant stakeholders and authorities as required.</p>
+                </li>
+                <li>
+                    <strong>Recovery</strong>
+                    <p>Restore normal operations and implement additional safeguards.</p>
+                </li>
+            </ol>
+
+            <div class="alert warning">
+                <strong>⚠️ Security Notice:</strong> This system handles sensitive financial and personal data. Ensure all security measures are properly implemented and regularly reviewed.
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Complete API documentation and integration guides</p>
+                    <a href="#api-reference" class="button secondary">View API Docs</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛡️</div>
+                    <h4>Security</h4>
+                    <p>Security best practices and privacy protection measures</p>
+                    <a href="#security" class="button secondary">Security Guide</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🛠️</div>
+                    <h4>Support</h4>
+                    <p>Technical support and troubleshooting assistance</p>
+                    <a href="#troubleshooting" class="button secondary">Troubleshooting</a>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Compliance</h4>
+                    <p>Regulatory compliance information and updates</p>
+                    <a href="#compliance" class="button secondary">Compliance Guide</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabId) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

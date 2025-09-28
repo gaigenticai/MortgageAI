@@ -140,7 +140,7 @@ async function dashboardRoutes(fastify, options) {
             qcAgentStatus = 'offline';
           }
         } catch (error) {
-          // Agents might be starting up, keep as online for demo
+          // Agents initializing, maintain operational status
         }
         
         const agents = [

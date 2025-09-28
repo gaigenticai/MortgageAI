@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Comprehension Validator - User Guide</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --error-color: #dc2626;
+            --bg-color: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .nav a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .nav a:hover {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .section h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: #f8fafc;
+        }
+
+        .feature-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card .icon {
+            width: 3rem;
+            height: 3rem;
+            background: var(--primary-color);
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+        }
+
+        .code-block .keyword {
+            color: #3b82f6;
+        }
+
+        .code-block .string {
+            color: #10b981;
+        }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+        }
+
+        .alert.info {
+            background: #eff6ff;
+            border-color: var(--primary-color);
+            color: #1e40af;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-color: var(--success-color);
+            color: #065f46;
+        }
+
+        .alert.warning {
+            background: #fffbeb;
+            border-color: var(--warning-color);
+            color: #92400e;
+        }
+
+        .alert.error {
+            background: #fef2f2;
+            border-color: var(--error-color);
+            color: #991b1b;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            background: #f1f5f9;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header {
+                padding: 2rem 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🧠 User Comprehension Validator</h1>
+            <p>Adaptive testing, knowledge assessment, and personalized learning path optimization for mortgage comprehension</p>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav">
+            <h2>📋 Quick Navigation</h2>
+            <ul>
+                <li><a href="#overview">System Overview</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#adaptive-testing">Adaptive Testing</a></li>
+                <li><a href="#knowledge-assessment">Knowledge Assessment</a></li>
+                <li><a href="#learning-paths">Learning Path Optimization</a></li>
+                <li><a href="#comprehension-validation">Comprehension Validation</a></li>
+                <li><a href="#gamification">Gamification & Engagement</a></li>
+                <li><a href="#accessibility">Accessibility Features</a></li>
+                <li><a href="#regulatory-compliance">Regulatory Compliance</a></li>
+                <li><a href="#api-reference">API Reference</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🎯 System Overview</h2>
+            <p>The User Comprehension Validator ensures customers fully understand mortgage advice and risks through adaptive testing, comprehensive knowledge assessment, and personalized learning paths. It meets Dutch regulatory requirements for customer comprehension validation.</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>Adaptive Testing</h4>
+                    <p>Intelligent question selection using CAT, IRT, and Bayesian algorithms for optimal assessment efficiency.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>Knowledge Assessment</h4>
+                    <p>Comprehensive evaluation across mortgage domains with psychometric scoring and confidence intervals.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>Learning Optimization</h4>
+                    <p>AI-powered learning path creation with personalization based on learning styles and progress.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Regulatory Compliance</h4>
+                    <p>Validation of customer understanding per Wft Article 86f and AFM disclosure requirements.</p>
+                </div>
+            </div>
+
+            <div class="alert info">
+                <strong>🔧 Regulatory Compliance:</strong> This system ensures full compliance with Dutch mortgage regulations requiring customer comprehension validation before advice provision.
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="section" id="features">
+            <h2>✨ Key Features</h2>
+
+            <h3>🧠 Advanced Adaptive Testing</h3>
+            <ul>
+                <li><strong>Computerized Adaptive Testing (CAT):</strong> Optimal question selection based on user ability estimates</li>
+                <li><strong>Item Response Theory (IRT):</strong> Psychometric modeling for accurate ability measurement</li>
+                <li><strong>Bayesian Adaptive Testing:</strong> Probabilistic question selection for maximum information gain</li>
+                <li><strong>Dynamic Difficulty Adjustment:</strong> Real-time adjustment based on user performance</li>
+                <li><strong>Precision Targeting:</strong> Configurable precision levels for different assessment goals</li>
+            </ul>
+
+            <h3>📊 Comprehensive Knowledge Assessment</h3>
+            <ul>
+                <li><strong>Multi-Domain Evaluation:</strong> Assessment across 10+ mortgage knowledge domains</li>
+                <li><strong>Psychometric Scoring:</strong> Statistically robust scoring with confidence intervals</li>
+                <li><strong>Competency Mapping:</strong> Detailed mapping of strengths, weaknesses, and knowledge gaps</li>
+                <li><strong>Regulatory Compliance Scoring:</strong> Specific assessment of regulatory understanding</li>
+                <li><strong>Longitudinal Tracking:</strong> Progress tracking over time with trend analysis</li>
+            </ul>
+
+            <h3>🎯 Personalized Learning Paths</h3>
+            <ul>
+                <li><strong>AI-Powered Optimization:</strong> Machine learning algorithms for path personalization</li>
+                <li><strong>Learning Style Adaptation:</strong> Customization for visual, auditory, kinesthetic, and reading/writing styles</li>
+                <li><strong>Prerequisite Management:</strong> Intelligent ordering based on knowledge dependencies</li>
+                <li><strong>Milestone Tracking:</strong> Progress checkpoints with achievement recognition</li>
+                <li><strong>Adaptive Adjustments:</strong> Real-time path modifications based on progress</li>
+            </ul>
+
+            <h3>🎮 Gamification & Engagement</h3>
+            <ul>
+                <li><strong>Achievement System:</strong> Badges, points, and levels for motivation</li>
+                <li><strong>Progress Visualization:</strong> Interactive progress tracking and analytics</li>
+                <li><strong>Leaderboards:</strong> Optional competitive elements with privacy protection</li>
+                <li><strong>Streak Tracking:</strong> Learning consistency rewards and motivation</li>
+                <li><strong>Personalized Rewards:</strong> Customized achievement goals and recognition</li>
+            </ul>
+        </div>
+
+        <!-- Adaptive Testing Section -->
+        <div class="section" id="adaptive-testing">
+            <h2>🧠 Adaptive Testing</h2>
+
+            <h3>Testing Algorithms</h3>
+            <p>The system uses sophisticated algorithms to optimize question selection:</p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🎯</div>
+                    <h4>CAT (Computerized Adaptive Testing)</h4>
+                    <p>Selects questions that provide maximum information about user ability level</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📊</div>
+                    <h4>IRT (Item Response Theory)</h4>
+                    <p>Models relationship between user ability and question difficulty for optimal matching</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧮</div>
+                    <h4>Bayesian Adaptive Testing</h4>
+                    <p>Uses probabilistic inference to maximize expected information gain</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚡</div>
+                    <h4>Dynamic Adjustment</h4>
+                    <p>Real-time algorithm switching based on user response patterns</p>
+                </div>
+            </div>
+
+            <h3>Assessment Creation API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/user-comprehension/assessments</span>
+{
+  <span class="string">"user_id"</span>: <span class="string">"user_12345"</span>,
+  <span class="string">"assessment_goals"</span>: [
+    <span class="string">"mortgage_basics"</span>,
+    <span class="string">"risk_understanding"</span>,
+    <span class="string">"costs_and_fees"</span>
+  ],
+  <span class="string">"user_preferences"</span>: {
+    <span class="string">"learning_style"</span>: <span class="string">"visual"</span>,
+    <span class="string">"max_questions"</span>: 15,
+    <span class="string">"adaptive_algorithm"</span>: <span class="string">"cat"</span>,
+    <span class="string">"target_precision"</span>: 0.3,
+    <span class="string">"time_limit_minutes"</span>: 30
+  }
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"session_id"</span>: <span class="string">"550e8400-e29b-41d4-a716-446655440000"</span>,
+  <span class="string">"message"</span>: <span class="string">"Assessment session created successfully"</span>
+}
+            </div>
+
+            <h3>Question Selection Process</h3>
+            <ol>
+                <li><strong>Ability Estimation:</strong> Estimate current user ability based on previous responses</li>
+                <li><strong>Question Pool Filtering:</strong> Filter questions by domain and previous usage</li>
+                <li><strong>Information Calculation:</strong> Calculate Fisher information for each candidate question</li>
+                <li><strong>Optimal Selection:</strong> Select question that maximizes information gain</li>
+                <li><strong>Adaptive Adjustment:</strong> Adjust algorithm parameters based on user performance</li>
+            </ol>
+
+            <h3>Question Types Supported</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Question Type</th>
+                        <th>Description</th>
+                        <th>Use Cases</th>
+                        <th>Adaptive Benefits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Multiple Choice</td>
+                        <td>Single correct answer from options</td>
+                        <td>Concept understanding, factual knowledge</td>
+                        <td>Quick assessment, clear scoring</td>
+                    </tr>
+                    <tr>
+                        <td>True/False</td>
+                        <td>Binary choice questions</td>
+                        <td>Misconception identification</td>
+                        <td>Rapid ability estimation</td>
+                    </tr>
+                    <tr>
+                        <td>Numerical Input</td>
+                        <td>Numeric answer required</td>
+                        <td>Calculation skills, quantitative understanding</td>
+                        <td>Precise ability measurement</td>
+                    </tr>
+                    <tr>
+                        <td>Scenario-Based</td>
+                        <td>Real-world scenario analysis</td>
+                        <td>Applied knowledge, decision-making</td>
+                        <td>Complex ability assessment</td>
+                    </tr>
+                    <tr>
+                        <td>Interactive Simulation</td>
+                        <td>Dynamic scenario interaction</td>
+                        <td>Procedural knowledge, problem-solving</td>
+                        <td>Comprehensive ability evaluation</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Knowledge Assessment Section -->
+        <div class="section" id="knowledge-assessment">
+            <h2>📊 Knowledge Assessment</h2>
+
+            <h3>Knowledge Domains</h3>
+            <p>Assessment covers comprehensive mortgage knowledge areas:</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Domain</th>
+                        <th>Weight</th>
+                        <th>Key Concepts</th>
+                        <th>Minimum Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Mortgage Basics</td>
+                        <td>20%</td>
+                        <td>Definition, principal, interest, LTV ratio</td>
+                        <td>60%</td>
+                    </tr>
+                    <tr>
+                        <td>Interest Rates</td>
+                        <td>15%</td>
+                        <td>Fixed vs variable, rate mechanisms, impact</td>
+                        <td>65%</td>
+                    </tr>
+                    <tr>
+                        <td>Risk Understanding</td>
+                        <td>20%</td>
+                        <td>Rate risk, property risk, income risk, mitigation</td>
+                        <td>70%</td>
+                    </tr>
+                    <tr>
+                        <td>Costs & Fees</td>
+                        <td>15%</td>
+                        <td>Total cost, fee structures, comparisons</td>
+                        <td>65%</td>
+                    </tr>
+                    <tr>
+                        <td>Loan Types</td>
+                        <td>10%</td>
+                        <td>Annuity, linear, interest-only, combinations</td>
+                        <td>60%</td>
+                    </tr>
+                    <tr>
+                        <td>Regulatory Requirements</td>
+                        <td>10%</td>
+                        <td>Wft, AFM guidelines, consumer rights</td>
+                        <td>75%</td>
+                    </tr>
+                    <tr>
+                        <td>Repayment Options</td>
+                        <td>10%</td>
+                        <td>Payment schedules, early repayment, flexibility</td>
+                        <td>60%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Scoring Methodology</h3>
+            <div class="code-block">
+Overall Score = Σ(Domain_Score_i × Domain_Weight_i × Confidence_i)
+
+Where:
+- Domain_Score_i = Weighted score for domain i
+- Domain_Weight_i = Importance weight for domain i  
+- Confidence_i = Statistical confidence in domain score
+
+Adjustments:
+- Response time weighting (faster = higher confidence)
+- Question difficulty weighting (harder questions = more weight)
+- Consistency bonus (consistent performance = bonus points)
+            </div>
+
+            <h3>Comprehension Levels</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Score Range</th>
+                        <th>Description</th>
+                        <th>Regulatory Implications</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Excellent</td>
+                        <td>90-100%</td>
+                        <td>Comprehensive understanding across all domains</td>
+                        <td>Full approval for complex products</td>
+                    </tr>
+                    <tr>
+                        <td>Good</td>
+                        <td>80-89%</td>
+                        <td>Strong understanding with minor gaps</td>
+                        <td>Approval for standard products</td>
+                    </tr>
+                    <tr>
+                        <td>Adequate</td>
+                        <td>65-79%</td>
+                        <td>Sufficient understanding for basic products</td>
+                        <td>Approval with additional guidance</td>
+                    </tr>
+                    <tr>
+                        <td>Basic</td>
+                        <td>50-64%</td>
+                        <td>Limited understanding, requires education</td>
+                        <td>Education required before approval</td>
+                    </tr>
+                    <tr>
+                        <td>Insufficient</td>
+                        <td>0-49%</td>
+                        <td>Inadequate understanding</td>
+                        <td>Comprehensive education mandatory</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Assessment Completion API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/user-comprehension/assessments/{sessionId}/complete</span>
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"assessment"</span>: {
+    <span class="string">"assessment_id"</span>: <span class="string">"ASSESS_abc123_1706345400"</span>,
+    <span class="string">"user_id"</span>: <span class="string">"user_12345"</span>,
+    <span class="string">"overall_score"</span>: 0.78,
+    <span class="string">"overall_comprehension_level"</span>: <span class="string">"good"</span>,
+    <span class="string">"confidence_interval"</span>: [0.72, 0.84],
+    <span class="string">"domain_scores"</span>: {
+      <span class="string">"mortgage_basics"</span>: 0.85,
+      <span class="string">"interest_rates"</span>: 0.72,
+      <span class="string">"risk_understanding"</span>: 0.68,
+      <span class="string">"costs_and_fees"</span>: 0.80
+    },
+    <span class="string">"strengths"</span>: [<span class="string">"Mortgage Basics"</span>, <span class="string">"Costs And Fees"</span>],
+    <span class="string">"weaknesses"</span>: [<span class="string">"Risk Understanding"</span>],
+    <span class="string">"knowledge_gaps"</span>: [
+      <span class="string">"risk_understanding: Understand interest rate risk"</span>,
+      <span class="string">"risk_understanding: Learn stress testing concepts"</span>
+    ],
+    <span class="string">"learning_recommendations"</span>: [
+      <span class="string">"Study risk scenarios and mitigation strategies"</span>,
+      <span class="string">"Complete interactive risk simulation exercises"</span>
+    ],
+    <span class="string">"estimated_learning_time"</span>: 45,
+    <span class="string">"regulatory_compliance_score"</span>: 0.82,
+    <span class="string">"next_assessment_date"</span>: <span class="string">"2025-04-27T10:30:00Z"</span>
+  }
+}
+            </div>
+        </div>
+
+        <!-- Learning Paths Section -->
+        <div class="section" id="learning-paths">
+            <h2>🎯 Learning Path Optimization</h2>
+
+            <h3>Learning Path Creation Process</h3>
+            <ol>
+                <li><strong>Assessment Analysis:</strong> Analyze knowledge gaps and learning needs</li>
+                <li><strong>Module Selection:</strong> Identify required learning modules based on gaps</li>
+                <li><strong>Prerequisite Ordering:</strong> Order modules based on knowledge dependencies</li>
+                <li><strong>Style Adaptation:</strong> Customize for individual learning preferences</li>
+                <li><strong>Milestone Creation:</strong> Establish progress checkpoints and goals</li>
+                <li><strong>Gamification Integration:</strong> Add motivational elements and rewards</li>
+                <li><strong>Accessibility Accommodation:</strong> Apply necessary accessibility features</li>
+            </ol>
+
+            <h3>Learning Path API</h3>
+            <div class="code-block">
+<span class="comment">// POST /api/user-comprehension/learning-paths</span>
+{
+  <span class="string">"user_id"</span>: <span class="string">"user_12345"</span>,
+  <span class="string">"assessment_id"</span>: <span class="string">"ASSESS_abc123_1706345400"</span>,
+  <span class="string">"user_preferences"</span>: {
+    <span class="string">"learning_style"</span>: <span class="string">"visual"</span>,
+    <span class="string">"preferred_pace"</span>: <span class="string">"self_paced"</span>,
+    <span class="string">"gamification_enabled"</span>: <span class="keyword">true</span>,
+    <span class="string">"accessibility_needs"</span>: [<span class="string">"large_text"</span>, <span class="string">"high_contrast"</span>]
+  }
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"learning_path"</span>: {
+    <span class="string">"path_id"</span>: <span class="string">"PATH_xyz789_1706345400"</span>,
+    <span class="string">"user_id"</span>: <span class="string">"user_12345"</span>,
+    <span class="string">"learning_objectives"</span>: [
+      <span class="string">"Understand interest rate risk mechanisms"</span>,
+      <span class="string">"Learn risk mitigation strategies"</span>,
+      <span class="string">"Master stress testing concepts"</span>
+    ],
+    <span class="string">"recommended_modules"</span>: [
+      <span class="string">"interest_rate_mechanics"</span>,
+      <span class="string">"risk_assessment_training"</span>
+    ],
+    <span class="string">"estimated_completion_time"</span>: 65,
+    <span class="string">"difficulty_progression"</span>: [<span class="string">"intermediate"</span>, <span class="string">"intermediate"</span>],
+    <span class="string">"learning_style_adaptations"</span>: {
+      <span class="string">"content_preferences"</span>: [<span class="string">"diagrams"</span>, <span class="string">"charts"</span>, <span class="string">"videos"</span>],
+      <span class="string">"presentation_style"</span>: <span class="string">"visual_heavy"</span>
+    },
+    <span class="string">"milestone_checkpoints"</span>: [
+      {
+        <span class="string">"title"</span>: <span class="string">"Complete Interest Rate Mechanics"</span>,
+        <span class="string">"position"</span>: 1,
+        <span class="string">"rewards"</span>: {<span class="string">"points"</span>: 100, <span class="string">"badge"</span>: <span class="string">"interest_expert"</span>}
+      }
+    ]
+  }
+}
+            </div>
+
+            <h3>Learning Style Adaptations</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">👁️</div>
+                    <h4>Visual Learners</h4>
+                    <p>Diagrams, charts, infographics, visual examples, color-coded information</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔊</div>
+                    <h4>Auditory Learners</h4>
+                    <p>Audio explanations, discussions, verbal examples, sound cues</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">✋</div>
+                    <h4>Kinesthetic Learners</h4>
+                    <p>Interactive simulations, hands-on exercises, drag-and-drop activities</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📝</div>
+                    <h4>Reading/Writing Learners</h4>
+                    <p>Text-based content, written exercises, documentation, note-taking</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comprehension Validation Section -->
+        <div class="section" id="comprehension-validation">
+            <h2>✅ Comprehension Validation</h2>
+
+            <h3>Advice Comprehension Validation</h3>
+            <p>Validate customer understanding of specific mortgage advice:</p>
+
+            <div class="code-block">
+<span class="comment">// POST /api/user-comprehension/validate-advice-comprehension</span>
+{
+  <span class="string">"user_id"</span>: <span class="string">"user_12345"</span>,
+  <span class="string">"advice_id"</span>: <span class="string">"ADVICE_def456_1706345400"</span>,
+  <span class="string">"advice_content"</span>: <span class="string">"Based on your financial situation, we recommend the ING Fixed 10 Years mortgage at 3.2% interest rate..."</span>
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"success"</span>: <span class="keyword">true</span>,
+  <span class="string">"validation"</span>: {
+    <span class="string">"validation_id"</span>: <span class="string">"VALID_ghi789_1706345400"</span>,
+    <span class="string">"overall_comprehension_score"</span>: 0.75,
+    <span class="string">"comprehension_areas"</span>: {
+      <span class="string">"product_understanding"</span>: 0.80,
+      <span class="string">"risk_comprehension"</span>: 0.70,
+      <span class="string">"cost_understanding"</span>: 0.75
+    },
+    <span class="string">"validation_method"</span>: <span class="string">"adaptive_questioning"</span>,
+    <span class="string">"correct_responses"</span>: 6,
+    <span class="string">"total_responses"</span>: 8,
+    <span class="string">"comprehension_gaps"</span>: [
+      <span class="string">"Interest rate risk understanding needs improvement"</span>
+    ],
+    <span class="string">"remediation_required"</span>: <span class="keyword">true</span>,
+    <span class="string">"remediation_plan"</span>: [
+      <span class="string">"Complete interest rate risk module"</span>,
+      <span class="string">"Review risk scenarios and examples"</span>
+    ],
+    <span class="string">"regulatory_compliance"</span>: <span class="keyword">true</span>,
+    <span class="string">"follow_up_required"</span>: <span class="keyword">true</span>
+  }
+}
+            </div>
+
+            <h3>Validation Criteria</h3>
+            <ul>
+                <li><strong>Product Understanding:</strong> Comprehension of recommended mortgage features</li>
+                <li><strong>Risk Comprehension:</strong> Understanding of associated risks and implications</li>
+                <li><strong>Cost Understanding:</strong> Grasp of financial implications and total costs</li>
+                <li><strong>Regulatory Awareness:</strong> Knowledge of rights and regulatory protections</li>
+                <li><strong>Decision Readiness:</strong> Ability to make informed mortgage decisions</li>
+            </ul>
+
+            <h3>Remediation Planning</h3>
+            <p>When comprehension gaps are identified, the system generates targeted remediation plans:</p>
+            <ul>
+                <li><strong>Gap-Specific Modules:</strong> Learning modules targeting specific knowledge gaps</li>
+                <li><strong>Reinforcement Exercises:</strong> Additional practice in weak areas</li>
+                <li><strong>Alternative Explanations:</strong> Different explanation approaches for difficult concepts</li>
+                <li><strong>Progress Monitoring:</strong> Continuous tracking of improvement</li>
+                <li><strong>Follow-up Assessment:</strong> Validation of gap closure</li>
+            </ul>
+        </div>
+
+        <!-- Gamification Section -->
+        <div class="section" id="gamification">
+            <h2>🎮 Gamification & Engagement</h2>
+
+            <h3>Achievement System</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">🏆</div>
+                    <h4>Points & Levels</h4>
+                    <p>Earn points for correct answers, module completion, and consistent learning</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🏅</div>
+                    <h4>Badges & Achievements</h4>
+                    <p>Unlock badges for specific accomplishments and learning milestones</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔥</div>
+                    <h4>Learning Streaks</h4>
+                    <p>Track consecutive days of learning activity with streak bonuses</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">📈</div>
+                    <h4>Progress Visualization</h4>
+                    <p>Interactive charts and progress bars showing learning advancement</p>
+                </div>
+            </div>
+
+            <h3>Badge Categories</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Badge Name</th>
+                        <th>Category</th>
+                        <th>Criteria</th>
+                        <th>Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Quick Learner</td>
+                        <td>Speed</td>
+                        <td>Complete module under estimated time</td>
+                        <td>150</td>
+                    </tr>
+                    <tr>
+                        <td>Perfectionist</td>
+                        <td>Accuracy</td>
+                        <td>Score 100% on module assessment</td>
+                        <td>250</td>
+                    </tr>
+                    <tr>
+                        <td>Risk Expert</td>
+                        <td>Domain Mastery</td>
+                        <td>Excel in risk understanding domain</td>
+                        <td>300</td>
+                    </tr>
+                    <tr>
+                        <td>Dedicated Student</td>
+                        <td>Persistence</td>
+                        <td>Complete all recommended modules</td>
+                        <td>500</td>
+                    </tr>
+                    <tr>
+                        <td>Streak Master</td>
+                        <td>Consistency</td>
+                        <td>Maintain 14-day learning streak</td>
+                        <td>400</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Leaderboard System</h3>
+            <p>Optional competitive elements with privacy protection:</p>
+            <ul>
+                <li><strong>Anonymous Participation:</strong> Users identified by anonymous IDs only</li>
+                <li><strong>Multiple Categories:</strong> Speed, accuracy, completion, and overall performance</li>
+                <li><strong>Time-Based Boards:</strong> Weekly, monthly, and all-time leaderboards</li>
+                <li><strong>Fair Competition:</strong> Separate boards for different experience levels</li>
+                <li><strong>Opt-Out Option:</strong> Users can disable competitive features</li>
+            </ul>
+        </div>
+
+        <!-- Accessibility Section -->
+        <div class="section" id="accessibility">
+            <h2>♿ Accessibility Features</h2>
+
+            <h3>Comprehensive Accessibility Support</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">👁️</div>
+                    <h4>Visual Accommodations</h4>
+                    <ul>
+                        <li>Screen reader compatibility</li>
+                        <li>High contrast mode</li>
+                        <li>Large text options</li>
+                        <li>Audio descriptions</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔊</div>
+                    <h4>Hearing Accommodations</h4>
+                    <ul>
+                        <li>Closed captions for videos</li>
+                        <li>Visual indicators for audio</li>
+                        <li>Text alternatives</li>
+                        <li>Sign language support</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">✋</div>
+                    <h4>Motor Accommodations</h4>
+                    <ul>
+                        <li>Keyboard navigation</li>
+                        <li>Extended time limits</li>
+                        <li>Alternative input methods</li>
+                        <li>Voice control support</li>
+                    </ul>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🧠</div>
+                    <h4>Cognitive Accommodations</h4>
+                    <ul>
+                        <li>Simplified language options</li>
+                        <li>Extended time limits</li>
+                        <li>Frequent progress saves</li>
+                        <li>Multiple explanation formats</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Accessibility Configuration</h3>
+            <div class="code-block">
+<span class="comment">// PUT /api/user-comprehension/accessibility/{userId}</span>
+{
+  <span class="string">"accessibility_needs"</span>: [
+    <span class="string">"screen_reader"</span>,
+    <span class="string">"high_contrast"</span>,
+    <span class="string">"large_text"</span>,
+    <span class="string">"extended_time"</span>
+  ],
+  <span class="string">"accommodation_preferences"</span>: {
+    <span class="string">"text_size_multiplier"</span>: 1.5,
+    <span class="string">"contrast_level"</span>: <span class="string">"high"</span>,
+    <span class="string">"time_extension_factor"</span>: 2.0,
+    <span class="string">"audio_speed"</span>: 0.8
+  }
+}
+            </div>
+
+            <h3>WCAG 2.1 Compliance</h3>
+            <p>The system meets WCAG 2.1 Level AA standards:</p>
+            <ul>
+                <li><strong>Perceivable:</strong> Information presented in multiple formats</li>
+                <li><strong>Operable:</strong> All functionality available via keyboard</li>
+                <li><strong>Understandable:</strong> Clear, consistent interface and content</li>
+                <li><strong>Robust:</strong> Compatible with assistive technologies</li>
+            </ul>
+        </div>
+
+        <!-- Regulatory Compliance Section -->
+        <div class="section" id="regulatory-compliance">
+            <h2>⚖️ Regulatory Compliance</h2>
+
+            <h3>Dutch Regulatory Requirements</h3>
+            <p>The system ensures compliance with key Dutch financial regulations:</p>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Regulation</th>
+                        <th>Requirement</th>
+                        <th>Implementation</th>
+                        <th>Validation Method</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Wft Article 86f</td>
+                        <td>Customer suitability assessment</td>
+                        <td>Comprehensive knowledge evaluation</td>
+                        <td>Multi-domain assessment with scoring</td>
+                    </tr>
+                    <tr>
+                        <td>AFM Disclosure</td>
+                        <td>Risk comprehension validation</td>
+                        <td>Targeted risk understanding assessment</td>
+                        <td>Risk-specific questioning and validation</td>
+                    </tr>
+                    <tr>
+                        <td>BGfo Article 8.1</td>
+                        <td>Customer due diligence</td>
+                        <td>Knowledge and experience assessment</td>
+                        <td>Experience-based competency evaluation</td>
+                    </tr>
+                    <tr>
+                        <td>Consumer Protection</td>
+                        <td>Informed decision making</td>
+                        <td>Comprehensive education and validation</td>
+                        <td>Decision readiness assessment</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Compliance Validation Process</h3>
+            <ol>
+                <li><strong>Pre-Advice Assessment:</strong> Evaluate baseline knowledge before advice provision</li>
+                <li><strong>Advice-Specific Validation:</strong> Confirm understanding of specific recommendations</li>
+                <li><strong>Risk Comprehension Check:</strong> Validate understanding of disclosed risks</li>
+                <li><strong>Decision Readiness Assessment:</strong> Confirm customer is ready to make informed decisions</li>
+                <li><strong>Documentation:</strong> Generate compliance documentation for audit purposes</li>
+            </ol>
+
+            <h3>Audit Trail and Documentation</h3>
+            <p>Comprehensive audit trails for regulatory compliance:</p>
+            <ul>
+                <li><strong>Assessment Records:</strong> Complete records of all assessments and scores</li>
+                <li><strong>Question Responses:</strong> Detailed response data with timestamps</li>
+                <li><strong>Learning Progress:</strong> Documentation of educational interventions</li>
+                <li><strong>Comprehension Validation:</strong> Proof of customer understanding</li>
+                <li><strong>Remediation Actions:</strong> Records of additional education provided</li>
+            </ul>
+
+            <div class="alert warning">
+                <strong>⚖️ Regulatory Note:</strong> All assessment and validation activities are logged for regulatory compliance and audit purposes in accordance with Dutch financial supervision requirements.
+            </div>
+        </div>
+
+        <!-- API Reference Section -->
+        <div class="section" id="api-reference">
+            <h2>📚 API Reference</h2>
+
+            <h3>Base URL</h3>
+            <div class="code-block">https://your-domain.com/api/user-comprehension</div>
+
+            <h3>Core Endpoints</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>POST</td>
+                        <td>/assessments</td>
+                        <td>Create adaptive assessment session</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/assessments/{sessionId}/next-question</td>
+                        <td>Get next adaptive question</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/assessments/{sessionId}/responses</td>
+                        <td>Submit question response</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/assessments/{sessionId}/complete</td>
+                        <td>Complete assessment and get results</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/learning-paths</td>
+                        <td>Create personalized learning path</td>
+                    </tr>
+                    <tr>
+                        <td>PUT</td>
+                        <td>/learning-paths/{pathId}/progress</td>
+                        <td>Update learning progress</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/validate-advice-comprehension</td>
+                        <td>Validate advice understanding</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/progress/{userId}</td>
+                        <td>Get user progress summary</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/gamification/{userId}</td>
+                        <td>Get achievements and badges</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Error Handling</h3>
+            <div class="code-block">
+{
+  <span class="string">"success"</span>: <span class="keyword">false</span>,
+  <span class="string">"error"</span>: <span class="string">"Assessment session not found"</span>,
+  <span class="string">"error_code"</span>: <span class="string">"SESSION_NOT_FOUND"</span>,
+  <span class="string">"details"</span>: {
+    <span class="string">"session_id"</span>: <span class="string">"invalid_session_id"</span>,
+    <span class="string">"suggestion"</span>: <span class="string">"Create new assessment session"</span>
+  }
+}
+            </div>
+        </div>
+
+        <!-- Best Practices Section -->
+        <div class="section" id="best-practices">
+            <h2>✅ Best Practices</h2>
+
+            <h3>🎯 Assessment Excellence</h3>
+            <ul>
+                <li><strong>Appropriate Timing:</strong> Conduct assessments at optimal learning moments</li>
+                <li><strong>Context Relevance:</strong> Align questions with specific advice or products</li>
+                <li><strong>Balanced Coverage:</strong> Ensure comprehensive coverage of all critical domains</li>
+                <li><strong>Adaptive Precision:</strong> Set appropriate precision targets for different use cases</li>
+                <li><strong>Progress Monitoring:</strong> Continuously track and analyze assessment effectiveness</li>
+            </ul>
+
+            <h3>📚 Learning Path Optimization</h3>
+            <ul>
+                <li><strong>Personalization:</strong> Customize paths based on individual learning profiles</li>
+                <li><strong>Prerequisite Management:</strong> Ensure proper knowledge building sequences</li>
+                <li><strong>Engagement Maintenance:</strong> Use gamification appropriately for motivation</li>
+                <li><strong>Progress Tracking:</strong> Monitor learning velocity and adjust accordingly</li>
+                <li><strong>Outcome Measurement:</strong> Validate learning effectiveness through assessment</li>
+            </ul>
+
+            <h3>⚖️ Compliance Assurance</h3>
+            <ul>
+                <li><strong>Documentation:</strong> Maintain comprehensive records for audit purposes</li>
+                <li><strong>Validation Standards:</strong> Apply consistent validation criteria across all users</li>
+                <li><strong>Remediation Tracking:</strong> Document all educational interventions</li>
+                <li><strong>Regular Review:</strong> Periodically review and update assessment criteria</li>
+                <li><strong>Quality Assurance:</strong> Implement quality checks for assessment content</li>
+            </ul>
+
+            <div class="alert success">
+                <strong>🎯 Success Metrics:</strong>
+                <ul>
+                    <li>Assessment Completion Rate: > 95%</li>
+                    <li>User Engagement Score: > 85%</li>
+                    <li>Comprehension Validation Accuracy: > 90%</li>
+                    <li>Learning Path Effectiveness: > 80%</li>
+                    <li>Regulatory Compliance Rate: 100%</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="section">
+            <h2>📞 Support & Resources</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">📖</div>
+                    <h4>Documentation</h4>
+                    <p>Complete API documentation and assessment guides</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🎓</div>
+                    <h4>Educational Content</h4>
+                    <p>Learning modules and educational resource development</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">🔬</div>
+                    <h4>Research & Analytics</h4>
+                    <p>Learning analytics and assessment effectiveness research</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">⚖️</div>
+                    <h4>Compliance Support</h4>
+                    <p>Regulatory compliance guidance and audit support</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy functionality to code blocks
+        document.querySelectorAll('.code-block').forEach(block => {
+            block.addEventListener('click', function() {
+                navigator.clipboard.writeText(this.textContent);
+                
+                // Visual feedback
+                const original = this.style.backgroundColor;
+                this.style.backgroundColor = '#10b981';
+                setTimeout(() => {
+                    this.style.backgroundColor = original;
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
