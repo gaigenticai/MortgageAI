@@ -15,7 +15,7 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY backend/package*.json ./
 
 # Install dependencies
 RUN npm install --only=production && npm cache clean --force
@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3000/health || exit 1
 
 # Start the application
-CMD ["npm", "start"]
+CMD ["node", "backend/api/server.js"]

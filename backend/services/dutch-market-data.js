@@ -106,23 +106,14 @@ class AFMRegulationManager {
 
       // Create AFM regulations table if it doesn't exist
       await dbClient.query(`
-        CREATE TABLE IF NOT EXISTS afm_regulations (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          regulation_code VARCHAR(50) UNIQUE NOT NULL,
-          title VARCHAR(500) NOT NULL,
-          content TEXT NOT NULL,
-          category VARCHAR(100),
-          effective_date DATE NOT NULL,
-          expiry_date DATE,
-          source_url VARCHAR(1000),
-          is_active BOOLEAN DEFAULT true,
-          last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
+        -- AFM regulations table should already exist from schema.sql
+        -- Skip table creation to avoid conflicts
 
+        -- Most indexes should already exist from schema.sql
+        -- Only create any missing ones
         CREATE INDEX IF NOT EXISTS idx_afm_regulations_code ON afm_regulations(regulation_code);
         CREATE INDEX IF NOT EXISTS idx_afm_regulations_active ON afm_regulations(is_active) WHERE is_active = true;
-        CREATE INDEX IF NOT EXISTS idx_afm_regulations_category ON afm_regulations(category);
+        CREATE INDEX IF NOT EXISTS idx_afm_regulations_regulation_type ON afm_regulations(regulation_type);
       `);
 
       // Fetch initial regulations from AFM API
@@ -167,26 +158,23 @@ class AFMRegulationManager {
       for (const reg of regulations) {
         await dbClient.query(`
           INSERT INTO afm_regulations (
-            regulation_code, title, content, category,
-            effective_date, expiry_date, source_url, last_updated
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
+            regulation_code, title_nl, content_nl, regulation_type,
+            effective_date, last_updated
+          ) VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
           ON CONFLICT (regulation_code)
           DO UPDATE SET
-            title = EXCLUDED.title,
-            content = EXCLUDED.content,
-            category = EXCLUDED.category,
+            title_nl = EXCLUDED.title_nl,
+            content_nl = EXCLUDED.content_nl,
+            regulation_type = EXCLUDED.regulation_type,
             effective_date = EXCLUDED.effective_date,
-            expiry_date = EXCLUDED.expiry_date,
             source_url = EXCLUDED.source_url,
             last_updated = CURRENT_TIMESTAMP
         `, [
           reg.code,
           reg.title,
           reg.content,
-          reg.category,
-          reg.effective_date,
-          reg.expiry_date,
-          reg.source_url
+          reg.category || 'disclosure',
+          reg.effective_date
         ]);
       }
 
@@ -244,18 +232,18 @@ class AFMRegulationManager {
 
       for (const regulation of defaultRegulations) {
         await dbClient.query(`
-          INSERT INTO afm_regulations (regulation_code, title, content, category, effective_date, is_active)
+          INSERT INTO afm_regulations (regulation_code, title_nl, content_nl, regulation_type, effective_date, is_active)
           VALUES ($1, $2, $3, $4, $5, true)
           ON CONFLICT (regulation_code) DO UPDATE SET
-            title = EXCLUDED.title,
-            content = EXCLUDED.content,
-            category = EXCLUDED.category,
+            title_nl = EXCLUDED.title_nl,
+            content_nl = EXCLUDED.content_nl,
+            regulation_type = EXCLUDED.regulation_type,
             last_updated = NOW()
         `, [
           regulation.regulation_code,
           regulation.title,
           regulation.content,
-          regulation.category,
+          regulation.category || 'disclosure',
           regulation.effective_date
         ]);
       }
@@ -275,7 +263,7 @@ class AFMRegulationManager {
   async cacheActiveRegulations() {
     try {
       const result = await dbClient.query(`
-        SELECT regulation_code, title, content, category, effective_date
+        SELECT regulation_code, title_nl as title, content_nl as content, regulation_type as category, effective_date
         FROM afm_regulations
         WHERE is_active = true
         ORDER BY last_updated DESC

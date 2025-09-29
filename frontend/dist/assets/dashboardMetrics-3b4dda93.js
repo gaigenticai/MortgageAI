@@ -1,1 +1,0 @@
-const s=94.2,e=12,i=3,t=8,_=87.5,o=45,c={afm_compliance_score:94.2,active_sessions:12,pending_reviews:3,applications_processed_today:8,first_time_right_rate:87.5,avg_processing_time_minutes:45};export{e as active_sessions,s as afm_compliance_score,t as applications_processed_today,o as avg_processing_time_minutes,c as default,_ as first_time_right_rate,i as pending_reviews};

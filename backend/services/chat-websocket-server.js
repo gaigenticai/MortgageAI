@@ -20,7 +20,32 @@ const { v4: uuidv4 } = require('uuid');
 const { Client } = require('pg');
 const Redis = require('redis');
 const jwt = require('jsonwebtoken');
-const rateLimit = require('ws-rate-limit');
+// Simple rate limiter implementation
+class SimpleRateLimiter {
+    constructor(limit = 5, window = 10000) {
+        this.limit = limit;
+        this.window = window;
+        this.clients = new Map();
+    }
+
+    isAllowed(clientId) {
+        const now = Date.now();
+        const clientData = this.clients.get(clientId) || { count: 0, resetTime: now + this.window };
+        
+        if (now > clientData.resetTime) {
+            clientData.count = 0;
+            clientData.resetTime = now + this.window;
+        }
+        
+        if (clientData.count >= this.limit) {
+            return false;
+        }
+        
+        clientData.count++;
+        this.clients.set(clientId, clientData);
+        return true;
+    }
+}
 const axios = require('axios');
 
 class MortgageAdvisorChatServer {
@@ -28,7 +53,7 @@ class MortgageAdvisorChatServer {
         this.port = process.env.CHAT_WEBSOCKET_PORT || 8005;
         this.clients = new Map();
         this.conversations = new Map();
-        this.rateLimiter = rateLimit('5 per 10s'); // 5 messages per 10 seconds per client
+        this.rateLimiter = new SimpleRateLimiter(5, 10000); // 5 messages per 10 seconds per client
         
         // Database configuration
         this.dbConfig = {
@@ -115,7 +140,10 @@ class MortgageAdvisorChatServer {
         const userId = req.user?.userId || 'anonymous';
         
         // Apply rate limiting
-        this.rateLimiter(ws);
+        if (!this.rateLimiter.isAllowed(clientId)) {
+            ws.close(1008, 'Rate limit exceeded');
+            return;
+        }
 
         // Store client information
         const clientInfo = {

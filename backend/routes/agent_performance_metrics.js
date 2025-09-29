@@ -171,9 +171,9 @@ async function agentPerformanceMetricsRoutes(fastify, options) {
     });
   }
 
-  // ============================================================================
+  // Performance Metrics Configuration
   // METRICS COLLECTION ENDPOINTS
-  // ============================================================================
+  // Performance Metrics Configuration
 
   /**
    * Collect performance metrics for a specific agent
@@ -350,9 +350,9 @@ async function agentPerformanceMetricsRoutes(fastify, options) {
     }
   });
 
-  // ============================================================================
+  // Performance Metrics Configuration
   // PERFORMANCE ANALYSIS ENDPOINTS
-  // ============================================================================
+  // Performance Metrics Configuration
 
   /**
    * Analyze agent performance with detailed insights and recommendations
@@ -512,9 +512,9 @@ async function agentPerformanceMetricsRoutes(fastify, options) {
     }
   });
 
-  // ============================================================================
+  // Performance Metrics Configuration
   // DASHBOARD GENERATION ENDPOINTS
-  // ============================================================================
+  // Performance Metrics Configuration
 
   /**
    * Generate comprehensive performance dashboard
@@ -669,9 +669,9 @@ async function agentPerformanceMetricsRoutes(fastify, options) {
     }
   });
 
-  // ============================================================================
+  // Performance Metrics Configuration
   // OPTIMIZATION RECOMMENDATIONS ENDPOINTS
-  // ============================================================================
+  // Performance Metrics Configuration
 
   /**
    * Get optimization recommendations for an agent
@@ -828,9 +828,9 @@ async function agentPerformanceMetricsRoutes(fastify, options) {
     }
   });
 
-  // ============================================================================
+  // Performance Metrics Configuration
   // MONITORING AND ALERTING ENDPOINTS
-  // ============================================================================
+  // Performance Metrics Configuration
 
   /**
    * Get performance alerts and notifications
@@ -1056,9 +1056,9 @@ async function agentPerformanceMetricsRoutes(fastify, options) {
     }
   });
 
-  // ============================================================================
+  // Performance Metrics Configuration
   // EXPORT AND REPORTING ENDPOINTS
-  // ============================================================================
+  // Performance Metrics Configuration
 
   /**
    * Export performance data and reports

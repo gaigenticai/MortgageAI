@@ -50,7 +50,6 @@ import {
   Code,
   List,
   Timeline,
-  Spotlight,
   Kbd
 } from '@mantine/core';
 import {
@@ -93,10 +92,11 @@ import { spotlight } from '@mantine/spotlight';
 import { useDemoMode } from '../contexts/DemoModeContext';
 import { useClient } from '../contexts/ClientContext';
 import { useDisclosure, useLocalStorage, useViewportSize } from '@mantine/hooks';
+import ConnectionStatus from '../components/ConnectionStatus';
 
 // TypeScript interfaces for type safety
 interface ChatMessage {
-  type: 'user_message' | 'ai_message' | 'system_message' | 'compliance_alert' | 'typing_indicator';
+  type: 'user_message' | 'ai_message' | 'system_message' | 'compliance_alert' | 'typing_indicator' | 'error' | 'context_update' | 'feedback';
   messageId: string;
   conversationId: string;
   content: {
@@ -113,6 +113,7 @@ interface ChatMessage {
     issues?: string[];
     recommendations?: string[];
     regulatoryReference?: string;
+    messageId?: string;
   };
   timestamp: string;
   metadata?: {
@@ -123,6 +124,7 @@ interface ChatMessage {
     escalationRequired?: boolean;
     regulatoryFlags?: string[];
     error?: boolean;
+    files?: any[];
   };
   sender?: 'user' | 'ai' | 'system';
   status?: 'sending' | 'sent' | 'delivered' | 'read' | 'failed';

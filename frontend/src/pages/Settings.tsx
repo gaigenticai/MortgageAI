@@ -59,6 +59,7 @@ import {
 } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { useNavigate } from 'react-router-dom';
+import ConnectionStatus from '../components/ConnectionStatus';
 
 interface SettingsData {
   user: {
@@ -116,6 +117,25 @@ const Settings: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
 
+  // API Keys state
+  const [apiKeys, setApiKeys] = useState({
+    openai: localStorage.getItem('openai_api_key') || '',
+    ocr: localStorage.getItem('ocr_api_key') || '',
+    anthropic: localStorage.getItem('anthropic_api_key') || ''
+  });
+  
+  const [apiKeyVisibility, setApiKeyVisibility] = useState({
+    openai: false,
+    ocr: false,
+    anthropic: false
+  });
+  
+  const [apiKeyValidation, setApiKeyValidation] = useState({
+    openai: { isValid: false, message: '', testing: false },
+    ocr: { isValid: false, message: '', testing: false },
+    anthropic: { isValid: false, message: '', testing: false }
+  });
+
   const [settings, setSettings] = useState<SettingsData>({
     user: {
       name: 'John Doe',
@@ -151,7 +171,7 @@ const Settings: React.FC = () => {
       debug_mode: false,
     },
     api: {
-      base_url: 'http://localhost:8000',
+      base_url: 'http://localhost:3000',
       timeout: 30,
       retry_attempts: 3,
       rate_limit: 100,
@@ -174,6 +194,215 @@ const Settings: React.FC = () => {
         [key]: value,
       },
     }));
+  };
+
+  // Enhanced API Key validation using production-grade settings API
+  const validateApiKeyWithProductionAPI = async (provider: string, apiKey: string) => {
+    if (!apiKey.trim()) {
+      return {
+        isValid: false,
+        message: 'API key cannot be empty',
+        error: 'EMPTY_KEY'
+      };
+    }
+
+    setApiKeyValidation(prev => ({
+      ...prev,
+      [provider as keyof typeof prev]: { ...prev[provider as keyof typeof prev], testing: true }
+    }));
+
+    try {
+      const response = await fetch(`${settings.api.base_url}/api/settings/validate-api-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider,
+          api_key: apiKey
+        })
+      });
+
+      const result = await response.json();
+      
+      const validation = {
+        isValid: result.success && result.validation?.is_valid,
+        message: result.validation?.message || result.error || 'Unknown error',
+        error: result.validation?.error,
+        capabilities: result.capabilities,
+        responseTime: result.validation?.response_time_ms,
+        fromCache: result.validation?.from_cache,
+        suggestion: result.validation?.suggestion,
+        warning: result.validation?.warning,
+        formatValid: result.validation?.formatValid,
+        testing: false
+      };
+
+      setApiKeyValidation(prev => ({
+        ...prev,
+        [provider as keyof typeof prev]: validation
+      }));
+
+      return validation;
+    } catch (error: any) {
+      const validation = {
+        isValid: false,
+        message: `Connection failed: ${error?.message || 'Unknown error'}`,
+        error: 'NETWORK_ERROR',
+        testing: false
+      };
+
+      setApiKeyValidation(prev => ({
+        ...prev,
+        [provider as keyof typeof prev]: validation
+      }));
+
+      return validation;
+    }
+  };
+
+  // Diagnostic function to help troubleshoot API key issues
+  const diagnoseApiKey = async (provider: string, apiKey: string) => {
+    if (!apiKey.trim()) {
+      notifications.show({
+        title: 'No API Key to Diagnose',
+        message: 'Please enter an API key first',
+        color: 'orange',
+        icon: <IconAlertTriangle size={16} />
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(`${settings.api.base_url}/api/settings/diagnose-api-key`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          provider,
+          api_key: apiKey
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        const diagnostic = result.diagnostic;
+        
+        // Show diagnostic in a detailed notification
+        const diagnosticInfo = [
+          `Length: ${diagnostic.api_key_info.length} characters`,
+          `Format: ${diagnostic.api_key_info.format_check.message}`,
+          ...diagnostic.validation_recommendations.map((rec: any) => `• ${rec.message}`)
+        ].join('\n');
+        
+        notifications.show({
+          title: `${diagnostic.provider.name} API Key Diagnostic`,
+          message: diagnosticInfo,
+          color: diagnostic.api_key_info.format_check.isValid ? 'blue' : 'orange',
+          icon: <IconInfoCircle size={16} />,
+          autoClose: false // Keep open so user can read
+        });
+        
+        // Update validation state with diagnostic info
+        setApiKeyValidation(prev => ({
+          ...prev,
+          [provider as keyof typeof prev]: {
+            ...prev[provider as keyof typeof prev],
+            message: diagnostic.api_key_info.format_check.message,
+            isValid: diagnostic.api_key_info.format_check.isValid,
+            diagnostic: diagnostic
+          }
+        }));
+      } else {
+        notifications.show({
+          title: 'Diagnostic Failed',
+          message: result.message || 'Unable to diagnose API key',
+          color: 'red',
+          icon: <IconAlertTriangle size={16} />
+        });
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Diagnostic Error',
+        message: `Failed to diagnose API key: ${error?.message || 'Unknown error'}`,
+        color: 'red',
+        icon: <IconAlertTriangle size={16} />
+      });
+    }
+  };
+
+  // Test all API keys in batch
+  const validateAllApiKeys = async () => {
+    setLoading(true);
+    
+    try {
+      const validations = Object.entries(apiKeys)
+        .filter(([_, key]) => key.trim())
+        .map(([provider, api_key]) => ({ provider, api_key }));
+
+      if (validations.length === 0) {
+        notifications.show({
+          title: 'No API Keys to Validate',
+          message: 'Please enter at least one API key to validate',
+          color: 'yellow',
+          icon: <IconInfoCircle size={16} />
+        });
+        return;
+      }
+
+      const response = await fetch(`${settings.api.base_url}/api/settings/validate-api-keys-batch`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ validations })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update individual validation results
+        result.batch_results.forEach((batchResult: any) => {
+          const provider = batchResult.provider;
+          setApiKeyValidation(prev => ({
+            ...prev,
+            [provider as keyof typeof prev]: {
+              isValid: batchResult.success,
+              message: batchResult.message,
+              error: batchResult.error,
+              capabilities: batchResult.capabilities,
+              fromCache: batchResult.from_cache,
+              testing: false
+            }
+          }));
+        });
+
+        notifications.show({
+          title: 'Batch Validation Complete',
+          message: `${result.summary.successful}/${result.summary.total} API keys are valid`,
+          color: result.summary.successful === result.summary.total ? 'green' : 'yellow',
+          icon: <IconCheck size={16} />
+        });
+      } else {
+        notifications.show({
+          title: 'Batch Validation Failed',
+          message: result.error || 'Unknown error occurred',
+          color: 'red',
+          icon: <IconAlertTriangle size={16} />
+        });
+      }
+    } catch (error: any) {
+      notifications.show({
+        title: 'Validation Error',
+        message: `Failed to validate API keys: ${error?.message || 'Unknown error'}`,
+        color: 'red',
+        icon: <IconAlertTriangle size={16} />
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveSettings = async () => {
@@ -206,6 +435,58 @@ const Settings: React.FC = () => {
       message: 'Settings have been reset to defaults',
       color: 'blue',
       icon: <IconRefresh size={16} />,
+    });
+  };
+
+  const handleApiKeyChange = (provider: string, value: string) => {
+    setApiKeys(prev => ({ ...prev, [provider]: value }));
+    localStorage.setItem(`${provider}_api_key`, value);
+    
+    // Reset validation when key changes
+    setApiKeyValidation(prev => ({
+      ...prev,
+      [provider]: { isValid: false, message: '', testing: false }
+    }));
+    
+    // Show save confirmation for non-empty keys
+    if (value.trim()) {
+      notifications.show({
+        title: 'API Key Saved',
+        message: `${provider.toUpperCase()} API key saved to local storage`,
+        color: 'green',
+        icon: <IconDeviceFloppy size={16} />,
+        autoClose: 2000
+      });
+    }
+  };
+
+  const toggleApiKeyVisibility = (provider: string) => {
+    setApiKeyVisibility(prev => ({
+      ...prev,
+      [provider]: !prev[provider as keyof typeof prev]
+    }));
+  };
+
+  const validateApiKey = async (provider: string) => {
+    const apiKey = apiKeys[provider as keyof typeof apiKeys];
+    if (!apiKey) {
+      notifications.show({
+        title: 'No API Key',
+        message: 'Please enter an API key first',
+        color: 'orange',
+        icon: <IconAlertTriangle size={16} />
+      });
+      return;
+    }
+
+    // Use the new production-grade validation
+    const result = await validateApiKeyWithProductionAPI(provider, apiKey);
+    
+    notifications.show({
+      title: result.isValid ? 'API Key Valid' : 'API Key Invalid',
+      message: result.message,
+      color: result.isValid ? 'green' : 'red',
+      icon: result.isValid ? <IconCheck size={16} /> : <IconAlertTriangle size={16} />
     });
   };
 
@@ -269,7 +550,7 @@ const Settings: React.FC = () => {
               System
             </Tabs.Tab>
             <Tabs.Tab value="api" leftSection={<IconApi size={16} />}>
-              API Settings
+              API & Services
             </Tabs.Tab>
             <Tabs.Tab value="theme" leftSection={<IconPalette size={16} />}>
               Appearance
@@ -590,62 +871,236 @@ const Settings: React.FC = () => {
 
           {/* API Settings Tab */}
           <Tabs.Panel value="api" pt="xl">
-            <Card radius={0} shadow="sm" padding="lg">
-              <Title order={3} mb="md">API Configuration</Title>
+            <Stack gap="lg">
+              {/* Connection Status */}
+              <ConnectionStatus />
               
-              <Grid>
-                <Grid.Col span={12}>
-                  <TextInput
-                    label="API Base URL"
-                    description="Base URL for API requests"
-                    value={settings.api.base_url}
-                    onChange={(e) => updateSetting('api', 'base_url', e.target.value)}
-                    radius={0}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <NumberInput
-                    label="Request Timeout (seconds)"
-                    description="Maximum time to wait for API responses"
-                    value={settings.api.timeout}
-                    onChange={(value) => updateSetting('api', 'timeout', value)}
-                    min={5}
-                    max={300}
-                    radius={0}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <NumberInput
-                    label="Retry Attempts"
-                    description="Number of times to retry failed requests"
-                    value={settings.api.retry_attempts}
-                    onChange={(value) => updateSetting('api', 'retry_attempts', value)}
-                    min={0}
-                    max={10}
-                    radius={0}
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 6 }}>
-                  <NumberInput
-                    label="Rate Limit (requests/minute)"
-                    description="Maximum API requests per minute"
-                    value={settings.api.rate_limit}
-                    onChange={(value) => updateSetting('api', 'rate_limit', value)}
-                    min={10}
-                    max={1000}
-                    radius={0}
-                  />
-                </Grid.Col>
-                <Grid.Col span={12}>
-                  <Switch
-                    label="Enable Caching"
-                    description="Cache API responses to improve performance"
-                    checked={settings.api.cache_enabled}
-                    onChange={(e) => updateSetting('api', 'cache_enabled', e.target.checked)}
-                  />
-                </Grid.Col>
-        </Grid>
-            </Card>
+              {/* API Keys Management */}
+              <Card radius={0} shadow="sm" padding="lg">
+                <Group justify="space-between" mb="md">
+                  <div>
+                    <Title order={3}>API Keys Management</Title>
+                    <Text size="sm" c="dimmed">
+                      Configure your API keys for AI services and document processing. Keys are saved automatically to your browser's local storage.
+                    </Text>
+                  </div>
+                  <Badge color="green" variant="light" size="lg">
+                    Auto-Save Enabled
+                  </Badge>
+                </Group>
+                
+                <Stack gap="lg">
+                  {/* OpenAI API Key */}
+                  <div>
+                    <Text fw={500} mb="xs">OpenAI API Key</Text>
+                    <Text size="xs" c="dimmed" mb="sm">
+                      Required for AI-powered mortgage advice and document analysis
+                    </Text>
+                    <Group align="end">
+                      <PasswordInput
+                        style={{ flex: 1 }}
+                        placeholder="sk-..."
+                        value={apiKeys.openai}
+                        onChange={(e) => handleApiKeyChange('openai', e.target.value)}
+                        visible={apiKeyVisibility.openai}
+                        onVisibilityChange={() => toggleApiKeyVisibility('openai')}
+                        radius={0}
+                        rightSection={
+                          apiKeyValidation.openai.isValid && (
+                            <IconCheck size={16} color="green" />
+                          )
+                        }
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => diagnoseApiKey('openai', apiKeys.openai)}
+                        disabled={!apiKeys.openai}
+                        radius={0}
+                        size="compact-md"
+                      >
+                        Diagnose
+                      </Button>
+                      <Button
+                        onClick={() => validateApiKey('openai')}
+                        loading={apiKeyValidation.openai.testing}
+                        disabled={!apiKeys.openai}
+                        radius={0}
+                      >
+                        Test
+                      </Button>
+                    </Group>
+                    {apiKeyValidation.openai.message && (
+                      <Text size="xs" c={apiKeyValidation.openai.isValid ? 'green' : 'red'} mt="xs">
+                        {apiKeyValidation.openai.message}
+                      </Text>
+                    )}
+                  </div>
+
+                  {/* OCR API Key */}
+                  <div>
+                    <Text fw={500} mb="xs">OCR API Key</Text>
+                    <Text size="xs" c="dimmed" mb="sm">
+                      Required for document text extraction and processing
+                    </Text>
+                    <Group align="end">
+                      <PasswordInput
+                        style={{ flex: 1 }}
+                        placeholder="K..."
+                        value={apiKeys.ocr}
+                        onChange={(e) => handleApiKeyChange('ocr', e.target.value)}
+                        visible={apiKeyVisibility.ocr}
+                        onVisibilityChange={() => toggleApiKeyVisibility('ocr')}
+                        radius={0}
+                        rightSection={
+                          apiKeyValidation.ocr.isValid && (
+                            <IconCheck size={16} color="green" />
+                          )
+                        }
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => diagnoseApiKey('ocr', apiKeys.ocr)}
+                        disabled={!apiKeys.ocr}
+                        radius={0}
+                        size="compact-md"
+                      >
+                        Diagnose
+                      </Button>
+                      <Button
+                        onClick={() => validateApiKey('ocr')}
+                        loading={apiKeyValidation.ocr.testing}
+                        disabled={!apiKeys.ocr}
+                        radius={0}
+                      >
+                        Test
+                      </Button>
+                    </Group>
+                    {apiKeyValidation.ocr.message && (
+                      <Text size="xs" c={apiKeyValidation.ocr.isValid ? 'green' : 'red'} mt="xs">
+                        {apiKeyValidation.ocr.message}
+                      </Text>
+                    )}
+                  </div>
+
+                  {/* Anthropic API Key */}
+                  <div>
+                    <Text fw={500} mb="xs">Anthropic API Key (Optional)</Text>
+                    <Text size="xs" c="dimmed" mb="sm">
+                      Alternative AI service for enhanced analysis capabilities
+                    </Text>
+                    <Group align="end">
+                      <PasswordInput
+                        style={{ flex: 1 }}
+                        placeholder="sk-ant-..."
+                        value={apiKeys.anthropic}
+                        onChange={(e) => handleApiKeyChange('anthropic', e.target.value)}
+                        visible={apiKeyVisibility.anthropic}
+                        onVisibilityChange={() => toggleApiKeyVisibility('anthropic')}
+                        radius={0}
+                        rightSection={
+                          apiKeyValidation.anthropic.isValid && (
+                            <IconCheck size={16} color="green" />
+                          )
+                        }
+                      />
+                      <Button
+                        onClick={() => validateApiKey('anthropic')}
+                        loading={apiKeyValidation.anthropic.testing}
+                        disabled={!apiKeys.anthropic}
+                        radius={0}
+                      >
+                        Test
+                      </Button>
+                    </Group>
+                    {apiKeyValidation.anthropic.message && (
+                      <Text size="xs" c={apiKeyValidation.anthropic.isValid ? 'green' : 'red'} mt="xs">
+                        {apiKeyValidation.anthropic.message}
+                      </Text>
+                    )}
+                  </div>
+
+                  <Alert icon={<IconInfoCircle size={16} />} color="blue" radius={0}>
+                    <Text size="sm">
+                      <strong>API Key Security:</strong> Your API keys are stored locally in your browser and never sent to our servers. 
+                      They are only used to authenticate with the respective AI services.
+                    </Text>
+                  </Alert>
+                  
+                  {/* Batch Validation */}
+                  <Group justify="center" mt="lg">
+                    <Button
+                      size="lg"
+                      variant="filled"
+                      onClick={validateAllApiKeys}
+                      loading={loading}
+                      leftSection={<IconCheck size={20} />}
+                      radius={0}
+                      disabled={!apiKeys.openai && !apiKeys.ocr && !apiKeys.anthropic}
+                    >
+                      Validate All API Keys
+                    </Button>
+                  </Group>
+                </Stack>
+              </Card>
+
+              {/* API Configuration */}
+              <Card radius={0} shadow="sm" padding="lg">
+                <Title order={3} mb="md">API Configuration</Title>
+                
+                <Grid>
+                  <Grid.Col span={12}>
+                    <TextInput
+                      label="API Base URL"
+                      description="Base URL for API requests"
+                      value={settings.api.base_url}
+                      onChange={(e) => updateSetting('api', 'base_url', e.target.value)}
+                      radius={0}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <NumberInput
+                      label="Request Timeout (seconds)"
+                      description="Maximum time to wait for API responses"
+                      value={settings.api.timeout}
+                      onChange={(value) => updateSetting('api', 'timeout', value)}
+                      min={5}
+                      max={300}
+                      radius={0}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <NumberInput
+                      label="Retry Attempts"
+                      description="Number of times to retry failed requests"
+                      value={settings.api.retry_attempts}
+                      onChange={(value) => updateSetting('api', 'retry_attempts', value)}
+                      min={0}
+                      max={10}
+                      radius={0}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <NumberInput
+                      label="Rate Limit (requests/minute)"
+                      description="Maximum API requests per minute"
+                      value={settings.api.rate_limit}
+                      onChange={(value) => updateSetting('api', 'rate_limit', value)}
+                      min={10}
+                      max={1000}
+                      radius={0}
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={12}>
+                    <Switch
+                      label="Enable Caching"
+                      description="Cache API responses to improve performance"
+                      checked={settings.api.cache_enabled}
+                      onChange={(e) => updateSetting('api', 'cache_enabled', e.target.checked)}
+                    />
+                  </Grid.Col>
+                </Grid>
+              </Card>
+            </Stack>
           </Tabs.Panel>
 
           {/* Theme Tab */}

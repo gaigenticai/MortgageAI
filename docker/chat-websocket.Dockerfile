@@ -42,9 +42,7 @@ const server = http.createServer((req, res) => { \
 server.listen(8005, () => console.log("Health check server running on port 8005"));' > health-server.js
 
 # Create startup script
-RUN echo '#!/bin/sh \
-node health-server.js & \
-node chat-websocket-server.js' > start.sh && chmod +x start.sh
+RUN printf '#!/bin/sh\nnode /app/health-server.js &\nnode /app/chat-websocket-server.js\n' > start.sh && chmod +x start.sh
 
 # Set user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -61,6 +59,6 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8005/health || exit 1
 
 # Start the service
-CMD ["./start.sh"]
+CMD ["/app/start.sh"]
 
 

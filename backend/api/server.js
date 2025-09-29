@@ -50,6 +50,9 @@ fastify.register(require('@fastify/static'), {
   prefix: '/uploads/'
 });
 
+// Register authentication plugin
+fastify.register(require('@fastify/auth'));
+
 // Register HTTP proxy for AFM compliance agent
 fastify.register(require('@fastify/http-proxy'), {
   upstream: process.env.AGENTS_API_URL || 'http://ai-agents:8000',
@@ -77,7 +80,7 @@ const advancedAnalyticsDashboardRoutes = require('../routes/advanced_analytics_d
 const anomalyDetectionInterfaceRoutes = require('../routes/anomaly_detection_interface');
 const advancedFieldValidationRoutes = require('../routes/advanced_field_validation');
 const agentPerformanceMetricsRoutes = require('../routes/agent_performance_metrics');
-const dutchMarketIntelligenceRoutes = require('../routes/dutch_market_intelligence');
+// const dutchMarketIntelligenceRoutes = require('../routes/dutch_market_intelligence'); // Temporarily disabled due to Python dependency
 
 // Register routes
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -121,7 +124,7 @@ fastify.register(advancedFieldValidationRoutes, { prefix: '/api/field-validation
 fastify.register(agentPerformanceMetricsRoutes, { prefix: '/api/performance' });
 
 // Register Dutch market intelligence routes
-fastify.register(dutchMarketIntelligenceRoutes, { prefix: '/api/intelligence' });
+// fastify.register(dutchMarketIntelligenceRoutes, { prefix: '/api/intelligence' }); // Temporarily disabled
 
 // Authentication middleware (when REQUIRE_AUTH=true)
 if (process.env.REQUIRE_AUTH === 'true') {
@@ -131,6 +134,24 @@ if (process.env.REQUIRE_AUTH === 'true') {
     } catch (err) {
       reply.send(err);
     }
+  });
+
+  // Add verifyToken decorator for compatibility with routes
+  fastify.decorate('verifyToken', async function(request, reply) {
+    try {
+      await request.jwtVerify();
+    } catch (err) {
+      reply.send(err);
+    }
+  });
+} else {
+  // For non-auth mode, create no-op authentication
+  fastify.decorate('authenticate', async function(request, reply) {
+    // No-op for when auth is disabled
+  });
+
+  fastify.decorate('verifyToken', async function(request, reply) {
+    // No-op for when auth is disabled
   });
 }
 

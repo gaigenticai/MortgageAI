@@ -160,11 +160,8 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECU
 CREATE TRIGGER update_mortgage_applications_updated_at BEFORE UPDATE ON mortgage_applications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_regulations_updated_at BEFORE UPDATE ON regulations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- =============================================================================
--- PHASE 1: DUTCH AFM-COMPLIANT MORTGAGE ADVISORY PLATFORM TABLES
--- =============================================================================
-
--- Dutch AFM Regulations table (replaces generic regulations for AFM compliance)
+-- -- PHASE 1: DUTCH AFM-COMPLIANT MORTGAGE ADVISORY PLATFORM TABLES
+-- -- Dutch AFM Regulations table (replaces generic regulations for AFM compliance)
 CREATE TABLE IF NOT EXISTS afm_regulations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     regulation_code VARCHAR(50) UNIQUE NOT NULL, -- e.g., "Wft_86f", "BGfo_8_1"
@@ -328,11 +325,8 @@ CREATE INDEX IF NOT EXISTS idx_bkr_checks_checked_at ON bkr_checks(checked_at);
 CREATE INDEX IF NOT EXISTS idx_afm_compliance_logs_session ON afm_compliance_logs(session_id);
 CREATE INDEX IF NOT EXISTS idx_afm_compliance_logs_regulation ON afm_compliance_logs(regulation_id);
 
--- =============================================================================
--- PHASE 2: ADVANCED AGENT TABLES
--- =============================================================================
-
--- AFM Regulation Version Tracking
+-- -- PHASE 2: ADVANCED AGENT TABLES
+-- -- AFM Regulation Version Tracking
 CREATE TABLE IF NOT EXISTS afm_regulation_versions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     version_number VARCHAR(50) UNIQUE NOT NULL,
@@ -394,9 +388,9 @@ CREATE INDEX IF NOT EXISTS idx_afm_regulations_content_en_fts ON afm_regulations
 -- Triggers for updated_at timestamps on new tables
 CREATE TRIGGER update_afm_regulations_last_updated BEFORE UPDATE ON afm_regulations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- =====================================================
+-- ====
 -- AI MORTGAGE ADVISOR CHAT TABLES
--- =====================================================
+-- ====
 
 -- Chat conversations table for AI mortgage advisory sessions
 CREATE TABLE IF NOT EXISTS chat_conversations (
@@ -500,9 +494,9 @@ CREATE INDEX IF NOT EXISTS idx_chat_knowledge_base_answer_fts ON chat_knowledge_
 CREATE TRIGGER update_chat_conversations_updated_at BEFORE UPDATE ON chat_conversations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_chat_knowledge_base_updated_at BEFORE UPDATE ON chat_knowledge_base FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ============================================================================
+-- ======
 -- COMPUTER VISION DOCUMENT VERIFICATION TABLES
--- ============================================================================
+-- ======
 -- These tables support the advanced computer vision document verification system
 -- with forgery detection, signature analysis, tampering detection, and authenticity scoring
 
@@ -680,9 +674,9 @@ CREATE TABLE IF NOT EXISTS cv_performance_metrics (
     recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR COMPUTER VISION VERIFICATION TABLES
--- ============================================================================
+-- ======
 
 -- Primary lookup indexes
 CREATE INDEX IF NOT EXISTS idx_cv_verification_results_user_id ON cv_verification_results(user_id);
@@ -731,9 +725,9 @@ CREATE INDEX IF NOT EXISTS idx_cv_verification_results_filename_fts ON cv_verifi
 CREATE INDEX IF NOT EXISTS idx_cv_verification_results_tampering_evidence_gin ON cv_verification_results USING gin(tampering_evidence);
 CREATE INDEX IF NOT EXISTS idx_cv_verification_results_metadata_analysis_gin ON cv_verification_results USING gin(metadata_analysis);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR COMPUTER VISION VERIFICATION TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps
 CREATE TRIGGER update_cv_verification_results_updated_at 
@@ -752,9 +746,9 @@ CREATE TRIGGER update_cv_system_config_updated_at
     BEFORE UPDATE ON cv_system_config 
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ============================================================================
+-- ======
 -- DEFAULT SYSTEM CONFIGURATION FOR COMPUTER VISION VERIFICATION
--- ============================================================================
+-- ======
 
 -- Insert default configuration values
 INSERT INTO cv_system_config (config_key, config_value, config_type, config_description, config_category) VALUES
@@ -775,9 +769,9 @@ INSERT INTO cv_system_config (config_key, config_value, config_type, config_desc
     ('cv_temp_file_retention_hours', '24', 'integer', 'Hours to retain temporary files before cleanup', 'cleanup')
 ON CONFLICT (config_key) DO NOTHING;
 
--- ============================================================================
+-- ======
 -- COMPLIANCE NETWORK GRAPH VISUALIZATION TABLES
--- ============================================================================
+-- ======
 -- These tables support the compliance network graph visualization system
 -- with risk propagation analysis, relationship mapping, and regulatory impact assessment
 
@@ -1059,9 +1053,9 @@ CREATE TABLE IF NOT EXISTS compliance_network_metrics (
     recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR COMPLIANCE NETWORK GRAPH TABLES
--- ============================================================================
+-- ======
 
 -- Primary lookup indexes for nodes
 CREATE INDEX IF NOT EXISTS idx_compliance_network_nodes_user_id ON compliance_network_nodes(user_id);
@@ -1136,9 +1130,9 @@ CREATE INDEX IF NOT EXISTS idx_compliance_risk_propagation_affected_nodes_gin ON
 CREATE INDEX IF NOT EXISTS idx_compliance_network_analysis_recommendations_gin ON compliance_network_analysis USING gin(recommendations);
 CREATE INDEX IF NOT EXISTS idx_compliance_regulatory_simulations_changes_gin ON compliance_regulatory_simulations USING gin(regulatory_changes);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR COMPLIANCE NETWORK GRAPH TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps
 CREATE TRIGGER update_compliance_network_nodes_updated_at
@@ -1189,9 +1183,9 @@ CREATE TRIGGER update_network_stats_on_edges
     AFTER INSERT OR UPDATE OR DELETE ON compliance_network_edges
     FOR EACH ROW EXECUTE FUNCTION update_network_statistics();
 
--- ============================================================================
+-- ======
 -- AUTONOMOUS WORKFLOW MONITOR TABLES
--- ============================================================================
+-- ======
 -- These tables support the autonomous workflow monitoring system with real-time
 -- agent decision tracking, learning pattern analysis, and performance optimization
 
@@ -1572,9 +1566,9 @@ CREATE TABLE IF NOT EXISTS workflow_monitor_reports (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR AUTONOMOUS WORKFLOW MONITOR TABLES
--- ============================================================================
+-- ======
 
 -- Monitoring sessions indexes
 CREATE INDEX IF NOT EXISTS idx_workflow_monitoring_sessions_session_id ON workflow_monitoring_sessions(session_id);
@@ -1652,9 +1646,9 @@ CREATE INDEX IF NOT EXISTS idx_agent_decisions_output_data_gin ON agent_decision
 CREATE INDEX IF NOT EXISTS idx_learning_patterns_insights_gin ON learning_patterns USING gin(insights);
 CREATE INDEX IF NOT EXISTS idx_workflow_optimization_results_recommendations_gin ON workflow_optimization_results USING gin(implementation_recommendations);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR AUTONOMOUS WORKFLOW MONITOR TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps
 CREATE TRIGGER update_workflow_monitoring_sessions_updated_at
@@ -1807,9 +1801,9 @@ CREATE TRIGGER update_session_alerts_count_trigger
     AFTER INSERT OR DELETE ON performance_alerts
     FOR EACH ROW EXECUTE FUNCTION update_session_alerts_count();
 
--- ============================================================================
+-- ======
 -- ADVANCED ANALYTICS DASHBOARD TABLES
--- ============================================================================
+-- ======
 -- These tables support the advanced analytics dashboard system with Dutch market
 -- intelligence, predictive modeling, and comprehensive reporting capabilities
 
@@ -2224,9 +2218,9 @@ CREATE TABLE IF NOT EXISTS benchmark_comparisons (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR ADVANCED ANALYTICS DASHBOARD TABLES
--- ============================================================================
+-- ======
 
 -- Market data sources indexes
 CREATE INDEX IF NOT EXISTS idx_market_data_sources_source_id ON market_data_sources(source_id);
@@ -2306,9 +2300,9 @@ CREATE INDEX IF NOT EXISTS idx_market_insights_data_points_gin ON market_insight
 CREATE INDEX IF NOT EXISTS idx_market_insights_recommendations_gin ON market_insights USING gin(recommendations);
 CREATE INDEX IF NOT EXISTS idx_analytics_reports_visualizations_gin ON analytics_reports USING gin(visualizations);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR ADVANCED ANALYTICS DASHBOARD TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps
 CREATE TRIGGER update_market_data_sources_updated_at
@@ -2404,9 +2398,9 @@ CREATE TRIGGER update_report_interaction_stats_trigger
     BEFORE UPDATE ON analytics_reports
     FOR EACH ROW EXECUTE FUNCTION update_report_interaction_stats();
 
--- ============================================================================
+-- ======
 -- ANOMALY DETECTION INTERFACE TABLES
--- ============================================================================
+-- ======
 -- These tables support the anomaly detection interface system with real-time
 -- pattern recognition, alert management, and investigation tools
 
@@ -2716,9 +2710,9 @@ CREATE TABLE IF NOT EXISTS pattern_analysis_results (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR ANOMALY DETECTION INTERFACE TABLES
--- ============================================================================
+-- ======
 
 -- Anomaly detection records indexes
 CREATE INDEX IF NOT EXISTS idx_anomaly_detection_records_anomaly_id ON anomaly_detection_records(anomaly_id);
@@ -2793,9 +2787,9 @@ CREATE INDEX IF NOT EXISTS idx_investigation_sessions_findings_gin ON investigat
 CREATE INDEX IF NOT EXISTS idx_investigation_sessions_evidence_gin ON investigation_sessions USING gin(evidence_collected);
 CREATE INDEX IF NOT EXISTS idx_pattern_analysis_patterns_gin ON pattern_analysis_results USING gin(patterns_found);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR ANOMALY DETECTION INTERFACE TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps
 CREATE TRIGGER update_anomaly_detection_records_updated_at
@@ -2884,9 +2878,9 @@ CREATE TRIGGER update_false_positive_stats_trigger
     AFTER UPDATE ON anomaly_detection_records
     FOR EACH ROW EXECUTE FUNCTION update_false_positive_stats();
 
--- ============================================================================
+-- ======
 -- ADVANCED FIELD VALIDATION ENGINE TABLES
--- ============================================================================
+-- ======
 -- These tables support the advanced field validation system with real-time
 -- validation, error correction suggestions, and AFM compliance checking
 
@@ -3215,9 +3209,9 @@ CREATE TABLE IF NOT EXISTS afm_compliance_checks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR ADVANCED FIELD VALIDATION ENGINE TABLES
--- ============================================================================
+-- ======
 
 -- Field validation rules indexes
 CREATE INDEX IF NOT EXISTS idx_field_validation_rules_rule_id ON field_validation_rules(rule_id);
@@ -3308,9 +3302,9 @@ CREATE INDEX IF NOT EXISTS idx_validation_corrections_context_gin ON field_valid
 CREATE INDEX IF NOT EXISTS idx_afm_checks_requirements_gin ON afm_compliance_checks USING gin(required_documentation);
 CREATE INDEX IF NOT EXISTS idx_afm_checks_recommendations_gin ON afm_compliance_checks USING gin(recommendations);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR ADVANCED FIELD VALIDATION ENGINE TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps
 CREATE TRIGGER update_field_validation_rules_updated_at
@@ -3426,9 +3420,9 @@ CREATE TRIGGER track_correction_application_trigger
     BEFORE UPDATE ON field_validation_corrections
     FOR EACH ROW EXECUTE FUNCTION track_correction_application();
 
--- ============================================================================
+-- ======
 -- AGENT PERFORMANCE METRICS DASHBOARD TABLES
--- ============================================================================
+-- ======
 -- These tables support the Agent Performance Metrics Dashboard with comprehensive
 -- analytics, success rates tracking, and optimization recommendations
 
@@ -4169,9 +4163,9 @@ CREATE TABLE IF NOT EXISTS agent_user_interactions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR AGENT PERFORMANCE METRICS TABLES
--- ============================================================================
+-- ======
 
 -- Agent Performance Metrics indexes
 CREATE INDEX IF NOT EXISTS idx_agent_performance_metrics_agent_id ON agent_performance_metrics(agent_id);
@@ -4301,9 +4295,9 @@ CREATE INDEX IF NOT EXISTS idx_agent_user_interactions_interaction_time ON agent
 CREATE INDEX IF NOT EXISTS idx_agent_user_interactions_agent_time ON agent_user_interactions(agent_id, interaction_time DESC);
 CREATE INDEX IF NOT EXISTS idx_agent_user_interactions_satisfaction_category ON agent_user_interactions(satisfaction_category);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR AGENT PERFORMANCE METRICS TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamp triggers
 CREATE TRIGGER update_agent_performance_metrics_updated_at
@@ -4409,9 +4403,9 @@ CREATE TRIGGER update_implementation_progress_trigger
     FOR EACH ROW EXECUTE FUNCTION update_implementation_progress();
 
 
--- =============================================
+-- ===
 -- ADVANCED LENDER INTEGRATION MANAGER SCHEMA
--- =============================================
+-- ===
 
 -- Advanced Lender Integration Manager Tables
 CREATE TABLE IF NOT EXISTS lender_configurations (
@@ -4457,10 +4451,9 @@ CREATE TABLE IF NOT EXISTS lender_submissions_advanced (
     error_message TEXT,
     response_time_ms INTEGER,
     retry_count INTEGER DEFAULT 0,
-=======
--- ============================================================================
+-- ======
 -- DUTCH MARKET INTELLIGENCE INTERFACE TABLES
--- ============================================================================
+-- ======
 -- These tables support the Dutch Market Intelligence Interface with comprehensive
 -- real-time data feeds, trend analysis, and predictive insights
 
@@ -4760,9 +4753,9 @@ CREATE INDEX IF NOT EXISTS idx_lender_training_data_lender_name ON lender_traini
 CREATE INDEX IF NOT EXISTS idx_lender_api_logs_lender_name ON lender_api_logs(lender_name);
 CREATE INDEX IF NOT EXISTS idx_lender_api_logs_created_at ON lender_api_logs(created_at);
 
--- =============================================
+-- ===
 -- BKR/NHG INTEGRATION SCHEMA
--- =============================================
+-- ===
 
 -- BKR/NHG comprehensive checks table
 CREATE TABLE IF NOT EXISTS bkr_nhg_checks (
@@ -5045,9 +5038,9 @@ INSERT INTO nhg_limits_history (
     435000, 27000, 10000, 50000, 0.007, '2025-01-01', true
 ) ON CONFLICT DO NOTHING;
 
--- =============================================
+-- ===
 -- COMPREHENSIVE COMPLIANCE AUDIT TRAIL SCHEMA
--- =============================================
+-- ===
 
 -- Main compliance audit events table with immutable logging
 CREATE TABLE IF NOT EXISTS compliance_audit_events (
@@ -5105,7 +5098,6 @@ CREATE TABLE IF NOT EXISTS compliance_violations (
     compliance_officer_assigned VARCHAR(255),
     resolution_timestamp TIMESTAMP WITH TIME ZONE,
     resolution_details TEXT,
-=======
 -- Market Predictive Models - stores predictive model configurations and results
 CREATE TABLE IF NOT EXISTS market_predictive_models (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -5277,7 +5269,6 @@ CREATE TABLE IF NOT EXISTS compliance_investigations (
     stakeholders JSONB DEFAULT '[]',
     confidentiality_level VARCHAR(50) DEFAULT 'internal',
     tags JSONB DEFAULT '[]',
-=======
 -- Market Intelligence Reports - stores comprehensive market intelligence reports
 CREATE TABLE IF NOT EXISTS market_intelligence_reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -5465,7 +5456,6 @@ CREATE TABLE IF NOT EXISTS compliance_stakeholders (
     notification_preferences JSONB DEFAULT '{}',
     escalation_level INTEGER DEFAULT 1,
     is_active BOOLEAN DEFAULT true,
-=======
 -- Intelligence Task Executions - stores task execution history and results for market intelligence
 CREATE TABLE IF NOT EXISTS intelligence_task_executions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -5743,9 +5733,9 @@ CREATE TABLE IF NOT EXISTS market_data_quality_metrics (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- ============================================================================
+-- ======
 -- INDEXES FOR DUTCH MARKET INTELLIGENCE TABLES
--- ============================================================================
+-- ======
 
 -- Market Data Sources indexes
 CREATE INDEX IF NOT EXISTS idx_market_data_sources_source_id ON market_data_sources(source_id);
@@ -5815,9 +5805,9 @@ CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_overall_score ON mark
 CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_assessment_date ON market_data_quality_metrics(assessment_date);
 CREATE INDEX IF NOT EXISTS idx_market_data_quality_metrics_grade ON market_data_quality_metrics(quality_grade);
 
--- ============================================================================
+-- ======
 -- COMPOSITE INDEXES FOR PERFORMANCE OPTIMIZATION
--- ============================================================================
+-- ======
 
 -- Multi-column indexes for complex queries
 CREATE INDEX IF NOT EXISTS idx_market_data_collections_source_metric_time ON market_data_collections(source_id, metric_name, data_timestamp);
@@ -5825,9 +5815,9 @@ CREATE INDEX IF NOT EXISTS idx_market_trend_analyses_metric_type_confidence ON m
 CREATE INDEX IF NOT EXISTS idx_market_intelligence_insights_category_importance_risk ON market_intelligence_insights(insight_category, importance_score, risk_level);
 CREATE INDEX IF NOT EXISTS idx_intelligence_task_executions_type_status_started ON intelligence_task_executions(task_type, execution_status, started_at);
 
--- ============================================================================
+-- ======
 -- TRIGGERS FOR DUTCH MARKET INTELLIGENCE TABLES
--- ============================================================================
+-- ======
 
 -- Update timestamps trigger for market_data_sources
 CREATE OR REPLACE FUNCTION update_market_data_sources_updated_at()
@@ -5848,7 +5838,6 @@ CREATE OR REPLACE FUNCTION update_compliance_investigations_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_timestamp = CURRENT_TIMESTAMP;
-=======
 CREATE TRIGGER trigger_update_market_data_sources_updated_at
     BEFORE UPDATE ON market_data_sources
     FOR EACH ROW
@@ -6039,7 +6028,6 @@ BEGIN
         last_indexed = CURRENT_TIMESTAMP,
         index_version = compliance_search_index.index_version + 1;
     
-=======
 CREATE TRIGGER trigger_update_market_data_collections_updated_at
     BEFORE UPDATE ON market_data_collections
     FOR EACH ROW
@@ -6146,9 +6134,9 @@ GROUP BY ci.investigation_id, ci.title, ci.description, ci.investigation_type,
          ci.tags, ci.created_at, ci.updated_at
 ORDER BY ci.created_timestamp DESC;
 
--- =============================================
+-- ===
 -- ADVANCED RISK ASSESSMENT ENGINE SCHEMA
--- =============================================
+-- ===
 
 -- Advanced risk assessments table
 CREATE TABLE IF NOT EXISTS risk_assessments_advanced (
@@ -6481,7 +6469,6 @@ CREATE INDEX IF NOT EXISTS idx_risk_assessment_audit_timestamp ON risk_assessmen
 
 -- Triggers for automatic updates
 CREATE OR REPLACE FUNCTION update_risk_assessments_timestamp()
-=======
 CREATE TRIGGER trigger_update_market_intelligence_reports_updated_at
     BEFORE UPDATE ON market_intelligence_reports
     FOR EACH ROW
@@ -6689,9 +6676,9 @@ INSERT INTO risk_appetite_config (
 ('compliance_risk', 'compliance_score', 'limit', 0.95, 'Minimum compliance score requirement', CURRENT_TIMESTAMP, 'system')
 ON CONFLICT DO NOTHING;
 
--- =============================================
+-- ===
 -- DOCUMENT AUTHENTICITY CHECKER SCHEMA
--- =============================================
+-- ===
 
 -- Document verification results table
 CREATE TABLE IF NOT EXISTS document_authenticity_verifications (
@@ -7222,9 +7209,9 @@ INSERT INTO document_templates (
     'system'
 ) ON CONFLICT DO NOTHING;
 
--- =============================================
+-- ===
 -- NLP CONTENT ANALYZER SCHEMA
--- =============================================
+-- ===
 
 -- Main NLP content analysis table
 CREATE TABLE IF NOT EXISTS nlp_content_analysis (
@@ -7608,9 +7595,9 @@ INSERT INTO nlp_classification_rules (
     '\\b(werkloos|ontslagen|tijdelijk contract|zzp)\\b', 'regex', 'nl', 'system'
 ) ON CONFLICT DO NOTHING;
 
--- =============================================
+-- ===
 -- MORTGAGE ADVICE GENERATOR SCHEMA
--- =============================================
+-- ===
 
 -- Personalized mortgage advice table
 CREATE TABLE IF NOT EXISTS mortgage_advice_sessions (
@@ -8115,9 +8102,9 @@ INSERT INTO advice_templates (
     'system'
 ) ON CONFLICT DO NOTHING;
 
--- =============================================
+-- ===
 -- USER COMPREHENSION VALIDATOR SCHEMA
--- =============================================
+-- ===
 
 -- Assessment questions bank
 CREATE TABLE IF NOT EXISTS assessment_questions (
@@ -8323,9 +8310,9 @@ INSERT INTO assessment_questions (
     3, '["variable_rate", "payment_risk", "interest_impact"]', 'system'
 ) ON CONFLICT DO NOTHING;
 
--- =============================================
+-- ===
 -- DUTCH MARKET INTELLIGENCE SCHEMA
--- =============================================
+-- ===
 
 -- Market data points table
 CREATE TABLE IF NOT EXISTS market_data_points (
